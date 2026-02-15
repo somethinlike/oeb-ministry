@@ -1,6 +1,11 @@
 ---
 // BaseLayout wraps every page with consistent <head> metadata, global styles,
 // and the HTML structure. Individual pages slot their content into the <main>.
+
+// Import global styles through Astro's frontmatter so Vite processes and
+// bundles them in production. A raw <link> tag only works in dev mode.
+import "../styles/global.css";
+
 interface Props {
   title: string;
   description?: string;
@@ -21,8 +26,7 @@ const { title, description = "Create Devotional Bibles through verse-anchored an
     <!-- PWA manifest -->
     <link rel="manifest" href="/manifest.webmanifest" />
 
-    <!-- Global styles (Tailwind CSS v4) -->
-    <link rel="stylesheet" href="/src/styles/global.css" />
+    <!-- Global styles loaded via frontmatter import above -->
   </head>
   <body class="min-h-screen bg-white text-gray-900 antialiased">
     <main>
