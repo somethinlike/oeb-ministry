@@ -10,8 +10,10 @@
 const CACHE_NAME = "oeb-v1";
 const BIBLE_CACHE = "oeb-bibles-v1";
 
-// App shell files to pre-cache during install
-const PRECACHE_URLS = ["/", "/app/read"];
+// App shell files to pre-cache during install.
+// Only include static, public pages here — NOT auth-gated routes
+// (caching /app/read when unauthenticated would cache an error).
+const PRECACHE_URLS = ["/"];
 
 // ── Install: pre-cache the app shell ──
 self.addEventListener("install", (event) => {
@@ -43,6 +45,15 @@ self.addEventListener("fetch", (event) => {
 
   // Only handle GET requests (POST/PUT/DELETE go straight to network)
   if (event.request.method !== "GET") return;
+
+  // Never cache auth pages or the callback — these depend on
+  // fresh server state and caching them causes redirect loops.
+  if (url.pathname.startsWith("/auth/")) return;
+
+  // Don't cache server-rendered app pages during navigation.
+  // These depend on auth state and shouldn't be served from cache.
+  // (Static assets like JS/CSS bundles ARE cached via the fallthrough below.)
+  if (event.request.mode === "navigate" && url.pathname.startsWith("/app/")) return;
 
   // Bible text files — Cache-First (they never change)
   if (url.pathname.startsWith("/bibles/")) {

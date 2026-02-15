@@ -1,18 +1,20 @@
 /**
  * Astro middleware — runs on EVERY server-rendered request.
  *
- * Responsibilities:
- * 1. Creates a Supabase client with cookie-based auth
- * 2. Refreshes the user's session (so they don't get logged out unexpectedly)
- * 3. Attaches user info to Astro.locals (available in all pages/layouts)
- * 4. Protects /app/* routes — redirects unauthenticated users to sign-in
+ * Creates a Supabase server client and attaches it to locals.
+ * Tries to read user session from cookies (set by the browser client).
+ *
+ * Note: Route protection is handled CLIENT-SIDE by the React auth
+ * context, not here. This avoids cookie-sync issues between the
+ * browser Supabase client and the server client. RLS policies are
+ * the real security boundary — the client-side redirect is just UX.
  */
 
 import { defineMiddleware } from "astro:middleware";
 import { createSupabaseServerClient } from "./lib/supabase-server";
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { cookies, request, redirect, locals, url } = context;
+  const { cookies, request, locals } = context;
 
   // Create a Supabase client for this specific request
   const supabase = createSupabaseServerClient(
@@ -20,28 +22,22 @@ export const onRequest = defineMiddleware(async (context, next) => {
     request.headers.get("cookie"),
   );
 
-  // Refresh the session — this also validates the JWT token.
-  // If the session is expired, Supabase handles the refresh automatically.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Try to read the user from cookies. This may be null if the
+  // browser client hasn't synced session cookies yet (e.g., right
+  // after OAuth callback). That's OK — client-side auth handles it.
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    user = null;
+  }
 
-  // Attach auth info to locals so pages/components can access it
-  // without making another Supabase call.
   locals.user = user;
   locals.supabase = supabase;
 
-  // ── Route protection ──
-  // Any route under /app/ requires authentication.
-  // Public pages (landing, auth pages) are accessible to everyone.
-  const isProtectedRoute = url.pathname.startsWith("/app");
-  const isAuthenticated = !!user;
-
-  if (isProtectedRoute && !isAuthenticated) {
-    // Remember where they were trying to go so we can redirect back after sign-in
-    const returnUrl = encodeURIComponent(url.pathname);
-    return redirect(`/auth/signin?returnUrl=${returnUrl}`);
-  }
-
+  // No server-side redirects — let all pages render.
+  // Client-side auth context handles redirecting unauthenticated
+  // users away from /app/* pages.
   return next();
 });

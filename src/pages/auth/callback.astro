@@ -1,31 +1,82 @@
 ---
 /**
- * OAuth callback handler.
- *
- * After the user signs in with Google/GitHub/etc., the OAuth provider
- * redirects them here with an auth code. We exchange the code for a
- * session (Supabase handles this), then redirect to the app.
- *
- * This is a server-rendered page because the code exchange must happen
- * on the server for security (PKCE flow).
+ * OAuth callback — DEBUG VERSION
+ * Shows auth state instead of auto-redirecting so we can see what's happening.
  */
-
-// The auth code comes as a URL parameter from the OAuth provider
-const code = Astro.url.searchParams.get("code");
-const returnUrl = Astro.url.searchParams.get("returnUrl") || "/app/read";
-
-if (code) {
-  // Exchange the temporary code for a permanent session.
-  // Supabase sets the session cookies automatically through our
-  // server client's cookie handler (defined in supabase-server.ts).
-  const { error } = await Astro.locals.supabase.auth.exchangeCodeForSession(code);
-
-  if (error) {
-    console.error("Auth callback error:", error.message);
-    return Astro.redirect("/auth/signin?error=callback_failed");
-  }
-}
-
-// Redirect to wherever the user was trying to go
-return Astro.redirect(returnUrl);
+import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
+
+<BaseLayout title="Auth Callback">
+  <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div class="w-full max-w-lg">
+      <h1 class="text-2xl font-bold mb-4">Auth Callback (Debug)</h1>
+      <pre id="debug" class="bg-gray-900 text-green-400 p-4 rounded text-sm overflow-auto max-h-96">
+Checking auth state...
+      </pre>
+      <a id="continue-link" href="/app/read" class="hidden mt-4 inline-block bg-blue-600 text-white px-6 py-3 rounded-lg text-lg">
+        Continue to App
+      </a>
+      <p id="error-msg" class="hidden mt-4 text-red-600"></p>
+    </div>
+  </div>
+
+  <script>
+    import { supabase } from "../../lib/supabase";
+
+    const el = document.getElementById("debug")!;
+    const link = document.getElementById("continue-link")!;
+    const errorMsg = document.getElementById("error-msg")!;
+
+    function log(msg: string) {
+      el.textContent += "\n" + msg;
+    }
+
+    log("URL: " + window.location.href);
+    log("Hash present: " + (window.location.hash.length > 0));
+    log("Search params: " + window.location.search);
+
+    // Check for code param (PKCE flow)
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    log("Code param: " + (code ? "yes" : "no"));
+
+    // Check existing session
+    const { data: sessionData } = await supabase.auth.getSession();
+    log("Existing session: " + (sessionData.session ? "yes" : "no"));
+
+    if (sessionData.session) {
+      log("User: " + sessionData.session.user.email);
+      log("\nAUTH SUCCESS! Click the button below to continue.");
+      link.classList.remove("hidden");
+    } else {
+      // Listen for auth state changes (implicit flow auto-detection)
+      log("Listening for auth state change...");
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          log("Auth event: " + event);
+          if (session) {
+            log("User: " + session.user.email);
+            log("\nAUTH SUCCESS! Click the button below to continue.");
+            link.classList.remove("hidden");
+            subscription.unsubscribe();
+          }
+        }
+      );
+
+      // Also try getUser
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      log("getUser result: " + (userData.user ? userData.user.email : "null"));
+      if (userError) log("getUser error: " + userError.message);
+
+      // Timeout
+      setTimeout(() => {
+        log("\n5 second timeout reached.");
+        if (!link.classList.contains("hidden")) return; // Already succeeded
+        errorMsg.textContent = "Auth did not complete. Check browser console for errors.";
+        errorMsg.classList.remove("hidden");
+        subscription.unsubscribe();
+      }, 5000);
+    }
+  </script>
+</BaseLayout>

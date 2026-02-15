@@ -9,11 +9,6 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { SignInForm } from "../../components/SignInForm";
 
-// If already signed in, skip the sign-in page
-if (Astro.locals.user) {
-  return Astro.redirect("/app/read");
-}
-
 // If they were trying to reach a protected page, we'll send them back after sign-in
 const returnUrl = Astro.url.searchParams.get("returnUrl") || "/app/read";
 ---

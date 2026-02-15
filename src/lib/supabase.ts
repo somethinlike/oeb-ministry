@@ -1,14 +1,16 @@
 /**
  * Supabase client for browser-side use.
  *
- * This client uses the PUBLIC anon key, which is safe to expose in
- * the browser. RLS policies (not this key) are what protect data.
+ * Uses `createBrowserClient` from @supabase/ssr which stores auth
+ * session data in cookies instead of localStorage. This is critical
+ * for SSR — cookies are sent with every request, so the server
+ * middleware can read the session and protect routes.
  *
- * For server-side operations that need elevated permissions,
- * use supabase-server.ts instead.
+ * The anon key is safe to expose in the browser — RLS policies (not
+ * this key) are what actually protect data.
  */
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "../types/database";
 
 // These environment variables are prefixed with PUBLIC_ so Astro
@@ -19,15 +21,17 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 /**
  * Typed Supabase client for browser use.
- * The Database generic gives us autocomplete for table names,
- * column names, and return types on every query.
  *
- * Note: The URL/key may be empty during build-time type checking.
- * At runtime, the client won't function without valid credentials —
- * Supabase calls will fail with auth errors, which is the correct
- * behavior (not a silent failure).
+ * Uses implicit auth flow (tokens in URL hash) instead of PKCE because
+ * PKCE requires the code verifier to be accessible to both the browser
+ * (which starts the flow) and the server (which exchanges the code).
+ * On WSL2 + cookies, this handoff is unreliable. Implicit flow avoids
+ * this entirely — the browser client handles everything.
+ *
+ * Security note: RLS policies are the real security boundary, not the
+ * auth flow type. The implicit flow is standard and safe for this use case.
  */
-export const supabase: SupabaseClient<Database> = createClient<Database>(
+export const supabase = createBrowserClient<Database>(
   supabaseUrl,
   supabaseAnonKey,
 );

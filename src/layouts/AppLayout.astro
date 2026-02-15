@@ -5,10 +5,12 @@
  * This layout:
  * 1. Inherits from BaseLayout (shared <head>, global styles)
  * 2. Adds a navigation header with user menu
- * 3. Provides the AuthProvider context to all React islands
+ * 3. Checks auth client-side if the server couldn't read session cookies
  *
- * Since middleware already protects /app/* routes, we know
- * Astro.locals.user is always defined here.
+ * Auth is checked in two layers:
+ * - Server: middleware tries to read session from cookies → Astro.locals.user
+ * - Client: if server user is null, AuthGuard checks via browser Supabase client
+ * - RLS: the real security — even if both layers fail, data is protected
  */
 import BaseLayout from "./BaseLayout.astro";
 import { AppNav } from "../components/AppNav";
@@ -21,24 +23,26 @@ interface Props {
 }
 
 const { title } = Astro.props;
-const user = Astro.locals.user!;
+const user = Astro.locals.user;
 
-// Build the auth state object that React components will receive
-const authState: AuthState = {
-  isAuthenticated: true,
-  displayName: user.user_metadata?.full_name ?? user.email ?? "User",
-  email: user.email ?? null,
-  avatarUrl: user.user_metadata?.avatar_url ?? null,
-  userId: user.id,
-};
+// Build auth state from server data (may be null if cookies haven't synced)
+const authState: AuthState | null = user
+  ? {
+      isAuthenticated: true,
+      displayName: user.user_metadata?.full_name ?? user.email ?? "User",
+      email: user.email ?? null,
+      avatarUrl: user.user_metadata?.avatar_url ?? null,
+      userId: user.id,
+    }
+  : null;
 ---
 
 <BaseLayout title={title}>
   <!-- Offline/online status banner -->
   <ConnectionStatus client:load />
 
-  <!-- Navigation header — React island for interactivity -->
-  <AppNav auth={authState} client:load />
+  <!-- Navigation header — uses server auth if available, placeholder if not -->
+  <AppNav auth={authState ?? { isAuthenticated: false, displayName: null, email: null, avatarUrl: null, userId: null }} client:load />
 
   <!-- Page content -->
   <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -47,4 +51,21 @@ const authState: AuthState = {
 
   <!-- PWA update notification -->
   <UpdatePrompt client:load />
+
+  <!--
+    Client-side auth check: if the server couldn't read the session
+    from cookies, this script checks via the browser Supabase client
+    and redirects to sign-in if the user is truly not authenticated.
+  -->
+  {!user && (
+    <script>
+      import { supabase } from "../lib/supabase";
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        const returnUrl = encodeURIComponent(window.location.pathname);
+        window.location.href = `/auth/signin?returnUrl=${returnUrl}`;
+      }
+    </script>
+  )}
 </BaseLayout>

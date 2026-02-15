@@ -50,12 +50,17 @@ export function createSupabaseServerClient(
         ) {
           cookiesToSet.forEach(({ name, value, options }) => {
             cookies.set(name, value, {
-              // Security defaults for auth cookies
+              // Start with Supabase's own options, then override
+              // the ones we need to control.
+              ...options,
               path: "/",
               httpOnly: true,
-              secure: true,
               sameSite: "lax",
-              ...options,
+              // MUST come after ...options so we override Supabase's
+              // default of secure:true. On local dev (HTTP), secure
+              // cookies are silently rejected by the browser, which
+              // completely breaks auth.
+              secure: import.meta.env.PROD,
             });
           });
         },

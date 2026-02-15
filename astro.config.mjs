@@ -9,6 +9,7 @@ export default defineConfig({
   // check auth state before sending HTML to the browser.
   output: "server",
 
+
   // Vercel handles hosting and serverless functions for SSR pages.
   adapter: vercel(),
 

@@ -77,11 +77,16 @@ export function SignInForm({ returnUrl }: SignInFormProps) {
     setLoading(provider.id);
     setError(null);
 
+    // Build the callback URL, ensuring we always use "localhost" (not
+    // "127.0.0.1") because WSL2 only forwards localhost to the VM.
+    const origin = window.location.origin.replace("127.0.0.1", "localhost");
+
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: provider.supabaseProvider,
       options: {
-        // After OAuth completes, the provider redirects here
-        redirectTo: `${window.location.origin}/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`,
+        // After OAuth, Supabase redirects here with auth tokens.
+        // The callback page detects the tokens and sets the session.
+        redirectTo: `${origin}/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`,
       },
     });
 
