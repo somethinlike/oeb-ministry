@@ -88,7 +88,12 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
               </span>
             </div>
             {/* TEMPORARY DEBUG — remove after avatar issue is fixed */}
-            <span className="max-w-xs truncate text-xs text-red-500">{debugInfo}</span>
+            <div className="flex flex-col text-xs text-red-500">
+              <span className="max-w-xs truncate">{debugInfo}</span>
+              {auth.avatarUrl && (
+                <span>img test: <img src={auth.avatarUrl} className="inline h-6 w-6" referrerPolicy="no-referrer" /> | raw url: <a href={auth.avatarUrl} target="_blank" className="underline text-blue-500">click to test</a></span>
+              )}
+            </div>
             <a
               href="/auth/signout"
               className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
