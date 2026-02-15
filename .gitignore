@@ -31,6 +31,5 @@ playwright-report/
 # Supabase local
 supabase/.temp/
 
-# Bible data — raw source files and converted output (too large for git)
+# Bible data — raw source files (too large for git, only needed for conversion)
 data/
-public/bibles/

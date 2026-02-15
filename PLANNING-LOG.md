@@ -179,4 +179,98 @@ Ryan directed that the app should:
 - [scrollmapper/bible_databases](https://github.com/scrollmapper/bible_databases) — JSON/SQL/CSV, 140+ translations
 - [aruljohn/Bible-kjv-1611](https://github.com/aruljohn/Bible-kjv-1611) — KJV 1611 with apocrypha, JSON
 
+### Bible Data Converted
+All three translations converted to per-chapter JSON in `public/bibles/`:
+| Translation | ID | Books | Chapters | Source |
+|---|---|---|---|---|
+| Douay-Rheims | `dra` | 77 | 1,361 | scrollmapper |
+| KJV 1611 | `kjv1611` | 80 | 1,355 | aruljohn |
+| Open English Bible | `oeb-us` | 59 | 943 | openenglishbible (dev set) |
+
+**Monthly reminder:** Check OEB GitHub repo for new book releases and re-run `npx tsx scripts/convert-oeb.ts`.
+
+### Git Protocol Added
+Claude now owns git operations per CLAUDE.md. Commits after each logical unit of work, pushes immediately. Ryan never needs to remember to commit.
+
+---
+
+## Deployment Guide — Supabase + Vercel
+
+### Step 1: Create Supabase Project
+1. Go to [supabase.com/dashboard](https://supabase.com/dashboard)
+2. Click "New Project"
+3. Choose a name (e.g., "oeb-ministry") and a strong database password
+4. Select a region close to your users (e.g., US East)
+5. Wait for the project to spin up (~2 minutes)
+
+### Step 2: Push Database Migrations
+Option A — via Supabase CLI (if Docker is running):
+```bash
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
+```
+
+Option B — via Supabase SQL Editor (no Docker needed):
+1. Go to your project's SQL Editor in the Supabase dashboard
+2. Copy and paste each migration file in order:
+   - `supabase/migrations/20260214000001_annotations.sql`
+   - `supabase/migrations/20260214000002_cross_references.sql`
+   - `supabase/migrations/20260214000003_rls_policies.sql`
+3. Run each one. They should all succeed.
+
+### Step 3: Configure OAuth Providers
+In Supabase Dashboard → Authentication → Providers:
+
+**Google:**
+1. Go to [console.cloud.google.com](https://console.cloud.google.com)
+2. Create OAuth 2.0 credentials (Web application)
+3. Set authorized redirect URI: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
+4. Copy Client ID and Client Secret into Supabase
+
+**GitHub:**
+1. Go to [github.com/settings/developers](https://github.com/settings/developers)
+2. Create a new OAuth App
+3. Set callback URL: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
+4. Copy Client ID and Client Secret into Supabase
+
+**Discord:**
+1. Go to [discord.com/developers/applications](https://discord.com/developers/applications)
+2. Create a new application → OAuth2 section
+3. Add redirect: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
+4. Copy Client ID and Client Secret into Supabase
+
+**Microsoft (Azure):**
+1. Go to [portal.azure.com](https://portal.azure.com) → App registrations
+2. Create a new registration
+3. Set redirect URI: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
+4. Copy Application (client) ID and create a Client Secret → copy into Supabase
+
+### Step 4: Get Your Env Vars
+In Supabase Dashboard → Settings → API, copy:
+- **Project URL** → `PUBLIC_SUPABASE_URL`
+- **anon/public key** → `PUBLIC_SUPABASE_ANON_KEY`
+- **service_role key** → `SUPABASE_SERVICE_ROLE_KEY` (keep secret!)
+
+### Step 5: Local Development
+Update `.env` with the real values:
+```
+PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
+```
+Then run `npm run dev` and test auth flow.
+
+### Step 6: Deploy to Vercel
+1. Go to [vercel.com](https://vercel.com) and import the GitHub repo
+2. Vercel auto-detects Astro — framework preset should be "Astro"
+3. Add the three env vars from Step 4 in Vercel's Environment Variables settings
+4. Deploy
+
+After deployment, update your OAuth provider redirect URIs to also include your Vercel domain:
+`https://your-app.vercel.app/auth/callback`
+
+And in Supabase Dashboard → Authentication → URL Configuration:
+- Set **Site URL** to `https://your-app.vercel.app`
+- Add `https://your-app.vercel.app/auth/callback` to **Redirect URLs**
+
 ---

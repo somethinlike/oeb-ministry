@@ -1,0 +1,470 @@
+{
+  "translation": "dra",
+  "name": "Douay-Rheims American Edition",
+  "language": "en",
+  "license": "Public Domain",
+  "books": [
+    {
+      "id": "gen",
+      "name": "Genesis",
+      "chapters": 50,
+      "testament": "OT"
+    },
+    {
+      "id": "exo",
+      "name": "Exodus",
+      "chapters": 40,
+      "testament": "OT"
+    },
+    {
+      "id": "lev",
+      "name": "Leviticus",
+      "chapters": 27,
+      "testament": "OT"
+    },
+    {
+      "id": "num",
+      "name": "Numbers",
+      "chapters": 36,
+      "testament": "OT"
+    },
+    {
+      "id": "deu",
+      "name": "Deuteronomy",
+      "chapters": 34,
+      "testament": "OT"
+    },
+    {
+      "id": "jos",
+      "name": "Joshua",
+      "chapters": 24,
+      "testament": "OT"
+    },
+    {
+      "id": "jdg",
+      "name": "Judges",
+      "chapters": 21,
+      "testament": "OT"
+    },
+    {
+      "id": "rut",
+      "name": "Ruth",
+      "chapters": 4,
+      "testament": "OT"
+    },
+    {
+      "id": "1sa",
+      "name": "I Samuel",
+      "chapters": 31,
+      "testament": "OT"
+    },
+    {
+      "id": "2sa",
+      "name": "II Samuel",
+      "chapters": 24,
+      "testament": "OT"
+    },
+    {
+      "id": "1ki",
+      "name": "I Kings",
+      "chapters": 22,
+      "testament": "OT"
+    },
+    {
+      "id": "2ki",
+      "name": "II Kings",
+      "chapters": 25,
+      "testament": "OT"
+    },
+    {
+      "id": "1ch",
+      "name": "I Chronicles",
+      "chapters": 29,
+      "testament": "OT"
+    },
+    {
+      "id": "2ch",
+      "name": "II Chronicles",
+      "chapters": 36,
+      "testament": "OT"
+    },
+    {
+      "id": "ezr",
+      "name": "Ezra",
+      "chapters": 10,
+      "testament": "OT"
+    },
+    {
+      "id": "neh",
+      "name": "Nehemiah",
+      "chapters": 13,
+      "testament": "OT"
+    },
+    {
+      "id": "tob",
+      "name": "Tobit",
+      "chapters": 14,
+      "testament": "DC"
+    },
+    {
+      "id": "jdt",
+      "name": "Judith",
+      "chapters": 16,
+      "testament": "DC"
+    },
+    {
+      "id": "est",
+      "name": "Esther",
+      "chapters": 16,
+      "testament": "OT"
+    },
+    {
+      "id": "job",
+      "name": "Job",
+      "chapters": 42,
+      "testament": "OT"
+    },
+    {
+      "id": "psa",
+      "name": "Psalms",
+      "chapters": 150,
+      "testament": "OT"
+    },
+    {
+      "id": "pro",
+      "name": "Proverbs",
+      "chapters": 31,
+      "testament": "OT"
+    },
+    {
+      "id": "ecc",
+      "name": "Ecclesiastes",
+      "chapters": 12,
+      "testament": "OT"
+    },
+    {
+      "id": "sng",
+      "name": "Song of Solomon",
+      "chapters": 8,
+      "testament": "OT"
+    },
+    {
+      "id": "wis",
+      "name": "Wisdom",
+      "chapters": 19,
+      "testament": "DC"
+    },
+    {
+      "id": "sir",
+      "name": "Sirach",
+      "chapters": 51,
+      "testament": "DC"
+    },
+    {
+      "id": "isa",
+      "name": "Isaiah",
+      "chapters": 66,
+      "testament": "OT"
+    },
+    {
+      "id": "jer",
+      "name": "Jeremiah",
+      "chapters": 52,
+      "testament": "OT"
+    },
+    {
+      "id": "lam",
+      "name": "Lamentations",
+      "chapters": 5,
+      "testament": "OT"
+    },
+    {
+      "id": "bar",
+      "name": "Baruch",
+      "chapters": 6,
+      "testament": "DC"
+    },
+    {
+      "id": "ezk",
+      "name": "Ezekiel",
+      "chapters": 48,
+      "testament": "OT"
+    },
+    {
+      "id": "dan",
+      "name": "Daniel",
+      "chapters": 14,
+      "testament": "OT"
+    },
+    {
+      "id": "hos",
+      "name": "Hosea",
+      "chapters": 14,
+      "testament": "OT"
+    },
+    {
+      "id": "jol",
+      "name": "Joel",
+      "chapters": 3,
+      "testament": "OT"
+    },
+    {
+      "id": "amo",
+      "name": "Amos",
+      "chapters": 9,
+      "testament": "OT"
+    },
+    {
+      "id": "oba",
+      "name": "Obadiah",
+      "chapters": 1,
+      "testament": "OT"
+    },
+    {
+      "id": "jon",
+      "name": "Jonah",
+      "chapters": 4,
+      "testament": "OT"
+    },
+    {
+      "id": "mic",
+      "name": "Micah",
+      "chapters": 7,
+      "testament": "OT"
+    },
+    {
+      "id": "nah",
+      "name": "Nahum",
+      "chapters": 3,
+      "testament": "OT"
+    },
+    {
+      "id": "hab",
+      "name": "Habakkuk",
+      "chapters": 3,
+      "testament": "OT"
+    },
+    {
+      "id": "zep",
+      "name": "Zephaniah",
+      "chapters": 3,
+      "testament": "OT"
+    },
+    {
+      "id": "hag",
+      "name": "Haggai",
+      "chapters": 2,
+      "testament": "OT"
+    },
+    {
+      "id": "zec",
+      "name": "Zechariah",
+      "chapters": 14,
+      "testament": "OT"
+    },
+    {
+      "id": "mal",
+      "name": "Malachi",
+      "chapters": 4,
+      "testament": "OT"
+    },
+    {
+      "id": "1ma",
+      "name": "I Maccabees",
+      "chapters": 16,
+      "testament": "DC"
+    },
+    {
+      "id": "2ma",
+      "name": "II Maccabees",
+      "chapters": 15,
+      "testament": "DC"
+    },
+    {
+      "id": "mat",
+      "name": "Matthew",
+      "chapters": 28,
+      "testament": "NT"
+    },
+    {
+      "id": "mrk",
+      "name": "Mark",
+      "chapters": 16,
+      "testament": "NT"
+    },
+    {
+      "id": "luk",
+      "name": "Luke",
+      "chapters": 24,
+      "testament": "NT"
+    },
+    {
+      "id": "jhn",
+      "name": "John",
+      "chapters": 21,
+      "testament": "NT"
+    },
+    {
+      "id": "act",
+      "name": "Acts",
+      "chapters": 28,
+      "testament": "NT"
+    },
+    {
+      "id": "rom",
+      "name": "Romans",
+      "chapters": 16,
+      "testament": "NT"
+    },
+    {
+      "id": "1co",
+      "name": "I Corinthians",
+      "chapters": 16,
+      "testament": "NT"
+    },
+    {
+      "id": "2co",
+      "name": "II Corinthians",
+      "chapters": 13,
+      "testament": "NT"
+    },
+    {
+      "id": "gal",
+      "name": "Galatians",
+      "chapters": 6,
+      "testament": "NT"
+    },
+    {
+      "id": "eph",
+      "name": "Ephesians",
+      "chapters": 6,
+      "testament": "NT"
+    },
+    {
+      "id": "php",
+      "name": "Philippians",
+      "chapters": 4,
+      "testament": "NT"
+    },
+    {
+      "id": "col",
+      "name": "Colossians",
+      "chapters": 4,
+      "testament": "NT"
+    },
+    {
+      "id": "1th",
+      "name": "I Thessalonians",
+      "chapters": 5,
+      "testament": "NT"
+    },
+    {
+      "id": "2th",
+      "name": "II Thessalonians",
+      "chapters": 3,
+      "testament": "NT"
+    },
+    {
+      "id": "1ti",
+      "name": "I Timothy",
+      "chapters": 6,
+      "testament": "NT"
+    },
+    {
+      "id": "2ti",
+      "name": "II Timothy",
+      "chapters": 4,
+      "testament": "NT"
+    },
+    {
+      "id": "tit",
+      "name": "Titus",
+      "chapters": 3,
+      "testament": "NT"
+    },
+    {
+      "id": "phm",
+      "name": "Philemon",
+      "chapters": 1,
+      "testament": "NT"
+    },
+    {
+      "id": "heb",
+      "name": "Hebrews",
+      "chapters": 13,
+      "testament": "NT"
+    },
+    {
+      "id": "jas",
+      "name": "James",
+      "chapters": 5,
+      "testament": "NT"
+    },
+    {
+      "id": "1pe",
+      "name": "I Peter",
+      "chapters": 5,
+      "testament": "NT"
+    },
+    {
+      "id": "2pe",
+      "name": "II Peter",
+      "chapters": 3,
+      "testament": "NT"
+    },
+    {
+      "id": "1jn",
+      "name": "I John",
+      "chapters": 5,
+      "testament": "NT"
+    },
+    {
+      "id": "2jn",
+      "name": "II John",
+      "chapters": 1,
+      "testament": "NT"
+    },
+    {
+      "id": "3jn",
+      "name": "III John",
+      "chapters": 1,
+      "testament": "NT"
+    },
+    {
+      "id": "jud",
+      "name": "Jude",
+      "chapters": 1,
+      "testament": "NT"
+    },
+    {
+      "id": "rev",
+      "name": "Revelation of John",
+      "chapters": 22,
+      "testament": "NT"
+    },
+    {
+      "id": "pma",
+      "name": "Prayer of Manasses",
+      "chapters": 1,
+      "testament": "DC"
+    },
+    {
+      "id": "1es",
+      "name": "I Esdras",
+      "chapters": 9,
+      "testament": "DC"
+    },
+    {
+      "id": "2es",
+      "name": "II Esdras",
+      "chapters": 16,
+      "testament": "DC"
+    },
+    {
+      "id": "p15",
+      "name": "Additional Psalm",
+      "chapters": 1,
+      "testament": "DC"
+    }
+  ]
+}
