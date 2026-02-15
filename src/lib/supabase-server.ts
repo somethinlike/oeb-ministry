@@ -26,19 +26,30 @@ export function createSupabaseServerClient(
   cookies: AstroCookies,
   cookieHeader: string | null,
 ) {
+  // Parse cookies, filtering out any with empty values that could
+  // cause base64url decoding errors in @supabase/ssr
+  const allCookies = (
+    parseCookieHeader(cookieHeader ?? "") as {
+      name: string;
+      value: string;
+    }[]
+  ).filter((c) => c.name && c.value);
+
   return createServerClient<Database>(
     import.meta.env.PUBLIC_SUPABASE_URL,
     import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
     {
+      auth: {
+        // Suppress the background session initialization that causes
+        // unhandled rejections when cookies have incompatible encoding.
+        // We call getUser() explicitly in the middleware instead.
+        detectSessionInUrl: false,
+        autoRefreshToken: false,
+      },
       cookies: {
         // Read all cookies from the incoming request
         getAll() {
-          // parseCookieHeader returns an array of { name, value } pairs
-          // which matches the GetAllCookies return type
-          return parseCookieHeader(cookieHeader ?? "") as {
-            name: string;
-            value: string;
-          }[];
+          return allCookies;
         },
         // Write cookies back to the response (for session refresh, etc.)
         setAll(
