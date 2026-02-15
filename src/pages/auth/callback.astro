@@ -1,81 +1,57 @@
 ---
 /**
- * OAuth callback — DEBUG VERSION
- * Shows auth state instead of auto-redirecting so we can see what's happening.
+ * OAuth callback handler.
+ *
+ * After OAuth, Supabase redirects here with auth tokens in the URL
+ * hash fragment (implicit flow). The browser Supabase client auto-detects
+ * these tokens and sets the session in cookies.
+ *
+ * This page shows "Signing you in..." while the client processes
+ * the tokens, then redirects to the app.
  */
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Auth Callback">
+<BaseLayout title="Signing you in...">
   <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-    <div class="w-full max-w-lg">
-      <h1 class="text-2xl font-bold mb-4">Auth Callback (Debug)</h1>
-      <pre id="debug" class="bg-gray-900 text-green-400 p-4 rounded text-sm overflow-auto max-h-96">
-Checking auth state...
-      </pre>
-      <a id="continue-link" href="/app/read" class="hidden mt-4 inline-block bg-blue-600 text-white px-6 py-3 rounded-lg text-lg">
-        Continue to App
-      </a>
-      <p id="error-msg" class="hidden mt-4 text-red-600"></p>
+    <div class="text-center">
+      <p class="text-lg text-gray-600">Signing you in...</p>
     </div>
   </div>
 
   <script>
     import { supabase } from "../../lib/supabase";
 
-    const el = document.getElementById("debug")!;
-    const link = document.getElementById("continue-link")!;
-    const errorMsg = document.getElementById("error-msg")!;
-
-    function log(msg: string) {
-      el.textContent += "\n" + msg;
-    }
-
-    log("URL: " + window.location.href);
-    log("Hash present: " + (window.location.hash.length > 0));
-    log("Search params: " + window.location.search);
-
-    // Check for code param (PKCE flow)
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    log("Code param: " + (code ? "yes" : "no"));
+    const returnUrl = params.get("returnUrl") || "/app/read";
 
-    // Check existing session
-    const { data: sessionData } = await supabase.auth.getSession();
-    log("Existing session: " + (sessionData.session ? "yes" : "no"));
+    // Check if the browser client already has a session
+    // (tokens auto-detected from URL hash by createBrowserClient)
+    const { data } = await supabase.auth.getSession();
 
-    if (sessionData.session) {
-      log("User: " + sessionData.session.user.email);
-      log("\nAUTH SUCCESS! Click the button below to continue.");
-      link.classList.remove("hidden");
+    if (data.session) {
+      window.location.href = returnUrl;
     } else {
-      // Listen for auth state changes (implicit flow auto-detection)
-      log("Listening for auth state change...");
-
+      // Listen for the session to be set (may take a moment)
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (event, session) => {
-          log("Auth event: " + event);
-          if (session) {
-            log("User: " + session.user.email);
-            log("\nAUTH SUCCESS! Click the button below to continue.");
-            link.classList.remove("hidden");
+        (event) => {
+          if (event === "SIGNED_IN") {
             subscription.unsubscribe();
+            window.location.href = returnUrl;
           }
         }
       );
 
-      // Also try getUser
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      log("getUser result: " + (userData.user ? userData.user.email : "null"));
-      if (userError) log("getUser error: " + userError.message);
-
-      // Timeout
+      // If nothing happens after 5 seconds, send back to sign-in
       setTimeout(() => {
-        log("\n5 second timeout reached.");
-        if (!link.classList.contains("hidden")) return; // Already succeeded
-        errorMsg.textContent = "Auth did not complete. Check browser console for errors.";
-        errorMsg.classList.remove("hidden");
         subscription.unsubscribe();
+        supabase.auth.getSession().then(({ data }) => {
+          if (data.session) {
+            window.location.href = returnUrl;
+          } else {
+            window.location.href = "/auth/signin?error=callback_timeout";
+          }
+        });
       }, 5000);
     }
   </script>
