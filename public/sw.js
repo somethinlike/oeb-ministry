@@ -46,6 +46,12 @@ self.addEventListener("fetch", (event) => {
   // Only handle GET requests (POST/PUT/DELETE go straight to network)
   if (event.request.method !== "GET") return;
 
+  // Only handle requests to our own origin — external URLs (avatar
+  // images, third-party CDNs, etc.) should go straight to the network.
+  // Without this check, external images get routed through staleWhileRevalidate
+  // and break because the SW can't properly cache cross-origin responses.
+  if (url.origin !== self.location.origin) return;
+
   // Never cache auth pages or the callback — these depend on
   // fresh server state and caching them causes redirect loops.
   if (url.pathname.startsWith("/auth/")) return;
@@ -61,11 +67,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Supabase API calls — Network-First
-  if (url.hostname.includes("supabase")) {
-    event.respondWith(networkFirst(event.request));
-    return;
-  }
+  // Note: Supabase API calls are external-origin, so they're already
+  // skipped by the origin check above. No special handling needed.
 
   // Everything else (app shell) — Stale-While-Revalidate
   event.respondWith(staleWhileRevalidate(event.request));
