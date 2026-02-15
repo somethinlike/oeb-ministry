@@ -23,20 +23,41 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
 
   useEffect(() => {
     // If server already provided full auth data, no need to re-fetch
-    if (auth.avatarUrl && auth.displayName) return;
+    if (initialAuth.avatarUrl && initialAuth.displayName) return;
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setAuth({
-          isAuthenticated: true,
-          displayName:
-            user.user_metadata?.full_name ?? user.email ?? "User",
-          email: user.email ?? null,
-          avatarUrl: user.user_metadata?.avatar_url ?? null,
-          userId: user.id,
-        });
+    // Helper to extract auth state from a Supabase user object.
+    // Checks both "avatar_url" (deprecated but set by all providers)
+    // and "picture" (standard OIDC field) for future-proofing.
+    function authFromUser(user: { id: string; email?: string; user_metadata: Record<string, unknown> }): AuthState {
+      const meta = user.user_metadata ?? {};
+      return {
+        isAuthenticated: true,
+        displayName: (meta.full_name as string) ?? (meta.name as string) ?? user.email ?? "User",
+        email: user.email ?? null,
+        avatarUrl: (meta.avatar_url as string) ?? (meta.picture as string) ?? null,
+        userId: user.id,
+      };
+    }
+
+    // Listen for auth state changes — this fires reliably even if the
+    // session isn't ready yet when the component first mounts (common
+    // after the implicit flow redirect).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session?.user) {
+          setAuth(authFromUser(session.user));
+        }
+      },
+    );
+
+    // Also try immediately in case the session is already available
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setAuth(authFromUser(session.user));
       }
     });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -66,21 +87,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
           {/* Right side: User info + sign out */}
           <div className="hidden sm:flex sm:items-center sm:gap-4">
             <div className="flex items-center gap-2">
-              {auth.avatarUrl ? (
-                <img
-                  src={auth.avatarUrl}
-                  alt=""
-                  className="h-8 w-8 rounded-full"
-                  aria-hidden="true"
-                />
-              ) : (
-                <div
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white"
-                  aria-hidden="true"
-                >
-                  {(auth.displayName ?? "U").charAt(0).toUpperCase()}
-                </div>
-              )}
+              <UserAvatar avatarUrl={auth.avatarUrl} displayName={auth.displayName} />
               <span className="text-sm text-gray-700">
                 {auth.displayName}
               </span>
@@ -137,21 +144,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             <MobileNavLink href="/app/search" label="My Notes" />
             <hr className="my-2 border-gray-200" />
             <div className="flex items-center gap-2 px-3 py-2">
-              {auth.avatarUrl ? (
-                <img
-                  src={auth.avatarUrl}
-                  alt=""
-                  className="h-8 w-8 rounded-full"
-                  aria-hidden="true"
-                />
-              ) : (
-                <div
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white"
-                  aria-hidden="true"
-                >
-                  {(auth.displayName ?? "U").charAt(0).toUpperCase()}
-                </div>
-              )}
+              <UserAvatar avatarUrl={auth.avatarUrl} displayName={auth.displayName} />
               <span className="text-sm text-gray-700">
                 {auth.displayName}
               </span>
@@ -185,5 +178,33 @@ function MobileNavLink({ href, label }: { href: string; label: string }) {
     >
       {label}
     </a>
+  );
+}
+
+/** User avatar with automatic fallback to letter initial if the image fails. */
+function UserAvatar({ avatarUrl, displayName }: { avatarUrl: string | null; displayName: string | null }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const initial = (displayName ?? "U").charAt(0).toUpperCase();
+
+  if (avatarUrl && !imgFailed) {
+    return (
+      <img
+        src={avatarUrl}
+        alt=""
+        className="h-8 w-8 rounded-full"
+        aria-hidden="true"
+        referrerPolicy="no-referrer"
+        onError={() => setImgFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div
+      className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white"
+      aria-hidden="true"
+    >
+      {initial}
+    </div>
   );
 }
