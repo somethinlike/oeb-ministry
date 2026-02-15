@@ -16,18 +16,11 @@ interface AppNavProps {
 
 export function AppNav({ auth: initialAuth }: AppNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // Start with server-provided auth, then hydrate client-side if incomplete.
-  // The server often can't read session cookies (implicit flow stores tokens
-  // in the browser), so avatar/name may be missing from the initial render.
   const [auth, setAuth] = useState<AuthState>(initialAuth);
+  // Temporary debug state — will remove once avatar issue is diagnosed
+  const [debugInfo, setDebugInfo] = useState<string>("loading...");
 
   useEffect(() => {
-    // If server already provided full auth data, no need to re-fetch
-    if (initialAuth.avatarUrl && initialAuth.displayName) return;
-
-    // Helper to extract auth state from a Supabase user object.
-    // Checks both "avatar_url" (deprecated but set by all providers)
-    // and "picture" (standard OIDC field) for future-proofing.
     function authFromUser(user: { id: string; email?: string; user_metadata: Record<string, unknown> }): AuthState {
       const meta = user.user_metadata ?? {};
       return {
@@ -39,21 +32,23 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
       };
     }
 
-    // Listen for auth state changes — this fires reliably even if the
-    // session isn't ready yet when the component first mounts (common
-    // after the implicit flow redirect).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (session?.user) {
           setAuth(authFromUser(session.user));
+          const meta = session.user.user_metadata ?? {};
+          setDebugInfo(`event: ${_event} | avatar_url: ${meta.avatar_url ?? "MISSING"} | picture: ${meta.picture ?? "MISSING"} | keys: ${Object.keys(meta).join(", ")}`);
         }
       },
     );
 
-    // Also try immediately in case the session is already available
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setAuth(authFromUser(session.user));
+        const meta = session.user.user_metadata ?? {};
+        setDebugInfo(`getSession | avatar_url: ${meta.avatar_url ?? "MISSING"} | picture: ${meta.picture ?? "MISSING"} | keys: ${Object.keys(meta).join(", ")}`);
+      } else {
+        setDebugInfo("getSession returned no user");
       }
     });
 
@@ -92,6 +87,8 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
                 {auth.displayName}
               </span>
             </div>
+            {/* TEMPORARY DEBUG — remove after avatar issue is fixed */}
+            <span className="max-w-xs truncate text-xs text-red-500">{debugInfo}</span>
             <a
               href="/auth/signout"
               className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
