@@ -88,11 +88,33 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
               </span>
             </div>
             {/* TEMPORARY DEBUG — remove after avatar issue is fixed */}
-            <div className="flex flex-col text-xs text-red-500">
-              <span className="max-w-xs truncate">{debugInfo}</span>
-              {auth.avatarUrl && (
-                <span>img test: <img src={auth.avatarUrl} className="inline h-6 w-6" referrerPolicy="no-referrer" /> | raw url: <a href={auth.avatarUrl} target="_blank" className="underline text-blue-500">click to test</a></span>
-              )}
+            <div className="text-xs text-red-500">
+              <p>{debugInfo}</p>
+              <div className="flex gap-4 items-center mt-1">
+                {/* Test 1: Google avatar via <img> with inline styles */}
+                {auth.avatarUrl && (
+                  <div>
+                    <p>Google avatar:</p>
+                    <img
+                      src={auth.avatarUrl}
+                      style={{ width: "64px", height: "64px", border: "3px solid red", display: "block" }}
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                )}
+                {/* Test 2: Random external image to check if ANY external <img> works */}
+                <div>
+                  <p>External test:</p>
+                  <img
+                    src="https://placehold.co/64x64/orange/white?text=TEST"
+                    style={{ width: "64px", height: "64px", border: "3px solid blue", display: "block" }}
+                  />
+                </div>
+                {/* Test 3: Direct link */}
+                {auth.avatarUrl && (
+                  <a href={auth.avatarUrl} target="_blank" rel="noreferrer" className="underline text-blue-600">Open avatar in new tab</a>
+                )}
+              </div>
             </div>
             <a
               href="/auth/signout"
