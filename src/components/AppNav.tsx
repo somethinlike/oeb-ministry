@@ -6,15 +6,38 @@
  * Follows Grandmother Principle: clear labels, large tap targets.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
 import type { AuthState } from "../types/auth";
 
 interface AppNavProps {
   auth: AuthState;
 }
 
-export function AppNav({ auth }: AppNavProps) {
+export function AppNav({ auth: initialAuth }: AppNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Start with server-provided auth, then hydrate client-side if incomplete.
+  // The server often can't read session cookies (implicit flow stores tokens
+  // in the browser), so avatar/name may be missing from the initial render.
+  const [auth, setAuth] = useState<AuthState>(initialAuth);
+
+  useEffect(() => {
+    // If server already provided full auth data, no need to re-fetch
+    if (auth.avatarUrl && auth.displayName) return;
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setAuth({
+          isAuthenticated: true,
+          displayName:
+            user.user_metadata?.full_name ?? user.email ?? "User",
+          email: user.email ?? null,
+          avatarUrl: user.user_metadata?.avatar_url ?? null,
+          userId: user.id,
+        });
+      }
+    });
+  }, []);
 
   return (
     <nav
