@@ -1,0 +1,122 @@
+---
+/**
+ * Bible reader — dynamic route that handles all reading paths:
+ *
+ * /app/read           → translation picker (default → redirect to oeb-us)
+ * /app/read/oeb-us    → book picker for OEB
+ * /app/read/oeb-us/jhn     → chapter picker for John
+ * /app/read/oeb-us/jhn/3   → read John chapter 3
+ *
+ * Uses Astro's [...path] catch-all route to handle all depths.
+ */
+import AppLayout from "../../../layouts/AppLayout.astro";
+import { BookPicker } from "../../../components/BookPicker";
+import { ChapterPicker } from "../../../components/ChapterPicker";
+import { ChapterReader } from "../../../components/ChapterReader";
+import { SUPPORTED_TRANSLATIONS, DEFAULT_TRANSLATION, BOOK_BY_ID } from "../../../lib/constants";
+import { isValidBookId } from "../../../lib/verse-ref";
+
+// Parse the URL path segments
+const pathStr = Astro.params.path || "";
+const segments = pathStr ? pathStr.split("/") : [];
+
+// ── Determine which view to render based on URL depth ──
+
+let view: "translation" | "book" | "chapter" | "read" = "translation";
+let translation = "";
+let book = "";
+let chapter = 0;
+
+if (segments.length === 0) {
+  // /app/read → redirect to default translation
+  return Astro.redirect(`/app/read/${DEFAULT_TRANSLATION}`);
+}
+
+if (segments.length >= 1) {
+  translation = segments[0];
+  // Validate translation exists
+  const validTranslation = SUPPORTED_TRANSLATIONS.some(t => t.id === translation);
+  if (!validTranslation) {
+    return Astro.redirect(`/app/read/${DEFAULT_TRANSLATION}`);
+  }
+  view = "book";
+}
+
+if (segments.length >= 2) {
+  book = segments[1];
+  if (!isValidBookId(book)) {
+    return Astro.redirect(`/app/read/${translation}`);
+  }
+  view = "chapter";
+}
+
+if (segments.length >= 3) {
+  chapter = parseInt(segments[2], 10);
+  const bookInfo = BOOK_BY_ID.get(book as any);
+  if (!bookInfo || isNaN(chapter) || chapter < 1 || chapter > bookInfo.chapters) {
+    return Astro.redirect(`/app/read/${translation}/${book}`);
+  }
+  view = "read";
+}
+
+// Page titles that make sense to the user
+const titles: Record<string, string> = {
+  translation: "Choose a Bible",
+  book: "Choose a Book",
+  chapter: `${BOOK_BY_ID.get(book as any)?.name ?? book} — Choose a Chapter`,
+  read: `${BOOK_BY_ID.get(book as any)?.name ?? book} ${chapter}`,
+};
+---
+
+<AppLayout title={titles[view]}>
+  {/* Breadcrumb navigation — helps users know where they are */}
+  <nav aria-label="Breadcrumb" class="mb-6">
+    <ol class="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+      <li>
+        <a href={`/app/read`} class="hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">
+          Bible
+        </a>
+      </li>
+      {view !== "translation" && (
+        <li class="flex items-center gap-2">
+          <span aria-hidden="true">/</span>
+          <a href={`/app/read/${translation}`} class="hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">
+            {SUPPORTED_TRANSLATIONS.find(t => t.id === translation)?.name ?? translation}
+          </a>
+        </li>
+      )}
+      {(view === "chapter" || view === "read") && (
+        <li class="flex items-center gap-2">
+          <span aria-hidden="true">/</span>
+          <a href={`/app/read/${translation}/${book}`} class="hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">
+            {BOOK_BY_ID.get(book as any)?.name ?? book}
+          </a>
+        </li>
+      )}
+      {view === "read" && (
+        <li class="flex items-center gap-2">
+          <span aria-hidden="true">/</span>
+          <span class="font-medium text-gray-900">Chapter {chapter}</span>
+        </li>
+      )}
+    </ol>
+  </nav>
+
+  {/* View-specific content */}
+  {view === "book" && (
+    <BookPicker translation={translation} client:load />
+  )}
+
+  {view === "chapter" && (
+    <ChapterPicker translation={translation} book={book} client:load />
+  )}
+
+  {view === "read" && (
+    <ChapterReader
+      translation={translation}
+      book={book}
+      chapter={chapter}
+      client:load
+    />
+  )}
+</AppLayout>

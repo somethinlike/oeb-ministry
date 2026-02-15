@@ -1,0 +1,31 @@
+---
+/**
+ * OAuth callback handler.
+ *
+ * After the user signs in with Google/GitHub/etc., the OAuth provider
+ * redirects them here with an auth code. We exchange the code for a
+ * session (Supabase handles this), then redirect to the app.
+ *
+ * This is a server-rendered page because the code exchange must happen
+ * on the server for security (PKCE flow).
+ */
+
+// The auth code comes as a URL parameter from the OAuth provider
+const code = Astro.url.searchParams.get("code");
+const returnUrl = Astro.url.searchParams.get("returnUrl") || "/app/read";
+
+if (code) {
+  // Exchange the temporary code for a permanent session.
+  // Supabase sets the session cookies automatically through our
+  // server client's cookie handler (defined in supabase-server.ts).
+  const { error } = await Astro.locals.supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    console.error("Auth callback error:", error.message);
+    return Astro.redirect("/auth/signin?error=callback_failed");
+  }
+}
+
+// Redirect to wherever the user was trying to go
+return Astro.redirect(returnUrl);
+---

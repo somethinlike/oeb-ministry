@@ -1,0 +1,50 @@
+---
+/**
+ * AppLayout — wraps all authenticated /app/* pages.
+ *
+ * This layout:
+ * 1. Inherits from BaseLayout (shared <head>, global styles)
+ * 2. Adds a navigation header with user menu
+ * 3. Provides the AuthProvider context to all React islands
+ *
+ * Since middleware already protects /app/* routes, we know
+ * Astro.locals.user is always defined here.
+ */
+import BaseLayout from "./BaseLayout.astro";
+import { AppNav } from "../components/AppNav";
+import { ConnectionStatus } from "../components/ConnectionStatus";
+import { UpdatePrompt } from "../components/UpdatePrompt";
+import type { AuthState } from "../types/auth";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const user = Astro.locals.user!;
+
+// Build the auth state object that React components will receive
+const authState: AuthState = {
+  isAuthenticated: true,
+  displayName: user.user_metadata?.full_name ?? user.email ?? "User",
+  email: user.email ?? null,
+  avatarUrl: user.user_metadata?.avatar_url ?? null,
+  userId: user.id,
+};
+---
+
+<BaseLayout title={title}>
+  <!-- Offline/online status banner -->
+  <ConnectionStatus client:load />
+
+  <!-- Navigation header — React island for interactivity -->
+  <AppNav auth={authState} client:load />
+
+  <!-- Page content -->
+  <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <slot />
+  </div>
+
+  <!-- PWA update notification -->
+  <UpdatePrompt client:load />
+</BaseLayout>

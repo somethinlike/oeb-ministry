@@ -1,0 +1,12 @@
+---
+/**
+ * Sign-out handler.
+ *
+ * Clears the Supabase session (removes auth cookies) and redirects
+ * to the landing page. This is a server-rendered page so the cookie
+ * clearing happens on the response, not in client-side JavaScript.
+ */
+
+await Astro.locals.supabase.auth.signOut();
+return Astro.redirect("/");
+---

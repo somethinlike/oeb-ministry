@@ -1,0 +1,41 @@
+---
+/**
+ * 404 page — shown when a URL doesn't match any route.
+ *
+ * Grandmother Principle:
+ * - Friendly message, not "404 Not Found"
+ * - Clear action: go back to reading
+ * - No technical error codes in the main text
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Page Not Found">
+  <div class="flex min-h-screen items-center justify-center px-4">
+    <div class="text-center">
+      <h1 class="text-6xl font-bold text-gray-300">404</h1>
+      <h2 class="mt-4 text-2xl font-semibold text-gray-900">
+        We couldn't find that page
+      </h2>
+      <p class="mt-2 text-gray-600">
+        The page you're looking for doesn't exist or may have moved.
+      </p>
+      <div class="mt-8 flex items-center justify-center gap-4">
+        <a
+          href="/"
+          class="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white
+                 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Go home
+        </a>
+        <a
+          href="/app/read"
+          class="rounded-lg border border-gray-300 px-6 py-3 font-medium text-gray-700
+                 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Start reading
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

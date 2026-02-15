@@ -1,0 +1,39 @@
+---
+// BaseLayout wraps every page with consistent <head> metadata, global styles,
+// and the HTML structure. Individual pages slot their content into the <main>.
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Create Devotional Bibles through verse-anchored annotations" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#2563eb" />
+    <title>{title} | OEB Ministry</title>
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Global styles (Tailwind CSS v4) -->
+    <link rel="stylesheet" href="/src/styles/global.css" />
+  </head>
+  <body class="min-h-screen bg-white text-gray-900 antialiased">
+    <main>
+      <!-- Each page's content goes here -->
+      <slot />
+    </main>
+
+    <!-- Register service worker for offline support -->
+    <script>
+      import { registerServiceWorker } from "../lib/register-sw";
+      registerServiceWorker();
+    </script>
+  </body>
+</html>

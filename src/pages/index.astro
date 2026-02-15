@@ -1,0 +1,87 @@
+---
+/**
+ * Landing page — the first thing users see.
+ *
+ * Grandmother Principle:
+ * - Clear value proposition in plain language
+ * - One prominent call to action
+ * - No jargon about Markdown, encryption, or APIs
+ * - Accessible, large text, good contrast
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Welcome">
+  <!-- Hero section -->
+  <div class="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white px-4">
+    <div class="max-w-2xl text-center">
+      <h1 class="text-4xl font-bold text-gray-900 sm:text-5xl lg:text-6xl">
+        Your Bible. Your Notes.
+      </h1>
+      <p class="mt-6 text-xl text-gray-600 leading-relaxed">
+        Read the Bible and write notes on any verse. Keep them private
+        or share them with the world. Take your notes with you — always.
+      </p>
+      <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <a
+          href="/auth/signin"
+          class="rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white
+                 shadow-sm hover:bg-blue-700
+                 focus:outline-none focus:ring-4 focus:ring-blue-300
+                 transition-colors duration-150"
+        >
+          Get started — it's free
+        </a>
+        <a
+          href="/app/read"
+          class="rounded-lg border border-gray-300 px-8 py-4 text-lg font-semibold text-gray-700
+                 hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-blue-300
+                 transition-colors duration-150"
+        >
+          Read the Bible
+        </a>
+      </div>
+    </div>
+
+    <!-- Feature highlights -->
+    <div class="mt-24 max-w-4xl w-full">
+      <div class="grid gap-8 sm:grid-cols-3">
+        <div class="text-center">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600" aria-hidden="true">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+            </svg>
+          </div>
+          <h3 class="mt-4 font-semibold text-gray-900">Read freely</h3>
+          <p class="mt-2 text-sm text-gray-600">
+            Open English Bible and World English Bible — both completely free and in the public domain.
+          </p>
+        </div>
+
+        <div class="text-center">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600" aria-hidden="true">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            </svg>
+          </div>
+          <h3 class="mt-4 font-semibold text-gray-900">Write your thoughts</h3>
+          <p class="mt-2 text-sm text-gray-600">
+            Attach notes to any verse. Link related passages together. Build your own devotional Bible.
+          </p>
+        </div>
+
+        <div class="text-center">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600" aria-hidden="true">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+          </div>
+          <h3 class="mt-4 font-semibold text-gray-900">Your data, always</h3>
+          <p class="mt-2 text-sm text-gray-600">
+            Download all your notes anytime. Works offline. Your notes belong to you — forever.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

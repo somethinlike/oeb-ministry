@@ -1,0 +1,29 @@
+---
+/**
+ * Search page — full-text search across the user's annotations.
+ *
+ * Grandmother Principle:
+ * - Simple search bar at the top
+ * - Results show the verse reference and a preview of the note
+ * - "No notes yet" message for new users
+ */
+import AppLayout from "../../layouts/AppLayout.astro";
+import { AnnotationSearch } from "../../components/AnnotationSearch";
+import type { AuthState } from "../../types/auth";
+
+const user = Astro.locals.user!;
+const authState: AuthState = {
+  isAuthenticated: true,
+  displayName: user.user_metadata?.full_name ?? user.email ?? "User",
+  email: user.email ?? null,
+  avatarUrl: user.user_metadata?.avatar_url ?? null,
+  userId: user.id,
+};
+---
+
+<AppLayout title="My Notes">
+  <div class="mx-auto max-w-2xl">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">My Notes</h2>
+    <AnnotationSearch auth={authState} client:load />
+  </div>
+</AppLayout>

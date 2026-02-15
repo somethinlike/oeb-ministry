@@ -1,0 +1,33 @@
+---
+/**
+ * Sign-in page — shows OAuth provider buttons.
+ * If the user is already signed in, redirects to the app.
+ *
+ * This page is server-rendered so we can check auth state
+ * before sending any HTML to the browser.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { SignInForm } from "../../components/SignInForm";
+
+// If already signed in, skip the sign-in page
+if (Astro.locals.user) {
+  return Astro.redirect("/app/read");
+}
+
+// If they were trying to reach a protected page, we'll send them back after sign-in
+const returnUrl = Astro.url.searchParams.get("returnUrl") || "/app/read";
+---
+
+<BaseLayout title="Sign In">
+  <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Welcome to OEB Ministry</h1>
+        <p class="mt-2 text-gray-600">Sign in to start creating your devotional Bible.</p>
+      </div>
+
+      <!-- React island: interactive sign-in buttons -->
+      <SignInForm returnUrl={returnUrl} client:load />
+    </div>
+  </div>
+</BaseLayout>

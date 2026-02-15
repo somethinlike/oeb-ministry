@@ -1,0 +1,3 @@
+/* Tailwind CSS v4 — this single import activates all utility classes.
+   Unlike v3, there's no @tailwind base/components/utilities split. */
+@import "tailwindcss";
