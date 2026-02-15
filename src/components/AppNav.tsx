@@ -17,10 +17,14 @@ interface AppNavProps {
 export function AppNav({ auth: initialAuth }: AppNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [auth, setAuth] = useState<AuthState>(initialAuth);
-  // Temporary debug state — will remove once avatar issue is diagnosed
-  const [debugInfo, setDebugInfo] = useState<string>("loading...");
 
   useEffect(() => {
+    // If server already provided full auth data, no need to re-fetch
+    if (initialAuth.avatarUrl && initialAuth.displayName) return;
+
+    // Helper to extract auth state from a Supabase user object.
+    // Checks both "avatar_url" (deprecated but set by all providers)
+    // and "picture" (standard OIDC field) for future-proofing.
     function authFromUser(user: { id: string; email?: string; user_metadata: Record<string, unknown> }): AuthState {
       const meta = user.user_metadata ?? {};
       return {
@@ -32,23 +36,21 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
       };
     }
 
+    // Listen for auth state changes — fires reliably even if the session
+    // isn't ready yet when the component first mounts (common after the
+    // implicit flow redirect).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (session?.user) {
           setAuth(authFromUser(session.user));
-          const meta = session.user.user_metadata ?? {};
-          setDebugInfo(`event: ${_event} | avatar_url: ${meta.avatar_url ?? "MISSING"} | picture: ${meta.picture ?? "MISSING"} | keys: ${Object.keys(meta).join(", ")}`);
         }
       },
     );
 
+    // Also try immediately in case the session is already available
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setAuth(authFromUser(session.user));
-        const meta = session.user.user_metadata ?? {};
-        setDebugInfo(`getSession | avatar_url: ${meta.avatar_url ?? "MISSING"} | picture: ${meta.picture ?? "MISSING"} | keys: ${Object.keys(meta).join(", ")}`);
-      } else {
-        setDebugInfo("getSession returned no user");
       }
     });
 
@@ -86,35 +88,6 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
               <span className="text-sm text-gray-700">
                 {auth.displayName}
               </span>
-            </div>
-            {/* TEMPORARY DEBUG — remove after avatar issue is fixed */}
-            <div className="text-xs text-red-500">
-              <p>{debugInfo}</p>
-              <div className="flex gap-4 items-center mt-1">
-                {/* Test 1: Google avatar via <img> with inline styles */}
-                {auth.avatarUrl && (
-                  <div>
-                    <p>Google avatar:</p>
-                    <img
-                      src={auth.avatarUrl}
-                      style={{ width: "64px", height: "64px", border: "3px solid red", display: "block" }}
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                )}
-                {/* Test 2: Random external image to check if ANY external <img> works */}
-                <div>
-                  <p>External test:</p>
-                  <img
-                    src="https://placehold.co/64x64/orange/white?text=TEST"
-                    style={{ width: "64px", height: "64px", border: "3px solid blue", display: "block" }}
-                  />
-                </div>
-                {/* Test 3: Direct link */}
-                {auth.avatarUrl && (
-                  <a href={auth.avatarUrl} target="_blank" rel="noreferrer" className="underline text-blue-600">Open avatar in new tab</a>
-                )}
-              </div>
             </div>
             <a
               href="/auth/signout"
