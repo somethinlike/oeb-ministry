@@ -47,16 +47,17 @@ const PROVIDER_CONFIG: {
     hoverColor: "hover:bg-gray-800",
     textColor: "text-white",
   },
-  {
-    id: "azure",
-    label: "Sign in with Microsoft",
-    supabaseProvider: "azure",
-    iconPath:
-      "M3 3h8.5v8.5H3V3zm9.5 0H21v8.5h-8.5V3zM3 12.5h8.5V21H3v-8.5zm9.5 0H21V21h-8.5v-8.5z",
-    bgColor: "bg-blue-600",
-    hoverColor: "hover:bg-blue-700",
-    textColor: "text-white",
-  },
+  // Microsoft/Azure — disabled until Azure App Registration is configured
+  // {
+  //   id: "azure",
+  //   label: "Sign in with Microsoft",
+  //   supabaseProvider: "azure",
+  //   iconPath:
+  //     "M3 3h8.5v8.5H3V3zm9.5 0H21v8.5h-8.5V3zM3 12.5h8.5V21H3v-8.5zm9.5 0H21V21h-8.5v-8.5z",
+  //   bgColor: "bg-blue-600",
+  //   hoverColor: "hover:bg-blue-700",
+  //   textColor: "text-white",
+  // },
   {
     id: "discord",
     label: "Sign in with Discord",
