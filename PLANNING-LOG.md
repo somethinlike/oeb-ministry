@@ -323,4 +323,18 @@ Redesigned the reading experience as a "desk" where the Bible stays put and anno
 ### Bug Fix
 - `src/env.d.ts`: `locals.supabase` was typed as non-nullable but middleware sets it to `null`. Fixed to `SupabaseClient | null`.
 
+### Phase 2 Implementation (Complete)
+**5 files changed, 298 lines added**
+
+Items already shipped in Phase 1 (annotation dot indicators, pushState chapter nav) were skipped.
+
+**New files (2):**
+- `src/components/workspace/SplitPaneDivider.tsx` — draggable resize handle using pointer events + `setPointerCapture`. Keyboard accessible (arrow keys nudge 2%). Clamped to 30–70% range.
+- `src/lib/workspace-prefs.ts` — localStorage persistence for split ratio + swap preference. Safe fallbacks for private browsing / SSR.
+
+**Modified files (3):**
+- `Workspace.tsx` — replaced static CSS grid with dynamic `gridTemplateColumns` driven by split ratio. Supports swapped pane order.
+- `WorkspaceToolbar.tsx` — added swap-sides button with two-arrow icon. Desktop-only (hidden on mobile).
+- `AnnotationSidebar.tsx` — removed hardcoded `border-l` since the divider now provides visual separation between panes.
+
 ---
