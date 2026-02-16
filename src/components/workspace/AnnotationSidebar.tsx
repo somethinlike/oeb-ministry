@@ -30,7 +30,7 @@ export function AnnotationSidebar() {
   // If not authenticated, the list view handles showing a sign-in prompt
   if (!userId) {
     return (
-      <div className="h-full border-l border-gray-200 bg-white">
+      <div className="h-full bg-white">
         <ChapterAnnotationList />
       </div>
     );
@@ -47,7 +47,7 @@ export function AnnotationSidebar() {
       : selection?.end ?? verseStart;
 
     return (
-      <div className="h-full border-l border-gray-200 bg-white overflow-y-auto">
+      <div className="h-full bg-white overflow-y-auto">
         {/* Back button to return to list */}
         <div className="border-b border-gray-200 px-4 py-2">
           <button
@@ -78,7 +78,7 @@ export function AnnotationSidebar() {
 
   // ── Default: list view ──
   return (
-    <div className="h-full border-l border-gray-200 bg-white">
+    <div className="h-full bg-white">
       <ChapterAnnotationList />
     </div>
   );
