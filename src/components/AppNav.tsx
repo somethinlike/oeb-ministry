@@ -38,7 +38,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
 
     // Listen for auth state changes — fires reliably even if the session
     // isn't ready yet when the component first mounts (common after the
-    // implicit flow redirect).
+    // PKCE flow redirect).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (session?.user) {
@@ -47,11 +47,14 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
       },
     );
 
-    // Also try immediately in case the session is already available
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setAuth(authFromUser(session.user));
+    // Also try immediately in case the session is already available.
+    // Uses getUser() (not deprecated getSession()) for reliable auth checks.
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setAuth(authFromUser(user));
       }
+    }).catch(() => {
+      // Supabase call failed (e.g., network error) — stay unauthenticated
     });
 
     return () => subscription.unsubscribe();
