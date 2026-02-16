@@ -121,8 +121,10 @@ async function staleWhileRevalidate(request) {
   const fetchPromise = fetch(request)
     .then((response) => {
       if (response.ok) {
-        const cache = caches.open(CACHE_NAME);
-        cache.then((c) => c.put(request, response.clone()));
+        // Clone BEFORE the async cache.open — if we wait, the browser
+        // may consume the response body before clone() is called.
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((c) => c.put(request, clone));
       }
       return response;
     })
