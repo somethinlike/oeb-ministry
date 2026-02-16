@@ -465,3 +465,71 @@ Rooted in Byzantine iconographic tradition. Orthodox worship spaces use deep cri
 **No implementation work now.** Logged for future reference.
 
 ---
+
+## Session 3 (continued) — CC0 Intercession Carousel: "Those Who Gave Freely"
+
+### Context
+Ryan wants the v2 CC0 intercession page (shown before a user's first publish) to include a carousel of historical figures across the humanities who exemplify the ethic of giving divine gifts freely. The carousel keeps the page small but rewards curiosity — each card is a self-contained dedication the user can read or skip.
+
+### Decision: Carousel Roster
+**Owner: Ryan (vision, curation) + Claude (research, accuracy)**
+
+Already on the main Open Source Theology page (full sections): **George Washington Carver** (science), **Johann Sebastian Bach** (music). Plus the existing wider tradition section: monastic scribes, Jonas Salk, William Tyndale, Tim Berners-Lee.
+
+The carousel adds these figures — one per card, each a different discipline:
+
+#### 1. Fra Angelico — Painting (c. 1395–1455)
+Dominican friar who painted exclusively as an act of prayer. Prayed before every brushwork session. Wept while painting crucifixions. Took a vow of poverty — all work belonged to the order, never to him. When Pope John Paul II beatified him and was asked about miracles, the Pope pointed to his paintings: *"These are his miracles."*
+
+> "To paint the things of Christ, one must live with Christ."
+
+Named patron of artists by Pope John Paul II (1984).
+
+#### 2. Andrei Rublev — Iconography (c. 1360–c. 1430)
+Russian Orthodox iconographer. In the Orthodox tradition, sacred art belongs to God, not the artist — ikons are unsigned because the painter is a vessel, not a creator. Copies of a sacred ikon possess the same divinity as the original; the image transcends individual authorship. Rublev's *Trinity* ikon (c. 1410) was declared the model for all church painting by the 1551 Stoglavi Sobor and shaped 600 years of Orthodox theology. Canonized as a saint in 1988.
+
+*(No surviving direct quotes — consistent with the tradition of anonymous devotion.)*
+
+#### 3. Fanny Crosby — Hymns / Poetry (1820–1915)
+Blind from six weeks old. Wrote over 8,000 hymns — "Blessed Assurance," "To God Be the Glory," "Pass Me Not, O Gentle Savior." Lived simply, gave most of her money away, and set out to witness to one million people through her music.
+
+> "If perfect earthly sight were offered me tomorrow I would not accept it. I might not have sung hymns to the praise of God if I had been distracted by the beautiful and interesting things about me."
+
+> "I never undertake a hymn without first asking the good Lord to be my inspiration."
+
+#### 4. Antoni Gaudí — Architecture (1852–1926)
+Spent the last 12 years of his life working exclusively on the Sagrada Família in Barcelona, taking no salary. Lived in the construction site, begged for donations to continue building, and intended it as "a cathedral for the poor." Died after being struck by a tram — so shabbily dressed that he was mistaken for a beggar. Buried in the crypt of his unfinished church, which is still being completed 100 years later.
+
+> "My good friends are dead; I have no family and no clients, no fortune nor anything. Now I can dedicate myself entirely to the Church."
+
+When asked about the timeline: *"My client is not in a hurry."* (Meaning God.)
+
+#### 5. Ephrem the Syrian — Poetry / Theological Hymns (c. 306–373)
+4th-century deacon who invented the theological hymn as a tool for teaching ordinary people. Wrote thousands of *madrāšê* (teaching hymns) and pioneered all-women choirs to sing them, making complex theology accessible through music. His work was practical theology for the church in troubled times — written to teach, not to be famous. Known as "the Harp of the Holy Spirit."
+
+> "The boldness of our love is pleasing to you, O Lord, just as it pleased you that we should steal from your bounty."
+
+#### 6. Leo Tolstoy — Literature (1828–1910)
+One of the greatest novelists in history. In 1891, he officially renounced the copyrights to all works published after 1881, driven by his literal reading of the Sermon on the Mount. He believed art belonged to the people and that profiting from creative gifts contradicted Christ's teaching. His wife Sophia fought him bitterly over this decision — it caused real marital strife. He chose poverty and principle over comfort and family peace.
+
+> "The Kingdom of God is within you."
+
+(Title of his most influential theological work, which directly inspired Gandhi's nonviolent resistance movement.)
+
+#### 7. Gerard Manley Hopkins — Poetry (1844–1889)
+Jesuit priest. Less than a week after deciding to enter the Jesuits, he burned all his poetry and gave up writing for seven years. His superior later encouraged him to write again, but he refused to publish, believing it would distract from his vocation. His poems — some of the most innovative in English — were not published until 1918, 29 years after his death. He wrote as prayer, in secret, for an audience of God.
+
+> "Thou mastering me / God! giver of breath and bread..."
+> — opening of *The Wreck of the Deutschland*
+
+### Carousel Implementation Notes (v2)
+- Each card: name, discipline, dates, 2-3 sentence summary, one quote
+- Swipeable on mobile, arrow-navigated on desktop
+- Auto-advances slowly (8-10 seconds), pauses on hover/focus
+- "Read more" link on each card goes to the full Open Source Theology page section
+- Accessible: `role="region"` with `aria-roledescription="carousel"`, pause button, keyboard navigation
+- No external dependencies — custom implementation with CSS scroll-snap
+
+**No implementation work now.** This is v2 scope. Logged for future reference.
+
+---
