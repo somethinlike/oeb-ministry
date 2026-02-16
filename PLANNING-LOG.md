@@ -274,3 +274,53 @@ And in Supabase Dashboard → Authentication → URL Configuration:
 - Add `https://your-app.vercel.app/auth/callback` to **Redirect URLs**
 
 ---
+
+## Session 3 — 2026-02-15 — Workspace Redesign Phase 1
+
+### Context
+Ryan's first dogfooding session surfaced two blocking issues:
+1. **Can't switch Bible translations.** `/app/read` auto-redirected to OEB-US (incomplete, 59/81 books). No way to access KJV 1611 or Douay-Rheims from the reading view.
+2. **Reader and annotations are separate pages.** Selecting verses navigated to `/app/annotate`, losing reading context.
+
+### Decision: Unified Split-Pane Workspace
+**Owner: Ryan (vision) + Claude (implementation)**
+
+Redesigned the reading experience as a "desk" where the Bible stays put and annotations live alongside it:
+- Desktop (≥1024px): CSS grid split — reader 60%, annotations 40%
+- Mobile (<1024px): single-column reader (annotation sidebar hidden, falls back to current flow — bottom sheet planned for Phase 4)
+
+### Phase 1 Implementation (Complete)
+**14 files changed, 870 insertions**
+
+**New components (8 files):**
+- `src/types/workspace.ts` — interfaces for shared workspace state
+- `src/components/workspace/WorkspaceProvider.tsx` — React Context for state management
+- `src/components/workspace/Workspace.tsx` — top-level split-pane orchestrator
+- `src/components/workspace/WorkspaceToolbar.tsx` — breadcrumbs + translation picker
+- `src/components/workspace/TranslationPicker.tsx` — dropdown to switch Bibles
+- `src/components/workspace/ReaderPane.tsx` — wraps ChapterReader with workspace callbacks
+- `src/components/workspace/AnnotationSidebar.tsx` — shows annotation list or editor
+- `src/components/workspace/ChapterAnnotationList.tsx` — lists chapter annotations with edit
+
+**Modified components (5 files):**
+- `ChapterReader.tsx` — added optional callback props (`onVerseSelect`, `onNavigateChapter`, `annotatedVerses`). Backward-compatible: standalone mode still works via `<a href>` links.
+- `AnnotationPanel.tsx` — added `onSaved(annotation)` and `onDeleted(id)` callbacks for in-place workspace updates.
+- `AppLayout.astro` — added `fullWidth` prop to skip `max-w-7xl` container.
+- `[...path].astro` — removed auto-redirect at `/app/read`, added translation picker grid, renders Workspace at chapter depth.
+- `env.d.ts` — fixed pre-existing TS error: `supabase` local now correctly typed as nullable.
+
+### Key Architecture Decisions
+1. **URL remains source of truth** — `pushState` for chapter/translation switching without full reload.
+2. **React Context, not external state library** — workspace state is ephemeral (selection, sidebar view) plus fetched data (annotations). No Redux/Zustand needed.
+3. **ChapterReader backward-compatible** — `/app/annotate` still works unchanged.
+4. **No external dependencies** — split-pane is pure CSS Grid.
+
+### Remaining Phases
+- **Phase 2:** Draggable divider, swap-sides, client-side pushState chapter nav, annotation dot indicators
+- **Phase 3:** Floating/undockable annotation panel
+- **Phase 4:** Mobile bottom sheet for annotations
+
+### Bug Fix
+- `src/env.d.ts`: `locals.supabase` was typed as non-nullable but middleware sets it to `null`. Fixed to `SupabaseClient | null`.
+
+---
