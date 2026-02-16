@@ -3,11 +3,12 @@
  *
  * Caching strategies:
  * - Bible text (static JSON): Cache-First (immutable content, fast reads)
- * - App shell (HTML, CSS, JS): Stale-While-Revalidate (show cached, update in background)
- * - API/Supabase calls: Network-First (always try fresh data, fall back to cache)
+ * - HTML navigation: Network-First (always get fresh HTML with correct asset hashes)
+ * - Hashed assets (/_astro/*.js, *.css): Cache-First (content hash = immutable)
+ * - Other static assets: Stale-While-Revalidate (show cached, update in background)
  */
 
-const CACHE_NAME = "oeb-v1";
+const CACHE_NAME = "oeb-v2";
 const BIBLE_CACHE = "oeb-bibles-v1";
 
 // App shell files to pre-cache during install.
@@ -70,7 +71,27 @@ self.addEventListener("fetch", (event) => {
   // Note: Supabase API calls are external-origin, so they're already
   // skipped by the origin check above. No special handling needed.
 
-  // Everything else (app shell) — Stale-While-Revalidate
+  // Navigation requests (HTML pages) — Network-First.
+  // This prevents a stale-while-revalidate race condition: after a
+  // deployment, hashed asset filenames change (e.g., annotate.ABC123.css
+  // becomes annotate.DEF456.css). If we served stale HTML, it would
+  // reference the OLD CSS filename which no longer exists → unstyled page.
+  // Network-First ensures we always get fresh HTML with correct asset hashes,
+  // falling back to cache only when genuinely offline.
+  if (event.request.mode === "navigate") {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
+
+  // Hashed static assets (/_astro/*.js, /_astro/*.css) — Cache-First.
+  // These filenames include a content hash, so they're effectively
+  // immutable — if the hash matches, the content is guaranteed correct.
+  if (url.pathname.startsWith("/_astro/")) {
+    event.respondWith(cacheFirst(event.request, CACHE_NAME));
+    return;
+  }
+
+  // Everything else (unhashed static assets) — Stale-While-Revalidate
   event.respondWith(staleWhileRevalidate(event.request));
 });
 
