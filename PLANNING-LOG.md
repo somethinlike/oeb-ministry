@@ -338,3 +338,31 @@ Items already shipped in Phase 1 (annotation dot indicators, pushState chapter n
 - `AnnotationSidebar.tsx` — removed hardcoded `border-l` since the divider now provides visual separation between panes.
 
 ---
+
+## Session 3 (continued) — 2026-02-15 — Devotional Bible Assembly: Refined Vision
+
+### Context
+Ryan clarified the v3 Devotional Bible feature with sharper framing than the original Session 1 direction.
+
+### Decision: Two Types of Devotional Bibles
+**Owner: Ryan (product vision)**
+
+1. **Original Devotional** — 100% of the annotations are the user's own work. Published under their name as CC0. Represents one person's coherent theological voice.
+2. **Assembled Devotional** — curated from the public CC0 pool. Can mix the user's own annotations with other people's published annotations. Given a custom name. Also published as CC0.
+
+Both types are first-class "Devotional Bibles." The distinction matters for:
+- **Attribution/trust:** readers may value knowing a devotional is one person's original work vs. a curated remix.
+- **Discoverability:** search/browse could filter by "original" vs. "assembled."
+- **Forking:** an assembled devotional is inherently forkable (take some annotations out, add your own, publish as a new devotional).
+
+### What This Means for the Data Model (v3, not implemented yet)
+- A "Devotional Bible" is a named collection of annotation references, not copies.
+- Each devotional tracks which annotations are the author's original vs. sourced from the CC0 pool.
+- Publishing a devotional = publishing the collection metadata. The underlying annotations are already CC0.
+- Forking = creating a new collection that starts as a copy of another, then diverges.
+
+This refines the Session 1 direction: "users can search public annotations by verse/keyword and add to their collection... users can also publish entire devotional bibles that others can browse and fork/remix."
+
+**No implementation work now.** This is v3 scope. Logged for future reference.
+
+---
