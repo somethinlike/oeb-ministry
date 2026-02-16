@@ -3,6 +3,7 @@
  *
  * Shows:
  * - Breadcrumb navigation (Bible / Translation / Book / Chapter)
+ * - Undock/dock button (pop out or snap back annotation panel)
  * - Swap sides button (flips reader + sidebar position)
  * - Translation picker dropdown
  *
@@ -19,9 +20,21 @@ interface WorkspaceToolbarProps {
   swapped: boolean;
   /** Toggle swap state */
   onToggleSwap: () => void;
+  /** Whether annotation panel is currently undocked (floating) */
+  undocked: boolean;
+  /** Pop annotation panel out into a floating window */
+  onUndock: () => void;
+  /** Snap annotation panel back into the split-pane */
+  onDock: () => void;
 }
 
-export function WorkspaceToolbar({ swapped, onToggleSwap }: WorkspaceToolbarProps) {
+export function WorkspaceToolbar({
+  swapped,
+  onToggleSwap,
+  undocked,
+  onUndock,
+  onDock,
+}: WorkspaceToolbarProps) {
   const { translation, book, chapter } = useWorkspace();
 
   const translationInfo = SUPPORTED_TRANSLATIONS.find(
@@ -70,34 +83,82 @@ export function WorkspaceToolbar({ swapped, onToggleSwap }: WorkspaceToolbarProp
       </nav>
 
       {/* Right-side actions */}
-      <div className="flex items-center gap-3">
-        {/* Swap sides button — desktop only */}
+      <div className="flex items-center gap-2">
+        {/* Undock / dock toggle — desktop only */}
         <button
           type="button"
-          onClick={onToggleSwap}
+          onClick={undocked ? onDock : onUndock}
           className="hidden lg:flex items-center gap-1.5 rounded-md border border-gray-300
                      bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
                      hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label={swapped ? "Move Bible text to the left" : "Move Bible text to the right"}
-          title={swapped ? "Move Bible text to the left" : "Move Bible text to the right"}
+          aria-label={undocked ? "Dock notes back to sidebar" : "Pop notes out to floating window"}
+          title={undocked ? "Dock notes back to sidebar" : "Pop notes out to floating window"}
         >
-          {/* Two-column swap icon */}
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
-            />
-          </svg>
-          <span>Swap</span>
+          {undocked ? (
+            // Dock icon — minimize/compress arrows
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"
+              />
+            </svg>
+          ) : (
+            // Undock icon — expand/pop-out arrows
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+              />
+            </svg>
+          )}
+          <span>{undocked ? "Dock" : "Pop out"}</span>
         </button>
+
+        {/* Swap sides button — desktop only, hidden when undocked */}
+        {!undocked && (
+          <button
+            type="button"
+            onClick={onToggleSwap}
+            className="hidden lg:flex items-center gap-1.5 rounded-md border border-gray-300
+                       bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
+                       hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label={swapped ? "Move Bible text to the left" : "Move Bible text to the right"}
+            title={swapped ? "Move Bible text to the left" : "Move Bible text to the right"}
+          >
+            {/* Two-column swap icon */}
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+              />
+            </svg>
+            <span>Swap</span>
+          </button>
+        )}
 
         {/* Translation switcher */}
         <TranslationPicker />

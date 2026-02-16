@@ -16,11 +16,14 @@ interface WorkspacePrefs {
   splitRatio: number;
   /** Whether panes are swapped (reader on right). Default false */
   swapped: boolean;
+  /** Whether the annotation panel is undocked (floating window). Default false */
+  undocked: boolean;
 }
 
 const DEFAULTS: WorkspacePrefs = {
   splitRatio: 0.6,
   swapped: false,
+  undocked: false,
 };
 
 /** Clamp split ratio to safe bounds */
@@ -36,6 +39,7 @@ export function loadWorkspacePrefs(): WorkspacePrefs {
     return {
       splitRatio: clampRatio(parsed.splitRatio ?? DEFAULTS.splitRatio),
       swapped: typeof parsed.swapped === "boolean" ? parsed.swapped : DEFAULTS.swapped,
+      undocked: typeof parsed.undocked === "boolean" ? parsed.undocked : DEFAULTS.undocked,
     };
   } catch {
     return { ...DEFAULTS };
@@ -48,6 +52,7 @@ export function saveWorkspacePrefs(prefs: Partial<WorkspacePrefs>): void {
     const merged: WorkspacePrefs = {
       splitRatio: clampRatio(prefs.splitRatio ?? current.splitRatio),
       swapped: prefs.swapped ?? current.swapped,
+      undocked: prefs.undocked ?? current.undocked,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
   } catch {

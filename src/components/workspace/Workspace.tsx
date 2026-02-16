@@ -3,13 +3,13 @@
  *
  * This is the "desk" where reading and annotating happen side by side.
  *
- * Layout:
- * - Desktop (≥1024px): resizable split-pane with draggable divider.
- *   Default 60/40. User can drag to resize (30–70% range).
- *   Swap button flips reader to the right side.
- * - Mobile (<1024px): single column, reader only (Phase 4 adds bottom sheet)
+ * Layout modes (desktop ≥1024px):
+ * - **Docked:** resizable split-pane (reader + sidebar) with draggable divider
+ * - **Undocked:** reader fills full width, sidebar floats as a draggable window
  *
- * Split ratio and side preference persist to localStorage.
+ * Mobile (<1024px): single column, reader only (Phase 4 adds bottom sheet)
+ *
+ * Split ratio, side preference, and dock state persist to localStorage.
  */
 
 import { useState, useRef, useCallback } from "react";
@@ -18,6 +18,7 @@ import { WorkspaceToolbar } from "./WorkspaceToolbar";
 import { ReaderPane } from "./ReaderPane";
 import { AnnotationSidebar } from "./AnnotationSidebar";
 import { SplitPaneDivider } from "./SplitPaneDivider";
+import { FloatingPanel } from "./FloatingPanel";
 import {
   loadWorkspacePrefs,
   saveWorkspacePrefs,
@@ -36,10 +37,11 @@ export function Workspace({
   chapter,
   userId,
 }: WorkspaceProps) {
-  // Load persisted preferences (split ratio + swapped sides)
+  // Load persisted preferences (split ratio + swapped sides + undocked)
   const [prefs] = useState(() => loadWorkspacePrefs());
   const [splitRatio, setSplitRatio] = useState(prefs.splitRatio);
   const [swapped, setSwapped] = useState(prefs.swapped);
+  const [undocked, setUndocked] = useState(prefs.undocked);
 
   // Ref to the split container — divider needs it to calculate ratio
   const containerRef = useRef<HTMLDivElement>(null);
@@ -59,6 +61,16 @@ export function Workspace({
       saveWorkspacePrefs({ swapped: next });
       return next;
     });
+  }, []);
+
+  const handleUndock = useCallback(() => {
+    setUndocked(true);
+    saveWorkspacePrefs({ undocked: true });
+  }, []);
+
+  const handleDock = useCallback(() => {
+    setUndocked(false);
+    saveWorkspacePrefs({ undocked: false });
   }, []);
 
   // Build CSS grid template from the split ratio.
@@ -81,44 +93,61 @@ export function Workspace({
       userId={userId}
     >
       <div className="flex flex-col h-[calc(100vh-8rem)] rounded-lg border border-gray-200 bg-white shadow-sm">
-        {/* Toolbar: breadcrumbs + swap button + translation picker */}
-        <WorkspaceToolbar swapped={swapped} onToggleSwap={toggleSwap} />
+        {/* Toolbar: breadcrumbs + undock/swap + translation picker */}
+        <WorkspaceToolbar
+          swapped={swapped}
+          onToggleSwap={toggleSwap}
+          undocked={undocked}
+          onUndock={handleUndock}
+          onDock={handleDock}
+        />
 
-        {/* Split pane with draggable divider */}
+        {/* Split pane area */}
         <div
           ref={containerRef}
-          className="flex-1 min-h-0 grid grid-cols-1"
-          style={{
-            // Only apply split layout on desktop (lg+).
-            // CSS media query in style isn't possible, so we use
-            // the lg: classes for visibility and this inline style
-            // for the grid template on desktop.
-          }}
+          className="flex-1 min-h-0"
         >
           {/* Mobile: single column, reader only */}
-          <div className="lg:hidden min-h-0 overflow-hidden">
+          <div className="lg:hidden h-full min-h-0 overflow-hidden">
             <ReaderPane />
           </div>
 
-          {/* Desktop: split pane with divider — hidden on mobile */}
-          <div
-            className="hidden lg:grid min-h-0"
-            style={{ gridTemplateColumns: gridTemplate }}
-          >
-            <div className="min-h-0 overflow-hidden">
-              {leftPane}
+          {/* Desktop: docked split-pane OR full-width reader (when undocked) */}
+          {undocked ? (
+            // Undocked: reader takes full width
+            <div className="hidden lg:block h-full min-h-0 overflow-hidden">
+              <ReaderPane />
             </div>
-            <SplitPaneDivider
-              containerRef={containerRef}
-              onResize={handleResize}
-              onResizeEnd={handleResizeEnd}
-            />
-            <div className="min-h-0 overflow-hidden">
-              {rightPane}
+          ) : (
+            // Docked: split pane with divider
+            <div
+              className="hidden lg:grid h-full min-h-0"
+              style={{ gridTemplateColumns: gridTemplate }}
+            >
+              <div className="min-h-0 overflow-hidden">
+                {leftPane}
+              </div>
+              <SplitPaneDivider
+                containerRef={containerRef}
+                onResize={handleResize}
+                onResizeEnd={handleResizeEnd}
+              />
+              <div className="min-h-0 overflow-hidden">
+                {rightPane}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
+
+      {/* Floating annotation panel — rendered outside the main container */}
+      {undocked && (
+        <div className="hidden lg:block">
+          <FloatingPanel onDock={handleDock}>
+            <AnnotationSidebar />
+          </FloatingPanel>
+        </div>
+      )}
     </WorkspaceProvider>
   );
 }
