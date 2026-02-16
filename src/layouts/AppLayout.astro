@@ -22,9 +22,12 @@ interface Props {
   title: string;
   /** When true, skip max-w-7xl container — used by workspace for full viewport */
   fullWidth?: boolean;
+  /** When false, skip auth redirect — page is accessible without signing in.
+   *  Default: true (redirects unauthenticated users to sign-in) */
+  requireAuth?: boolean;
 }
 
-const { title, fullWidth = false } = Astro.props;
+const { title, fullWidth = false, requireAuth = true } = Astro.props;
 const user = Astro.locals.user;
 
 // Build auth state from server data (may be null if cookies haven't synced)
@@ -59,7 +62,7 @@ const authState: AuthState | null = user
     from cookies, this script checks via the browser Supabase client
     and redirects to sign-in if the user is truly not authenticated.
   -->
-  {!user && (
+  {!user && requireAuth && (
     <script>
       import { supabase } from "../lib/supabase";
 

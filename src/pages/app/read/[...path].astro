@@ -71,7 +71,7 @@ const titles: Record<string, string> = {
 const user = Astro.locals.user;
 ---
 
-<AppLayout title={titles[view]} fullWidth={view === "read"}>
+<AppLayout title={titles[view]} fullWidth={view === "read"} requireAuth={false}>
   {/* Translation picker grid — shows all available Bibles */}
   {view === "translation" && (
     <div>

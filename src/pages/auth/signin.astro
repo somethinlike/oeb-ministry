@@ -25,4 +25,20 @@ const returnUrl = Astro.url.searchParams.get("returnUrl") || "/app/read";
       <SignInForm returnUrl={returnUrl} client:load />
     </div>
   </div>
+
+  <!--
+    If the user is already signed in (e.g., came back from OAuth callback
+    but got bounced here by a timing issue), redirect them to the app.
+  -->
+  <script>
+    import { supabase } from "../../lib/supabase";
+
+    const params = new URLSearchParams(window.location.search);
+    const returnUrl = params.get("returnUrl") || "/app/read";
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      window.location.href = returnUrl;
+    }
+  </script>
 </BaseLayout>
