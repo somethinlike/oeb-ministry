@@ -366,3 +366,46 @@ This refines the Session 1 direction: "users can search public annotations by ve
 **No implementation work now.** This is v3 scope. Logged for future reference.
 
 ---
+
+### Phase 3 Implementation (Complete)
+**4 files changed, 290 lines added**
+
+**New file (1):**
+- `src/components/workspace/FloatingPanel.tsx` — `position: fixed` draggable window using pointer events + `setPointerCapture`. Viewport-clamped. Header bar for dragging with dock button. `role="dialog"` for accessibility.
+
+**Modified files (3):**
+- `Workspace.tsx` — undocked state: hides sidebar from split-pane grid, reader fills full width, `FloatingPanel` renders outside main container with `AnnotationSidebar` inside.
+- `WorkspaceToolbar.tsx` — added pop-out/dock toggle button. Hides swap-sides button when undocked (irrelevant without split-pane).
+- `workspace-prefs.ts` — added `undocked` boolean to persisted preferences.
+
+---
+
+## Session 3 (continued) — CC0 Publishing Intercession Page (v2 Scope)
+
+### Context
+Ryan wants a dedicated page that intercedes when a user first clicks "Make Public" on an annotation. Before the publish action goes through, the user should be educated on WHY the content becomes CC0.
+
+### Decision: CC0 Philosophy Intercession Page
+**Owner: Ryan (vision and theology)**
+
+**When it appears:** First time a user taps "Make Public" on any annotation. Shows once (tracked via user profile flag), then silently proceeds on future publishes with a small reminder link.
+
+**Content direction (Ryan's guidance):**
+1. **George Washington Carver** — refused to patent his inventions, crediting them to God. "God gave them to me. How can I sell them to someone else?"
+2. **Johann Sebastian Bach** — wrote "SDG" (Soli Deo Gloria) on every manuscript. His music was an offering, not a commodity.
+3. **Open Source philosophy** — Linus Torvalds, the Free Software Foundation, and the principle that knowledge shared freely accelerates human progress.
+4. **Broader pattern** — any historical examples of individuals and movements that treated knowledge/art as a gift to be shared, not a commodity to be hoarded.
+5. **Christ's ethics** — the theological grounding. Freely you have received, freely give (Matthew 10:8).
+
+**Tone:** Tier 1 Grandmother Principle. Inspiring, not preachy. "Here's why we do this" — not "you must agree." The user should feel *invited* to participate in something meaningful, not lectured.
+
+**UX flow:**
+1. User taps "Make Public" for the first time
+2. Intercession page appears explaining CC0 + Christ's ethics + historical examples
+3. User reads and taps "I understand — publish as CC0"
+4. Annotation enters the moderation pipeline (AI screening → human review)
+5. Future publishes skip the intercession (small "Why CC0?" link available)
+
+**No implementation work now.** This is v2 scope (publishing pipeline). Logged for future reference.
+
+---
