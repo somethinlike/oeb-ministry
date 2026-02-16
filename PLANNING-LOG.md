@@ -533,3 +533,81 @@ Jesuit priest. Less than a week after deciding to enter the Jesuits, he burned a
 **No implementation work now.** This is v2 scope. Logged for future reference.
 
 ---
+
+### Phase 4 Implementation (Complete)
+**2 files changed, 254 lines added**
+
+**New file (1):**
+- `src/components/workspace/BottomSheet.tsx` — touch-driven bottom sheet with three snap points (peek 64px, half 50vh, full 90vh). Velocity-based flick detection (400px/s threshold). CSS transform animation with spring curve. SSR-safe viewport height via useState + useEffect.
+
+**Modified file (1):**
+- `Workspace.tsx` — added `MobileBottomSheet` inner component (consumes `useWorkspace()` for auto-expand on verse selection). Mobile section now wraps `AnnotationSidebar` inside `BottomSheet`.
+
+**All 4 workspace phases now complete.**
+
+---
+
+### Bug Fix: Unstyled First-Load After Deployments (Service Worker Race)
+**Root cause:** The service worker used Stale-While-Revalidate for HTML navigation requests. After a deployment, hashed asset filenames change (e.g., `annotate.ABC123.css` → `annotate.DEF456.css`). The SW served stale cached HTML that referenced the OLD CSS filename which no longer existed → 404 → unstyled page. Background revalidation then updated the cache, so the second load worked.
+
+**Fix:** Three-tier caching strategy in `public/sw.js`:
+1. **Navigation (HTML):** Network-First — always gets fresh HTML with correct asset hashes
+2. **Hashed assets (`/_astro/*`):** Cache-First — content hash guarantees correctness
+3. **Other static assets:** Stale-While-Revalidate (unchanged)
+
+Bumped cache version `oeb-v1` → `oeb-v2` to force stale cache cleanup.
+
+**Lesson learned:** Stale-While-Revalidate is dangerous for HTML that references hashed assets. The HTML must always be fresh so its `<link>`/`<script>` tags point to filenames that actually exist. Use Network-First for navigations, Cache-First for immutable hashed assets.
+
+---
+
+## Session 4 — 2026-02-16 — Workspace Tests + Offline Saves + v1 Audit
+
+### Workspace Component Tests (55 new tests, 102 total)
+Wrote comprehensive tests for all workspace components shipped in Phases 1-4.
+
+**New test files (8):**
+- `src/lib/workspace-prefs.test.ts` — 12 tests: load/save, clamping, corrupt data, merge behavior, storage unavailability
+- `src/components/workspace/ChapterAnnotationList.test.tsx` — 11 tests: auth states, loading skeleton, empty state, annotation cards, verse labels, actions
+- `src/components/workspace/WorkspaceToolbar.test.tsx` — 12 tests: breadcrumbs, dock/undock toggle, swap sides, translation picker
+- `src/components/workspace/AnnotationSidebar.test.tsx` — 6 tests: list/editor view switching, back navigation, auth state
+- `src/components/workspace/FloatingPanel.test.tsx` — 4 tests: dialog role, dock button, children rendering
+- `src/components/workspace/BottomSheet.test.tsx` — 6 tests: dialog role, expand/minimize, children rendering
+- `src/components/workspace/SplitPaneDivider.test.tsx` — 4 tests: ARIA separator role, keyboard accessibility
+
+**Supporting infrastructure:**
+- `__test-helpers.tsx` — `makeAnnotation()` factory + `defaultMockContext()` for mocking `useWorkspace`
+- `src/test-setup.ts` — added `setPointerCapture`/`releasePointerCapture` stubs (jsdom doesn't implement Pointer Events API)
+- `tsconfig.json` — added `vitest/globals` to `compilerOptions.types` so TS recognizes `describe/it/expect/vi`
+- `@testing-library/user-event` installed for interaction testing
+
+### v1 MVP Completeness Audit
+Performed a full audit of v1 scope ("Bible reader + annotation creation + basic auth + save/load + PWA").
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Bible reader + workspace | ✅ Complete | 4-phase redesign done |
+| Annotation CRUD | ✅ Complete | Create/read/update/delete with Supabase |
+| Basic auth | ✅ Complete | Google/GitHub/Discord/Microsoft OAuth |
+| Export | ✅ Complete | .md files + batch .zip with YAML frontmatter |
+| Connection status | ✅ Complete | Offline banner + sync feedback |
+| Error boundaries | ✅ Complete | Friendly error messages |
+| Service worker | ✅ Complete | Three-tier caching strategy |
+| Offline reading | ✅ Complete | Bible text cached by SW |
+| Offline annotation | ✅ Complete | **Was broken — now fixed** |
+
+### Offline Annotation Integration (Critical v1 Fix)
+**Problem:** The IndexedDB store (`offline-store.ts`) and sync engine (`sync-engine.ts`) were fully implemented, but `AnnotationPanel` saved directly to Supabase, bypassing offline storage entirely. Offline saves would fail silently.
+
+**Fix:** Modified `AnnotationPanel.handleSave()` and `handleDelete()`:
+1. Check `navigator.onLine` before attempting Supabase call
+2. If offline: save to IndexedDB via `saveAnnotationLocally()` + queue via `addToSyncQueue()`
+3. If online save fails mid-request: fall back to offline save automatically
+4. Generate client-side UUID with `crypto.randomUUID()` for new offline annotations
+5. Return full Annotation object so workspace UI updates immediately (no visual difference between online and offline saves)
+
+Delete follows the same pattern — marks the local record as `pending_delete` and queues the operation. `ConnectionStatus` component already calls `processSync()` when reconnecting, which will process the queue.
+
+**v1 MVP is now feature-complete.**
+
+---
