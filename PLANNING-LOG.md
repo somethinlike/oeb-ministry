@@ -408,4 +408,60 @@ Ryan wants a dedicated page that intercedes when a user first clicks "Make Publi
 
 **No implementation work now.** This is v2 scope (publishing pipeline). Logged for future reference.
 
+**UPDATE:** The broader ethics content was implemented as a standalone public page at `/open-source-theology` (Session 3). The v2 intercession page will link to it and add the "I understand — publish as CC0" confirmation flow on top.
+
+---
+
+### Open Source Theology Page (Implemented)
+Public page at `/open-source-theology`. Linked from AppNav ("Our Ethics") and landing page. Content follows Grandmother Principle scroll order: inspirational theology → practical ethics → technical documentation → AI transparency.
+
+---
+
+## Session 3 (continued) — Denomination Themes (Future Scope)
+
+### Decision: Dark/Light Mode + Denomination Color Themes
+**Owner: Ryan (vision) + Claude (implementation rationale)**
+
+Ryan wants denomination-specific visual themes, each with light and dark variants. This gives users a reading experience that feels culturally familiar and reverential in their tradition.
+
+#### Default Theme
+| Mode | Background | Text | Accent | Rationale |
+|------|-----------|------|--------|-----------|
+| Light | White `#FFFFFF` | Gray-900 `#111827` | Blue-600 `#2563EB` | Current design. Neutral, clean, accessible. |
+| Dark | Gray-950 `#030712` | Gray-100 `#F3F4F6` | Blue-400 `#60A5FA` | Standard dark mode. Reduced eye strain. |
+
+#### Lutheran Theme
+Rooted in the Reformation's emphasis on simplicity and the Word. Luther's rose seal uses white, red, blue, gold, and black — symbolizing faith, joy in the cross, heaven, and divine truth.
+
+| Mode | Background | Text | Accent | Secondary | Rationale |
+|------|-----------|------|--------|-----------|-----------|
+| Light | Warm white `#FEFCF3` | Charcoal `#1C1917` | Deep red `#991B1B` | Gold `#A16207` | Rose seal red (blood of Christ) + gold (divine truth). Warm paper tone evokes printed hymnals. |
+| Dark | Dark warm `#1C1917` | Cream `#FEF3C7` | Rose `#F87171` | Gold `#FBBF24` | Candlelit warmth. Red softened for dark backgrounds. Gold glows. |
+
+#### Catholic Theme
+Rooted in liturgical tradition. The Church uses purple (Advent/Lent), gold (solemnity), deep blue (Marian devotion), and white (feast days). Gothic cathedrals, illuminated manuscripts, and stained glass inform the aesthetic — reverent, rich, and ancient.
+
+| Mode | Background | Text | Accent | Secondary | Rationale |
+|------|-----------|------|--------|-----------|-----------|
+| Light | Ivory `#FFFFF5` | Deep navy `#1E1B4B` | Royal purple `#6D28D9` | Gold `#B45309` | Liturgical purple (penance + royalty of Christ). Gold for solemnity. Ivory evokes vellum manuscripts. |
+| Dark | Deep indigo `#1E1B4B` | Cream `#FEF9EF` | Soft purple `#A78BFA` | Warm gold `#F59E0B` | Cathedral at night. Stained glass glow. Purple luminous against deep blue-black. |
+
+#### Orthodox Theme
+Rooted in Byzantine iconographic tradition. Orthodox worship spaces use deep crimson, gold, forest green, and icon blue. The aesthetic is warm, ancient, and richly colored — ikons on aged wood, gold leaf mosaics, incense-darkened walls.
+
+| Mode | Background | Text | Accent | Secondary | Rationale |
+|------|-----------|------|--------|-----------|-----------|
+| Light | Parchment `#FDF6E3` | Dark olive `#1A1C16` | Crimson `#B91C1C` | Forest green `#166534` | Ikon reds (Christ's divinity + sacrifice). Green (Holy Spirit, life). Parchment evokes ancient manuscripts. |
+| Dark | Deep olive `#1A1C16` | Warm parchment `#FDF6E3` | Soft crimson `#EF4444` | Sage green `#4ADE80` | Dimly lit chapel. Gold-leafed ikons glowing in lamplight. Crimson softened, green vivified. |
+
+#### Implementation Plan (Future — v2 or standalone)
+1. CSS custom properties (variables) for all theme colors on `:root`
+2. Theme selector in user settings (stored in localStorage + Supabase user profile)
+3. `prefers-color-scheme` media query for auto dark/light, overridable by user
+4. All existing Tailwind classes mapped to CSS variables (e.g., `bg-surface`, `text-primary`, `accent`)
+5. Theme switch applies instantly via class toggle on `<html>` — no page reload
+6. WCAG AAA contrast verified for every combination
+
+**No implementation work now.** Logged for future reference.
+
 ---
