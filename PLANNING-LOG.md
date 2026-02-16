@@ -611,3 +611,33 @@ Delete follows the same pattern — marks the local record as `pending_delete` a
 **v1 MVP is now feature-complete.**
 
 ---
+
+## Session 5 — 2026-02-16 — First Dogfooding: Auth & Deployment Fixes
+
+### Context
+Ryan attempted to use the deployed site for the first time. Multiple blocking issues surfaced.
+
+### Issues Found & Fixed
+
+**1. Vercel Deployment Protection (config)**
+The deployed site returned HTTP 401 for all visitors. Root cause: Vercel's Deployment Protection was enabled, adding its own authentication wall in front of the entire site. Fix: Ryan disabled it in Vercel dashboard settings.
+
+**2. Auth redirect loop — reader required login (`05d2a31`)**
+"Read the Bible" button sent users to `/app/read`, which had a client-side auth guard that redirected unauthenticated users to `/auth/signin`. Added `requireAuth` prop to `AppLayout` (default `true`), set to `false` for the reader page. Bible reading is now accessible without signing in.
+
+**3. OAuth PKCE flow broken (`032384b`)**
+Sign-in via OAuth silently failed. Root cause: `@supabase/ssr` v0.8.0 defaults to PKCE flow (`flowType: 'pkce'`), but the callback page expected implicit flow (hash-fragment tokens). The authorization code was never exchanged for a session. Fix: Rewrote `/auth/callback` as a server-side route that calls `supabase.auth.exchangeCodeForSession(code)` and sets auth cookies before redirecting.
+
+**4. AppNav broken for unauthenticated users (`032384b`, `7ff9867`)**
+AppNav always rendered user avatar + name + sign out — even for anonymous visitors. On the public reader page, this showed broken UI (null name, placeholder avatar, useless sign-out link). Fix: AppNav now checks `auth.isAuthenticated` and shows a "Sign in" button for anonymous users. Also replaced deprecated `getSession()` with `getUser()` and added `.catch()` to prevent unhandled rejections.
+
+**5. Service worker clone bug (`8f4c0bd`)**
+Console error: `Failed to execute 'clone' on 'Response': Response body is already used`. In `staleWhileRevalidate()`, `response.clone()` was called inside an async `caches.open().then()` callback — by which time the browser may have already consumed the response body. Fix: clone synchronously before the async cache operation.
+
+### Lessons Learned
+- **`@supabase/ssr` forces PKCE.** The `createBrowserClient` and `createServerClient` both default to `flowType: 'pkce'`. Comments in `supabase.ts` said "implicit flow" but that was wrong — the SSR package overrides it. Auth callbacks must exchange the code server-side.
+- **Don't assume auth guards are free.** The client-side auth redirect on `AppLayout` was a blanket policy that blocked even public pages. Auth should be opt-in per route, not opt-out.
+- **Clone before async.** When caching responses in a service worker, always `response.clone()` synchronously before any async operation. The browser can consume the response body at any time after it's returned from the fetch handler.
+- **Vite cache can go stale.** When packages update, `node_modules/.vite/` may hold outdated pre-bundles. If components crash with mysterious errors like "jsxDEV is not a function", clearing the Vite cache (`rm -rf node_modules/.vite`) usually fixes it.
+
+---
