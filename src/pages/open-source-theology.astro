@@ -1,0 +1,577 @@
+---
+/**
+ * Open Source Theology — the project's mission statement.
+ *
+ * This page is public (no auth required) and always accessible from the navbar.
+ * Content follows the Grandmother Principle in scroll order:
+ *
+ * 1. Inspirational theology — why we give freely (Tier 1)
+ * 2. Historical examples — Carver, Bach, and others (Tier 1–2)
+ * 3. The ethics of this project — CC0, Christ's ethics (Tier 2)
+ * 4. Open source philosophy — connection to the broader movement (Tier 2)
+ * 5. How it's built — tech stack, AI-assisted development, auditability (Tier 3)
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Open Source Theology" description="Why we build in the open and give freely — the theology, ethics, and technology behind OEB Ministry.">
+  <!-- Top navigation for this public page -->
+  <nav class="border-b border-gray-200 bg-white" aria-label="Page navigation">
+    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-14 items-center justify-between">
+        <a href="/" class="text-lg font-bold text-gray-900" aria-label="OEB Ministry home">
+          OEB Ministry
+        </a>
+        <div class="flex items-center gap-4">
+          <a href="/app/read" class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            Read the Bible
+          </a>
+          <a href="/auth/signin" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            Sign in
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <article class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- TIER 1 — Inspirational Theology                            -->
+    <!-- Plain language, no jargon, grandmother-accessible           -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+
+    <header class="text-center mb-16">
+      <h1 class="text-4xl font-bold text-gray-900 sm:text-5xl leading-tight">
+        Open Source Theology
+      </h1>
+      <p class="mt-6 text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">
+        Everything on this site is built to be given away. The Bible text is free.
+        Your published notes are free. The code that runs the site is free. Here's
+        why we believe that's exactly how it should be.
+      </p>
+    </header>
+
+    <!-- The Scripture -->
+    <section class="mb-16" aria-labelledby="scripture-heading">
+      <blockquote class="border-l-4 border-blue-500 pl-6 py-2">
+        <p class="text-2xl text-gray-800 italic leading-relaxed">
+          "Freely you have received; freely give."
+        </p>
+        <footer class="mt-3 text-base text-gray-500">
+          — Jesus Christ, Matthew 10:8
+        </footer>
+      </blockquote>
+
+      <div class="mt-8 space-y-4 text-lg text-gray-700 leading-relaxed">
+        <p>
+          This isn't a slogan. It's a command — and it's the foundation everything
+          here is built on. If God gives wisdom, understanding, and talent freely,
+          then hoarding the fruit of those gifts behind paywalls and patents
+          contradicts the nature of the Giver.
+        </p>
+        <p>
+          The early Church understood this. The apostles didn't franchise. The gospel
+          was preached freely, copied freely, and spread by people who believed truth
+          was too important to own. This site exists in that tradition.
+        </p>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- TIER 1–2 — Historical Examples                             -->
+    <!-- Inspirational stories, gently introduces the broader ethic  -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+
+    <section class="mb-16" aria-labelledby="examples-heading">
+      <h2 id="examples-heading" class="text-2xl font-bold text-gray-900 mb-8">
+        Those Who Gave Freely
+      </h2>
+
+      <!-- George Washington Carver -->
+      <div class="mb-10">
+        <h3 class="text-xl font-semibold text-gray-900 mb-3">
+          George Washington Carver
+        </h3>
+        <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+          <p>
+            Carver discovered over 300 uses for the peanut and hundreds more for
+            sweet potatoes, soybeans, and pecans. He revolutionized Southern
+            agriculture and could have become one of the wealthiest men in
+            America. He refused.
+          </p>
+          <p>
+            When asked why he wouldn't patent his discoveries, Carver replied:
+          </p>
+          <blockquote class="border-l-4 border-amber-400 pl-6 py-1 my-4">
+            <p class="text-gray-800 italic">
+              "God gave them to me. How can I sell them to someone else?"
+            </p>
+          </blockquote>
+          <p>
+            Carver saw his work as a conversation with the Creator. Every morning
+            he walked into his laboratory and asked God what to reveal that day.
+            He understood that his brilliance was a gift — and that gifts are
+            meant to be shared, not monetized.
+          </p>
+          <p>
+            Thomas Edison offered Carver a salary that would be worth over a
+            million dollars today. Carver turned it down. He lived simply,
+            taught freely, and died having changed the world without extracting
+            a dime from the knowledge God gave him.
+          </p>
+        </div>
+      </div>
+
+      <!-- Johann Sebastian Bach -->
+      <div class="mb-10">
+        <h3 class="text-xl font-semibold text-gray-900 mb-3">
+          Johann Sebastian Bach
+        </h3>
+        <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+          <p>
+            Bach composed over 1,100 works — cantatas, fugues, concertos, and
+            some of the most complex music ever written. On nearly every
+            manuscript, he inscribed three letters: <strong>S.D.G.</strong> —
+            <em>Soli Deo Gloria</em>, "To God alone be the glory."
+          </p>
+          <p>
+            He didn't write music to build a brand. He wrote music as an act of
+            worship. His manuscripts weren't guarded trade secrets — they were
+            copied, shared, studied, and built upon by every generation of
+            musicians that followed. Bach's work became the foundation of Western
+            music precisely <em>because</em> it was freely available to learn from.
+          </p>
+          <p>
+            Today, every music student in the world studies Bach. His gift to God
+            became a gift to all of humanity — not because someone marketed it,
+            but because truth and beauty, once released, find their own way.
+          </p>
+        </div>
+      </div>
+
+      <!-- The Wider Tradition -->
+      <div class="mb-10">
+        <h3 class="text-xl font-semibold text-gray-900 mb-3">
+          A Tradition, Not an Exception
+        </h3>
+        <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+          <p>
+            Carver and Bach aren't outliers. They belong to a long line of people
+            who understood that knowledge hoarded is knowledge wasted:
+          </p>
+          <ul class="list-disc pl-8 space-y-3">
+            <li>
+              <strong>The monastic scribes</strong> spent their lives copying
+              scripture and preserving knowledge through the Dark Ages — not
+              for profit, but because they believed truth should survive.
+            </li>
+            <li>
+              <strong>Jonas Salk</strong> refused to patent the polio vaccine.
+              When asked who owned it, he said: "The people. Could you patent
+              the sun?" His decision made the vaccine accessible worldwide and
+              saved millions of lives.
+            </li>
+            <li>
+              <strong>William Tyndale</strong> was executed for translating the
+              Bible into English. His crime was making God's word accessible to
+              ordinary people. The establishment wanted to keep scripture locked
+              behind Latin and institutional control. Tyndale believed everyone
+              deserved to read it for themselves.
+            </li>
+            <li>
+              <strong>Tim Berners-Lee</strong> invented the World Wide Web and
+              gave it away. He could have patented the most transformative
+              technology of the 20th century. Instead, he released it freely —
+              and it changed everything.
+            </li>
+          </ul>
+          <p>
+            The pattern is consistent across centuries and disciplines: the
+            people who change the world the most are the ones who give their
+            work away.
+          </p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- TIER 2 — The Ethics of This Project                        -->
+    <!-- Practical principles, explains CC0 and Christ's ethics      -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+
+    <section class="mb-16" aria-labelledby="ethics-heading">
+      <h2 id="ethics-heading" class="text-2xl font-bold text-gray-900 mb-8">
+        Our Ethics
+      </h2>
+
+      <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+        <p>
+          OEB Ministry is built on two pillars: <strong>Christ's ethics</strong>
+          and <strong>open knowledge</strong>. These aren't in tension — they're
+          the same thing expressed in different languages.
+        </p>
+      </div>
+
+      <!-- CC0 -->
+      <div class="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">
+          Creative Commons Zero (CC0)
+        </h3>
+        <div class="space-y-3 text-gray-700 leading-relaxed">
+          <p>
+            When you publish a note on this site, it's released under
+            <strong>CC0</strong> — Creative Commons Zero. That means you're
+            giving it to the world with no strings attached. Anyone can read it,
+            share it, remix it, or include it in their own devotional Bible.
+            No permission needed. No attribution required.
+          </p>
+          <p>
+            This isn't losing your work. It's planting a seed. Your insight
+            about a verse might help someone on the other side of the world
+            understand God's word in a way they never could before. CC0 removes
+            every legal barrier between your understanding and their need.
+          </p>
+        </div>
+      </div>
+
+      <!-- Christ's Ethics -->
+      <div class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">
+          Christ's Ethics
+        </h3>
+        <div class="space-y-3 text-gray-700 leading-relaxed">
+          <p>
+            Published content on this site reflects Christ's teaching. This
+            means:
+          </p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li>
+              <strong>Truth over popularity.</strong> We don't publish what
+              sounds good — we publish what aligns with scripture.
+            </li>
+            <li>
+              <strong>Grace and accountability together.</strong> God's love
+              is unconditional. His standards are not. Both are real.
+            </li>
+            <li>
+              <strong>No false gospels.</strong> Theology that contradicts
+              clear scripture — whether it's overly permissive or needlessly
+              harsh — doesn't pass review.
+            </li>
+            <li>
+              <strong>Humility.</strong> Every published note goes through
+              review. No one's interpretation is above scrutiny, including
+              the moderators'.
+            </li>
+          </ul>
+          <p>
+            Your private notes are yours alone — write whatever helps you
+            study. But when you share with the community, you're contributing
+            to a shared understanding of God's word, and that carries
+            responsibility.
+          </p>
+        </div>
+      </div>
+
+      <!-- Data Ownership -->
+      <div class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">
+          Your Data Belongs to You
+        </h3>
+        <div class="space-y-3 text-gray-700 leading-relaxed">
+          <p>
+            Every note you write can be downloaded at any time. If this site
+            disappears tomorrow, you leave with everything. Your notes export
+            as simple text files that work in any note-taking app.
+          </p>
+          <p>
+            Private notes are locked on your device before they ever reach our
+            servers. We couldn't read them even if we wanted to. That's not a
+            policy — it's math.
+          </p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- TIER 2 — Open Source Philosophy                            -->
+    <!-- Connects to the broader movement                           -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+
+    <section class="mb-16" aria-labelledby="opensource-heading">
+      <h2 id="opensource-heading" class="text-2xl font-bold text-gray-900 mb-8">
+        The Open Source Connection
+      </h2>
+
+      <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+        <p>
+          The principles behind this site aren't new to the tech world either.
+          The open source software movement — one of the most successful
+          collaborative efforts in human history — runs on the same ethic:
+          knowledge shared freely produces better results than knowledge
+          hoarded.
+        </p>
+        <p>
+          Linux powers most of the internet. Wikipedia educates billions.
+          Open source code runs the infrastructure of nearly every company
+          on Earth. None of this happened because someone charged for access.
+          It happened because people chose to give their best work away.
+        </p>
+        <p>
+          Linus Torvalds didn't patent the Linux kernel. Jimmy Wales didn't
+          put Wikipedia behind a paywall. The creators of the Internet's core
+          protocols — TCP/IP, HTTP, HTML — released them as open standards.
+          The result was the most powerful tool for human communication ever
+          created.
+        </p>
+        <p>
+          Open source works because it trusts people. It says: "Here's the
+          best I can build. Take it. Improve it. Share it." That's the same
+          thing Carver said about his peanut discoveries. The same thing Bach
+          said with <em>S.D.G.</em> on every manuscript. The same thing Jesus
+          said when he told his disciples to give freely what they'd freely
+          received.
+        </p>
+        <p>
+          We didn't invent this ethic. We inherited it — from scripture, from
+          history, and from a global community of builders who proved it works.
+        </p>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- TIER 3 — How It's Built                                    -->
+    <!-- Technical documentation, dev-friendly, AI transparency      -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+
+    <section class="mb-16" aria-labelledby="technical-heading">
+      <h2 id="technical-heading" class="text-2xl font-bold text-gray-900 mb-2">
+        Under the Hood
+      </h2>
+      <p class="text-base text-gray-500 mb-8">
+        Technical details for developers, engineers, and the curious.
+      </p>
+
+      <!-- Tech Stack -->
+      <div class="mb-10">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+          Technology Stack
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 text-gray-600">
+                <th class="py-2 pr-4 font-semibold">Layer</th>
+                <th class="py-2 pr-4 font-semibold">Technology</th>
+                <th class="py-2 font-semibold">Why</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-700">
+              <tr class="border-b border-gray-100">
+                <td class="py-2 pr-4 font-medium">Framework</td>
+                <td class="py-2 pr-4">Astro (SSR)</td>
+                <td class="py-2">Content-heavy site, static-first with interactive islands</td>
+              </tr>
+              <tr class="border-b border-gray-100">
+                <td class="py-2 pr-4 font-medium">UI</td>
+                <td class="py-2 pr-4">React + TypeScript</td>
+                <td class="py-2">Largest ecosystem for editors and interactive components</td>
+              </tr>
+              <tr class="border-b border-gray-100">
+                <td class="py-2 pr-4 font-medium">Styling</td>
+                <td class="py-2 pr-4">Tailwind CSS v4</td>
+                <td class="py-2">Utility-first, no separate CSS files to manage</td>
+              </tr>
+              <tr class="border-b border-gray-100">
+                <td class="py-2 pr-4 font-medium">Backend</td>
+                <td class="py-2 pr-4">Supabase (Postgres)</td>
+                <td class="py-2">Auth, database, Row Level Security — no custom backend</td>
+              </tr>
+              <tr class="border-b border-gray-100">
+                <td class="py-2 pr-4 font-medium">Encryption</td>
+                <td class="py-2 pr-4">Web Crypto API</td>
+                <td class="py-2">AES-256-GCM, browser-native, zero dependencies</td>
+              </tr>
+              <tr class="border-b border-gray-100">
+                <td class="py-2 pr-4 font-medium">Bible Text</td>
+                <td class="py-2 pr-4">Static JSON</td>
+                <td class="py-2">Immutable data served as static files — fast and offline-ready</td>
+              </tr>
+              <tr class="border-b border-gray-100">
+                <td class="py-2 pr-4 font-medium">Hosting</td>
+                <td class="py-2 pr-4">Vercel</td>
+                <td class="py-2">Edge deployment, automatic SSL, zero-config</td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-4 font-medium">Offline</td>
+                <td class="py-2 pr-4">Service Worker + IndexedDB</td>
+                <td class="py-2">Full PWA — works without internet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="mb-10">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+          Security Model
+        </h3>
+        <div class="space-y-3 text-gray-700 leading-relaxed">
+          <p>
+            Security isn't a feature — it's the foundation. Every piece of user
+            data is protected by multiple independent layers:
+          </p>
+          <ul class="list-disc pl-6 space-y-2 text-sm">
+            <li>
+              <strong>Row Level Security (RLS)</strong> — Postgres policies
+              enforce access control at the database level. Even if every
+              other layer fails, your data is protected.
+            </li>
+            <li>
+              <strong>Client-side encryption</strong> — Private notes are
+              encrypted with AES-256-GCM before leaving your browser. The
+              encryption key is derived from your passphrase via PBKDF2
+              (600,000+ iterations). The server never sees your key.
+            </li>
+            <li>
+              <strong>OAuth only</strong> — No passwords stored. Authentication
+              is handled by Google, Microsoft, Discord, or GitHub via Supabase
+              Auth with PKCE flow.
+            </li>
+            <li>
+              <strong>OWASP Top 10</strong> — Every feature is evaluated
+              against the OWASP Top 10. Parameterized queries, sanitized
+              Markdown rendering, CSP headers, no inline scripts.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Open Source -->
+      <div class="mb-10">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+          Open Source Codebase
+        </h3>
+        <div class="space-y-3 text-gray-700 leading-relaxed">
+          <p>
+            The complete source code for this site is publicly available. Every
+            line of code, every security policy, every database migration —
+            visible and reviewable by anyone. This isn't transparency theater.
+            It's accountability.
+          </p>
+          <p>
+            If you find a bug, you can report it. If you find a security issue,
+            you can flag it. If you want to understand exactly how your data is
+            handled, the code is there to read.
+          </p>
+        </div>
+      </div>
+
+      <!-- AI Development & Auditability -->
+      <div class="mb-10">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+          Built With AI. Auditable By AI.
+        </h3>
+        <div class="space-y-3 text-gray-700 leading-relaxed">
+          <p>
+            This site is developed through AI-assisted engineering. A human
+            developer sets the vision, ethics, and product direction. An AI
+            agent (Claude, by Anthropic) implements the code, makes
+            architectural decisions, writes tests, and enforces security
+            standards.
+          </p>
+          <p>
+            This isn't a shortcut — it's a higher standard. Every commit
+            message, every code comment, and every architectural decision is
+            written to be readable by both humans and other AI agents. The
+            project documentation is designed for <strong>context
+            portability</strong>: any LLM can be given the project files and
+            immediately understand the codebase, review decisions, and flag
+            potential issues.
+          </p>
+          <p>
+            Why does this matter? Because accountability shouldn't depend on
+            a single person's review. The codebase is structured so that:
+          </p>
+          <ul class="list-disc pl-6 space-y-2 text-sm">
+            <li>
+              <strong>Any AI agent can audit it.</strong> Paste the project
+              documentation into any capable LLM and ask it to review the
+              security model, test coverage, or architectural decisions. It
+              will have enough context to give a meaningful assessment.
+            </li>
+            <li>
+              <strong>No shortcuts are hidden.</strong> Every trade-off is
+              documented. Every known limitation has a comment explaining why.
+              There are no <code>// TODO: fix later</code> items without a
+              concrete plan attached.
+            </li>
+            <li>
+              <strong>Tests are mandatory.</strong> Every feature ships with
+              tests. Row Level Security policies are tested adversarially —
+              verifying both that authorized users <em>can</em> access their
+              data and that unauthorized users <em>cannot</em>. Snapshot tests
+              are banned (they silently pass when behavior changes).
+            </li>
+            <li>
+              <strong>The AI is held to the same standard as a human
+              engineer.</strong> If a future AI reviewer finds a legitimate
+              flaw — a missing test, a security gap, a lazy shortcut — that
+              is treated as a real bug, not a philosophical disagreement.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- The Standard -->
+      <div class="rounded-lg border border-blue-200 bg-blue-50 p-6">
+        <h3 class="text-lg font-semibold text-blue-900 mb-3">
+          The Standard
+        </h3>
+        <p class="text-blue-800 leading-relaxed">
+          The code that handles your Bible notes is held to the same rigor as
+          the code that handles your bank account. Not because a regulation
+          requires it, but because treating people's relationship with
+          scripture carelessly would be a failure of both engineering and
+          theology. We build to a standard that is defensible under adversarial
+          review — by humans, by AI, by anyone who cares to look.
+        </p>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- Closing                                                     -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+
+    <section class="text-center py-12 border-t border-gray-200">
+      <blockquote class="max-w-xl mx-auto">
+        <p class="text-xl text-gray-800 italic leading-relaxed">
+          "The object of all human life is to grow into the likeness of God,
+          and to use every talent to serve others."
+        </p>
+        <footer class="mt-3 text-base text-gray-500">
+          — paraphrase of Matthew 25:14–30, the Parable of the Talents
+        </footer>
+      </blockquote>
+      <div class="mt-8">
+        <a
+          href="/app/read"
+          class="inline-block rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white
+                 shadow-sm hover:bg-blue-700
+                 focus:outline-none focus:ring-4 focus:ring-blue-300
+                 transition-colors duration-150"
+        >
+          Start reading
+        </a>
+      </div>
+    </section>
+
+  </article>
+</BaseLayout>
