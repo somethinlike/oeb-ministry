@@ -7,18 +7,19 @@
  * - **Docked:** resizable split-pane (reader + sidebar) with draggable divider
  * - **Undocked:** reader fills full width, sidebar floats as a draggable window
  *
- * Mobile (<1024px): single column, reader only (Phase 4 adds bottom sheet)
+ * Mobile (<1024px): full-screen reader + bottom sheet for annotations
  *
  * Split ratio, side preference, and dock state persist to localStorage.
  */
 
 import { useState, useRef, useCallback } from "react";
-import { WorkspaceProvider } from "./WorkspaceProvider";
+import { WorkspaceProvider, useWorkspace } from "./WorkspaceProvider";
 import { WorkspaceToolbar } from "./WorkspaceToolbar";
 import { ReaderPane } from "./ReaderPane";
 import { AnnotationSidebar } from "./AnnotationSidebar";
 import { SplitPaneDivider } from "./SplitPaneDivider";
 import { FloatingPanel } from "./FloatingPanel";
+import { BottomSheet } from "./BottomSheet";
 import {
   loadWorkspacePrefs,
   saveWorkspacePrefs,
@@ -107,9 +108,10 @@ export function Workspace({
           ref={containerRef}
           className="flex-1 min-h-0"
         >
-          {/* Mobile: single column, reader only */}
+          {/* Mobile: full-screen reader + bottom sheet for annotations */}
           <div className="lg:hidden h-full min-h-0 overflow-hidden">
             <ReaderPane />
+            <MobileBottomSheet />
           </div>
 
           {/* Desktop: docked split-pane OR full-width reader (when undocked) */}
@@ -149,5 +151,20 @@ export function Workspace({
         </div>
       )}
     </WorkspaceProvider>
+  );
+}
+
+/**
+ * MobileBottomSheet — small wrapper that reads workspace context
+ * to know when to auto-expand (on verse selection).
+ * Needs to be a separate component because it uses useWorkspace(),
+ * which requires being inside WorkspaceProvider.
+ */
+function MobileBottomSheet() {
+  const { selection } = useWorkspace();
+  return (
+    <BottomSheet expanded={selection !== null}>
+      <AnnotationSidebar />
+    </BottomSheet>
   );
 }
