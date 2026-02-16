@@ -1,10 +1,12 @@
 ---
 /**
  * Sign-in page — shows OAuth provider buttons.
- * If the user is already signed in, redirects to the app.
  *
- * This page is server-rendered so we can check auth state
- * before sending any HTML to the browser.
+ * Note: We intentionally do NOT redirect already-authenticated users
+ * here. A client-side getUser() check was tried but interfered with
+ * Supabase client initialization and crashed component hydration.
+ * Already-authed users rarely land here anyway (the callback redirects
+ * them to /app/read after OAuth completes).
  */
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { SignInForm } from "../../components/SignInForm";

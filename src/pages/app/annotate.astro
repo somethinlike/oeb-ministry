@@ -15,7 +15,13 @@ import { AnnotationPanel } from "../../components/AnnotationPanel";
 import { getAnnotation } from "../../lib/annotations";
 import type { Annotation } from "../../types/annotation";
 
-const user = Astro.locals.user!;
+const user = Astro.locals.user;
+
+// If auth cookies haven't synced yet, the client-side guard in AppLayout
+// will handle the redirect. But we can't render without a userId, so bail.
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`);
+}
 
 // Parse URL params
 const translation = Astro.url.searchParams.get("t") || "";
