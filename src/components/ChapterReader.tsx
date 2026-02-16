@@ -3,9 +3,15 @@
  *
  * Renders verses with:
  * - Tap-to-select verse highlighting (tap one, tap another for range)
- * - "Write a note" button when verses are selected
+ * - "Write a note" button when verses are selected (standalone mode)
  * - Previous/next chapter navigation
  * - Annotation indicators on verses that have notes
+ *
+ * Supports two modes:
+ * - **Standalone** (no callbacks): manages its own selection state,
+ *   navigates via <a href> links. Used by /app/annotate.
+ * - **Workspace** (callbacks provided): selection is controlled externally,
+ *   navigation fires callbacks. Used by the split-pane workspace.
  *
  * Grandmother Principle:
  * - Clean, readable text with good line spacing
@@ -27,17 +33,35 @@ interface ChapterReaderProps {
   translation: string;
   book: string;
   chapter: number;
+  /** Workspace mode: externally controlled selection */
+  selection?: VerseSelection | null;
+  /** Workspace mode: called when user taps a verse */
+  onVerseSelect?: (selection: VerseSelection | null) => void;
+  /** Workspace mode: called for prev/next chapter navigation */
+  onNavigateChapter?: (chapter: number) => void;
+  /** Set of verse numbers that have annotations (shows dot indicators) */
+  annotatedVerses?: Set<number>;
 }
 
 export function ChapterReader({
   translation,
   book,
   chapter,
+  selection: externalSelection,
+  onVerseSelect,
+  onNavigateChapter,
+  annotatedVerses,
 }: ChapterReaderProps) {
   const [chapterData, setChapterData] = useState<ChapterData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selection, setSelection] = useState<VerseSelection | null>(null);
+  // Internal selection state — only used in standalone mode
+  const [internalSelection, setInternalSelection] =
+    useState<VerseSelection | null>(null);
+
+  // In workspace mode, selection comes from props; standalone uses local state
+  const isWorkspaceMode = onVerseSelect !== undefined;
+  const selection = isWorkspaceMode ? (externalSelection ?? null) : internalSelection;
 
   const bookInfo = BOOK_BY_ID.get(book as BookId);
 
@@ -45,7 +69,8 @@ export function ChapterReader({
   useEffect(() => {
     setLoading(true);
     setError(null);
-    setSelection(null);
+    // Clear internal selection on chapter change (standalone mode only)
+    if (!isWorkspaceMode) setInternalSelection(null);
 
     fetch(`${BIBLE_BASE_PATH}/${translation}/${book}/${chapter}.json`)
       .then((res) => {
@@ -65,7 +90,12 @@ export function ChapterReader({
   }, [translation, book, chapter]);
 
   function handleVerseClick(verseNumber: number) {
-    setSelection((current) => updateSelection(current, verseNumber));
+    const newSelection = updateSelection(selection, verseNumber);
+    if (isWorkspaceMode) {
+      onVerseSelect!(newSelection);
+    } else {
+      setInternalSelection(newSelection);
+    }
   }
 
   // ── Loading state ──
@@ -125,6 +155,7 @@ export function ChapterReader({
       >
         {chapterData.verses.map((verse) => {
           const selected = isVerseSelected(selection, verse.number);
+          const hasAnnotation = annotatedVerses?.has(verse.number) ?? false;
           return (
             <span
               key={verse.number}
@@ -142,12 +173,20 @@ export function ChapterReader({
                 ${selected ? "bg-blue-100 text-blue-900" : "hover:bg-gray-100"}
                 focus:outline-none focus:ring-2 focus:ring-blue-400
               `}
-              aria-label={`Verse ${verse.number}: ${verse.text}`}
+              aria-label={`Verse ${verse.number}: ${verse.text}${hasAnnotation ? " (has note)" : ""}`}
               aria-pressed={selected}
             >
               {/* Verse number — superscript, subtle */}
               <sup className="mr-0.5 text-xs font-semibold text-gray-400 select-none">
                 {verse.number}
+                {/* Annotation dot indicator */}
+                {hasAnnotation && (
+                  <span
+                    className="ml-0.5 inline-block h-1.5 w-1.5 rounded-full bg-blue-500 align-super"
+                    aria-hidden="true"
+                    title="Has a note"
+                  />
+                )}
               </sup>
               {verse.text}{" "}
             </span>
@@ -155,8 +194,8 @@ export function ChapterReader({
         })}
       </article>
 
-      {/* "Write a note" floating action — appears when verses are selected */}
-      {selection && (
+      {/* "Write a note" floating action — only in standalone mode */}
+      {selection && !isWorkspaceMode && (
         <div
           className="fixed bottom-6 left-1/2 z-10 -translate-x-1/2
                      rounded-full bg-blue-600 px-6 py-3 text-white shadow-lg
@@ -174,7 +213,7 @@ export function ChapterReader({
           </a>
           <button
             type="button"
-            onClick={() => setSelection(null)}
+            onClick={() => setInternalSelection(null)}
             className="ml-1 rounded-full p-1 hover:bg-blue-700
                        focus:outline-none focus:ring-2 focus:ring-white"
             aria-label="Clear selection"
@@ -197,31 +236,53 @@ export function ChapterReader({
         </div>
       )}
 
-      {/* Chapter navigation — previous/next buttons */}
+      {/* Chapter navigation */}
       <nav
         className="mt-12 flex items-center justify-between border-t border-gray-200 pt-6"
         aria-label="Chapter navigation"
       >
         {chapter > 1 ? (
-          <a
-            href={`/app/read/${translation}/${book}/${chapter - 1}`}
-            className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700
-                       hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            &larr; Chapter {chapter - 1}
-          </a>
+          onNavigateChapter ? (
+            <button
+              type="button"
+              onClick={() => onNavigateChapter(chapter - 1)}
+              className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700
+                         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              &larr; Chapter {chapter - 1}
+            </button>
+          ) : (
+            <a
+              href={`/app/read/${translation}/${book}/${chapter - 1}`}
+              className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700
+                         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              &larr; Chapter {chapter - 1}
+            </a>
+          )
         ) : (
           <div /> /* Spacer for flex layout */
         )}
 
         {bookInfo && chapter < bookInfo.chapters ? (
-          <a
-            href={`/app/read/${translation}/${book}/${chapter + 1}`}
-            className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700
-                       hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Chapter {chapter + 1} &rarr;
-          </a>
+          onNavigateChapter ? (
+            <button
+              type="button"
+              onClick={() => onNavigateChapter(chapter + 1)}
+              className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700
+                         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Chapter {chapter + 1} &rarr;
+            </button>
+          ) : (
+            <a
+              href={`/app/read/${translation}/${book}/${chapter + 1}`}
+              className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700
+                         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Chapter {chapter + 1} &rarr;
+            </a>
+          )
         ) : (
           <div />
         )}

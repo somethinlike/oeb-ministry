@@ -20,9 +20,11 @@ import type { AuthState } from "../types/auth";
 
 interface Props {
   title: string;
+  /** When true, skip max-w-7xl container — used by workspace for full viewport */
+  fullWidth?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, fullWidth = false } = Astro.props;
 const user = Astro.locals.user;
 
 // Build auth state from server data (may be null if cookies haven't synced)
@@ -44,8 +46,8 @@ const authState: AuthState | null = user
   <!-- Navigation header — uses server auth if available, placeholder if not -->
   <AppNav auth={authState ?? { isAuthenticated: false, displayName: null, email: null, avatarUrl: null, userId: null }} client:load />
 
-  <!-- Page content -->
-  <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <!-- Page content — fullWidth skips max-width for workspace layout -->
+  <div class={fullWidth ? "px-4 py-6 sm:px-6 lg:px-8" : "mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"}>
     <slot />
   </div>
 

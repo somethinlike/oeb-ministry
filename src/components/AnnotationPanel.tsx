@@ -45,6 +45,10 @@ interface AnnotationPanelProps {
   existing?: Annotation | null;
   /** Called after save or delete to refresh the parent view */
   onComplete?: () => void;
+  /** Workspace mode: called with the saved annotation for in-place list update */
+  onSaved?: (annotation: Annotation) => void;
+  /** Workspace mode: called with the deleted annotation ID for in-place list update */
+  onDeleted?: (id: string) => void;
 }
 
 export function AnnotationPanel({
@@ -56,6 +60,8 @@ export function AnnotationPanel({
   verseEnd,
   existing = null,
   onComplete,
+  onSaved,
+  onDeleted,
 }: AnnotationPanelProps) {
   const [content, setContent] = useState(existing?.contentMd ?? "");
   const [crossRefs, setCrossRefs] = useState<CrossRefEntry[]>(
@@ -99,12 +105,15 @@ export function AnnotationPanel({
         crossReferences: crossRefs,
       };
 
+      let savedAnnotation: Annotation;
       if (existing) {
-        await updateAnnotation(supabase, existing.id, formData);
+        savedAnnotation = await updateAnnotation(supabase, existing.id, formData);
       } else {
-        await createAnnotation(supabase, userId, formData);
+        savedAnnotation = await createAnnotation(supabase, userId, formData);
       }
 
+      // Notify workspace (if present) so the annotation list updates in-place
+      onSaved?.(savedAnnotation);
       onComplete?.();
     } catch (err) {
       setError("Couldn't save your note. Please try again.");
@@ -122,6 +131,8 @@ export function AnnotationPanel({
 
     try {
       await deleteAnnotation(supabase, existing.id);
+      // Notify workspace (if present) so the annotation list updates in-place
+      onDeleted?.(existing.id);
       onComplete?.();
     } catch (err) {
       setError("Couldn't delete your note. Please try again.");
