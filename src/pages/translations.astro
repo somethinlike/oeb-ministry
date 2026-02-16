@@ -1,0 +1,249 @@
+---
+/**
+ * Bible Translations — public info page with visual timeline.
+ *
+ * Follows the Grandmother Principle scroll order:
+ * 1. Header and context (Tier 1)
+ * 2. Visual timeline — centerpiece, chronological overview (Tier 1)
+ * 3. Detailed sections per translation (Tier 1–2)
+ * 4. "Start reading" CTA (Tier 1)
+ *
+ * No auth required. Accessible from the navbar and the ⓘ icon
+ * in the workspace translation picker.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+  getTranslationInfoChronological,
+  type TranslationInfo,
+} from "../lib/translation-info";
+
+const translations = getTranslationInfoChronological();
+---
+
+<BaseLayout
+  title="Bible Translations"
+  description="Learn the history behind each Bible translation available on OEB Ministry — from the 1582 Douay-Rheims to the modern Open English Bible."
+>
+  <!-- Top navigation for this public page (same pattern as open-source-theology.astro) -->
+  <nav class="border-b border-gray-200 bg-white" aria-label="Page navigation">
+    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-14 items-center justify-between">
+        <a
+          href="/"
+          class="text-lg font-bold text-gray-900"
+          aria-label="OEB Ministry home"
+        >
+          OEB Ministry
+        </a>
+        <div class="flex items-center gap-4">
+          <a
+            href="/app/read"
+            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Read the Bible
+          </a>
+          <a
+            href="/auth/signin"
+            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Sign in
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <article class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- HEADER                                                      -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+
+    <header class="text-center mb-16">
+      <h1
+        class="text-4xl font-bold text-gray-900 sm:text-5xl leading-tight"
+      >
+        About Our Bible Translations
+      </h1>
+      <p
+        class="mt-6 text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto"
+      >
+        Every Bible translation carries a story — who made it, why, and what it
+        meant for the people of its time. Here are the translations available on
+        this site and the history behind each one.
+      </p>
+    </header>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- VISUAL TIMELINE                                             -->
+    <!-- Desktop: horizontal. Mobile: vertical.                      -->
+    <!-- Evenly spaced (not proportional to years).                  -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+
+    <section class="mb-20" aria-labelledby="timeline-heading">
+      <h2 id="timeline-heading" class="sr-only">
+        Translation Timeline
+      </h2>
+
+      <ol
+        class="relative flex flex-col gap-8 sm:flex-row sm:gap-0 sm:justify-between"
+        aria-label="Translation timeline"
+      >
+        {/* Horizontal connecting line — desktop only */}
+        <li
+          class="hidden sm:block absolute top-5 left-0 right-0 h-0.5 bg-gray-300"
+          aria-hidden="true"
+          style="z-index: 0;"
+        ></li>
+
+        {translations.map((t: TranslationInfo) => (
+          <li class="relative flex items-start gap-4 sm:flex-col sm:items-center sm:flex-1">
+            {/* Vertical line segment — mobile only */}
+            <div
+              class="sm:hidden absolute left-[15px] top-8 bottom-0 w-0.5 bg-gray-300"
+              aria-hidden="true"
+            />
+
+            {/* Timeline dot */}
+            <a
+              href={`#${t.id}`}
+              class={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${t.timelineColor} text-white text-xs font-bold
+                       ring-4 ring-white
+                       focus:outline-none focus:ring-4 focus:ring-blue-300
+                       transition-transform hover:scale-110`}
+              aria-label={`Jump to ${t.name} details`}
+            >
+              {/* Year abbreviation inside dot */}
+              <span aria-hidden="true">
+                {t.yearPublished < 2000
+                  ? String(t.yearPublished).slice(-2)
+                  : String(t.yearPublished).slice(-2)}
+              </span>
+            </a>
+
+            {/* Card */}
+            <a
+              href={`#${t.id}`}
+              class="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm
+                     hover:shadow-md hover:border-gray-300
+                     focus:outline-none focus:ring-2 focus:ring-blue-500
+                     transition-shadow sm:mt-4 sm:text-center sm:w-full"
+            >
+              {/* Tradition badge */}
+              <span
+                class={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${t.badgeColor} ${t.badgeTextColor} mb-2`}
+              >
+                {t.tradition}
+              </span>
+
+              <p class="text-sm font-bold text-gray-900">
+                {t.yearEdition
+                  ? `${t.yearPublished} / ${t.yearEdition} ed.`
+                  : t.yearPublished < 2100
+                    ? `${t.yearPublished}–present`
+                    : String(t.yearPublished)}
+              </p>
+
+              <p class="text-sm font-semibold text-gray-800 mt-1">
+                {t.name}
+              </p>
+
+              <p class="text-xs text-gray-500 mt-1 leading-snug">
+                {t.summary}
+              </p>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- DETAILED SECTIONS — one per translation (chronological)     -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+
+    {translations.map((t: TranslationInfo) => (
+      <section
+        id={t.id}
+        class="mb-16 scroll-mt-8"
+        aria-labelledby={`${t.id}-heading`}
+      >
+        <div class="flex flex-wrap items-center gap-3 mb-6">
+          <h2
+            id={`${t.id}-heading`}
+            class="text-2xl font-bold text-gray-900"
+          >
+            {t.name}
+          </h2>
+          <span
+            class={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${t.badgeColor} ${t.badgeTextColor}`}
+          >
+            {t.tradition}
+          </span>
+        </div>
+
+        {/* Quick facts card */}
+        <div class="rounded-lg border border-gray-200 bg-gray-50 p-5 mb-6">
+          <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm">
+            <div>
+              <dt class="font-semibold text-gray-600">First Published</dt>
+              <dd class="text-gray-900">
+                {t.yearPublished}
+                {t.yearEdition ? ` (this edition: ${t.yearEdition})` : ""}
+              </dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-gray-600">Canon</dt>
+              <dd class="text-gray-900">{t.canonBookCount}</dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-gray-600">Translated From</dt>
+              <dd class="text-gray-900">{t.sourceLanguages.join(", ")}</dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-gray-600">Tradition</dt>
+              <dd class="text-gray-900">{t.tradition}</dd>
+            </div>
+          </dl>
+        </div>
+
+        {/* Description paragraphs */}
+        <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+          {t.description.map((paragraph: string) => (
+            <p>{paragraph}</p>
+          ))}
+        </div>
+
+        {/* Significance bullets */}
+        <div class="mt-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">
+            Why It Matters
+          </h3>
+          <ul class="list-disc pl-6 space-y-2 text-gray-700 leading-relaxed">
+            {t.significance.map((point: string) => (
+              <li>{point}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    ))}
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- CTA — Start Reading                                         -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+
+    <section class="text-center py-12 border-t border-gray-200">
+      <p class="text-xl text-gray-700 leading-relaxed max-w-xl mx-auto mb-8">
+        Ready to explore these translations for yourself? Pick any translation
+        and start reading — your notes and highlights are saved automatically.
+      </p>
+      <a
+        href="/app/read"
+        class="inline-block rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white
+               shadow-sm hover:bg-blue-700
+               focus:outline-none focus:ring-4 focus:ring-blue-300
+               transition-colors duration-150"
+      >
+        Start reading
+      </a>
+    </section>
+  </article>
+</BaseLayout>

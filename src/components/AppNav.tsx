@@ -81,6 +81,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             <div className="hidden sm:flex sm:gap-4">
               <NavLink href="/app/read" label="Read Bible" />
               <NavLink href="/app/search" label="My Notes" />
+              <NavLink href="/translations" label="Translations" />
               <NavLink href="/open-source-theology" label="Our Ethics" />
             </div>
           </div>
@@ -154,6 +155,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
           <div className="space-y-1 px-4 py-3">
             <MobileNavLink href="/app/read" label="Read Bible" />
             <MobileNavLink href="/app/search" label="My Notes" />
+            <MobileNavLink href="/translations" label="Translations" />
             <MobileNavLink href="/open-source-theology" label="Our Ethics" />
             <hr className="my-2 border-gray-200" />
             {auth.isAuthenticated ? (
