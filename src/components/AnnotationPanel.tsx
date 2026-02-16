@@ -24,6 +24,11 @@ import {
   updateAnnotation,
   deleteAnnotation,
 } from "../lib/annotations";
+import {
+  saveAnnotationLocally,
+  addToSyncQueue,
+  type OfflineAnnotation,
+} from "../lib/offline-store";
 import type { Annotation, AnnotationFormData } from "../types/annotation";
 import type { BookId } from "../types/bible";
 import { BOOK_BY_ID } from "../lib/constants";
@@ -106,21 +111,100 @@ export function AnnotationPanel({
       };
 
       let savedAnnotation: Annotation;
-      if (existing) {
-        savedAnnotation = await updateAnnotation(supabase, existing.id, formData);
+
+      if (navigator.onLine) {
+        // Online — save directly to Supabase
+        if (existing) {
+          savedAnnotation = await updateAnnotation(supabase, existing.id, formData);
+        } else {
+          savedAnnotation = await createAnnotation(supabase, userId, formData);
+        }
       } else {
-        savedAnnotation = await createAnnotation(supabase, userId, formData);
+        // Offline — save to IndexedDB and queue for sync
+        savedAnnotation = await saveOffline(formData);
       }
 
       // Notify workspace (if present) so the annotation list updates in-place
       onSaved?.(savedAnnotation);
       onComplete?.();
     } catch (err) {
+      // If the online save failed (e.g., network dropped mid-request),
+      // try the offline fallback before showing an error
+      if (!navigator.onLine) {
+        try {
+          const formData: AnnotationFormData = {
+            translation,
+            anchor: { book: book as BookId, chapter, verseStart, verseEnd },
+            contentMd: content,
+            crossReferences: crossRefs,
+          };
+          const savedAnnotation = await saveOffline(formData);
+          onSaved?.(savedAnnotation);
+          onComplete?.();
+          return;
+        } catch {
+          // Fall through to error display
+        }
+      }
       setError("Couldn't save your note. Please try again.");
       console.error("Save failed:", err);
     } finally {
       setSaving(false);
     }
+  }
+
+  /**
+   * Saves an annotation to IndexedDB and queues it for sync.
+   * Returns an Annotation object so the workspace UI can update in-place.
+   */
+  async function saveOffline(formData: AnnotationFormData): Promise<Annotation> {
+    const now = new Date().toISOString();
+    const isUpdate = !!existing;
+    const id = isUpdate ? existing!.id : crypto.randomUUID();
+
+    // Build the local annotation record
+    const offlineRecord: OfflineAnnotation = {
+      id,
+      userId,
+      translation: formData.translation,
+      book: formData.anchor.book,
+      chapter: formData.anchor.chapter,
+      verseStart: formData.anchor.verseStart,
+      verseEnd: formData.anchor.verseEnd,
+      contentMd: formData.contentMd,
+      isPublic: false,
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+      syncStatus: isUpdate ? "pending_update" : "pending_create",
+    };
+
+    // Save to IndexedDB
+    await saveAnnotationLocally(offlineRecord);
+
+    // Queue for sync when connectivity returns.
+    // Strip syncStatus from the data since SyncQueueItem.data
+    // uses Omit<OfflineAnnotation, "syncStatus">
+    const { syncStatus: _, ...syncData } = offlineRecord;
+    await addToSyncQueue({
+      id: crypto.randomUUID(),
+      operation: isUpdate ? "update" : "create",
+      annotationId: id,
+      data: syncData,
+      queuedAt: now,
+    });
+
+    // Return a full Annotation so the workspace UI updates immediately
+    return {
+      id,
+      userId,
+      translation: formData.translation,
+      anchor: formData.anchor,
+      contentMd: formData.contentMd,
+      isPublic: false,
+      crossReferences: [],
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+    };
   }
 
   async function handleDelete() {
@@ -130,7 +214,34 @@ export function AnnotationPanel({
     setError(null);
 
     try {
-      await deleteAnnotation(supabase, existing.id);
+      if (navigator.onLine) {
+        // Online — delete from Supabase directly
+        await deleteAnnotation(supabase, existing.id);
+      } else {
+        // Offline — mark for deletion and queue the sync
+        const now = new Date().toISOString();
+        const deleteRecord: OfflineAnnotation = {
+          id: existing.id,
+          userId: existing.userId,
+          translation: existing.translation,
+          book: existing.anchor.book,
+          chapter: existing.anchor.chapter,
+          verseStart: existing.anchor.verseStart,
+          verseEnd: existing.anchor.verseEnd,
+          contentMd: existing.contentMd,
+          isPublic: existing.isPublic,
+          createdAt: existing.createdAt,
+          updatedAt: existing.updatedAt,
+          syncStatus: "pending_delete",
+        };
+        await saveAnnotationLocally(deleteRecord);
+        await addToSyncQueue({
+          id: crypto.randomUUID(),
+          operation: "delete",
+          annotationId: existing.id,
+          queuedAt: now,
+        });
+      }
       // Notify workspace (if present) so the annotation list updates in-place
       onDeleted?.(existing.id);
       onComplete?.();
