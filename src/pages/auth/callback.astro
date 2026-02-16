@@ -1,58 +1,41 @@
 ---
 /**
- * OAuth callback handler.
+ * OAuth callback handler (PKCE flow).
  *
- * After OAuth, Supabase redirects here with auth tokens in the URL
- * hash fragment (implicit flow). The browser Supabase client auto-detects
- * these tokens and sets the session in cookies.
+ * After OAuth, Supabase redirects here with a `code` query parameter.
+ * We exchange the code for a session server-side, which sets the auth
+ * cookies, then redirect the user to the app.
  *
- * This page shows "Signing you in..." while the client processes
- * the tokens, then redirects to the app.
+ * Why server-side? @supabase/ssr uses PKCE by default, which sends
+ * an authorization code (not hash tokens). The code must be exchanged
+ * via the Supabase API for a session. Doing this server-side means
+ * the session cookies are set immediately — no client-side JS needed.
  */
-import BaseLayout from "../../layouts/BaseLayout.astro";
+import { createSupabaseServerClient } from "../../lib/supabase-server";
+
+const code = Astro.url.searchParams.get("code");
+const returnUrl = Astro.url.searchParams.get("returnUrl") || "/app/read";
+
+if (code) {
+  // Exchange the authorization code for a session.
+  // This sets auth cookies via the server client's cookie handler.
+  const supabase = createSupabaseServerClient(
+    Astro.cookies,
+    Astro.request.headers.get("cookie"),
+  );
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (!error) {
+    // Session established — send user to where they were going
+    return Astro.redirect(returnUrl);
+  }
+
+  // Code exchange failed — send to sign-in with error context
+  console.error("OAuth code exchange failed:", error.message);
+  return Astro.redirect("/auth/signin?error=auth_failed");
+}
+
+// No code in URL — shouldn't happen in normal flow.
+// Redirect to sign-in as a safe fallback.
+return Astro.redirect("/auth/signin");
 ---
-
-<BaseLayout title="Signing you in...">
-  <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-    <div class="text-center">
-      <p class="text-lg text-gray-600">Signing you in...</p>
-    </div>
-  </div>
-
-  <script>
-    import { supabase } from "../../lib/supabase";
-
-    const params = new URLSearchParams(window.location.search);
-    const returnUrl = params.get("returnUrl") || "/app/read";
-
-    // Check if the browser client already has a session
-    // (tokens auto-detected from URL hash by createBrowserClient)
-    const { data } = await supabase.auth.getSession();
-
-    if (data.session) {
-      window.location.href = returnUrl;
-    } else {
-      // Listen for the session to be set (may take a moment)
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (event) => {
-          if (event === "SIGNED_IN") {
-            subscription.unsubscribe();
-            window.location.href = returnUrl;
-          }
-        }
-      );
-
-      // If nothing happens after 5 seconds, send back to sign-in
-      setTimeout(() => {
-        subscription.unsubscribe();
-        supabase.auth.getSession().then(({ data }) => {
-          if (data.session) {
-            window.location.href = returnUrl;
-          } else {
-            window.location.href = "/auth/signin?error=callback_timeout";
-          }
-        });
-      }, 5000);
-    }
-  </script>
-</BaseLayout>

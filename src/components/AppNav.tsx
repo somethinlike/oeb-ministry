@@ -82,20 +82,31 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             </div>
           </div>
 
-          {/* Right side: User info + sign out */}
+          {/* Right side: User info + sign out (authenticated) or Sign in link */}
           <div className="hidden sm:flex sm:items-center sm:gap-4">
-            <div className="flex items-center gap-2">
-              <UserAvatar avatarUrl={auth.avatarUrl} displayName={auth.displayName} />
-              <span className="text-sm text-gray-700">
-                {auth.displayName}
-              </span>
-            </div>
-            <a
-              href="/auth/signout"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Sign out
-            </a>
+            {auth.isAuthenticated ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <UserAvatar avatarUrl={auth.avatarUrl} displayName={auth.displayName} />
+                  <span className="text-sm text-gray-700">
+                    {auth.displayName}
+                  </span>
+                </div>
+                <a
+                  href="/auth/signout"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Sign out
+                </a>
+              </>
+            ) : (
+              <a
+                href="/auth/signin"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Sign in
+              </a>
+            )}
           </div>
 
           {/* Mobile hamburger button */}
@@ -142,13 +153,19 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             <MobileNavLink href="/app/search" label="My Notes" />
             <MobileNavLink href="/open-source-theology" label="Our Ethics" />
             <hr className="my-2 border-gray-200" />
-            <div className="flex items-center gap-2 px-3 py-2">
-              <UserAvatar avatarUrl={auth.avatarUrl} displayName={auth.displayName} />
-              <span className="text-sm text-gray-700">
-                {auth.displayName}
-              </span>
-            </div>
-            <MobileNavLink href="/auth/signout" label="Sign out" />
+            {auth.isAuthenticated ? (
+              <>
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <UserAvatar avatarUrl={auth.avatarUrl} displayName={auth.displayName} />
+                  <span className="text-sm text-gray-700">
+                    {auth.displayName}
+                  </span>
+                </div>
+                <MobileNavLink href="/auth/signout" label="Sign out" />
+              </>
+            ) : (
+              <MobileNavLink href="/auth/signin" label="Sign in" />
+            )}
           </div>
         </div>
       )}
