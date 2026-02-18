@@ -641,3 +641,53 @@ Console error: `Failed to execute 'clone' on 'Response': Response body is alread
 - **Vite cache can go stale.** When packages update, `node_modules/.vite/` may hold outdated pre-bundles. If components crash with mysterious errors like "jsxDEV is not a function", clearing the Vite cache (`rm -rf node_modules/.vite`) usually fixes it.
 
 ---
+
+## Session 6 — 2026-02-17 — Export Formats & HTML-in-Markdown Security Model
+
+### Context
+Discussion about Markdown export formats and whether HTML-in-Markdown could enhance the annotation editor and exported devotional bibles.
+
+### Decision: Multi-Format Export (v1 scope — data portability is a core principle)
+
+Annotations are stored as Markdown internally. Export converts to the user's chosen format:
+
+| Format | Use case | How |
+|--------|----------|-----|
+| `.md` (full) | Obsidian, Logseq, VS Code | Markdown + safe HTML tags intact |
+| `.md` (clean) | Simpler markdown apps | HTML tags stripped, pure Markdown |
+| `.txt` (plain) | Universal | All formatting stripped |
+| `.pdf` (rendered) | GoodNotes, printing, sharing | Browser renders → PDF |
+| `.html` (standalone) | Any browser | Full rendered page |
+
+One stored format, five export options. Stripping tags is trivial; PDF/HTML is what the browser already does.
+
+### Decision: The Grandmother Principle as Security Architecture
+
+Key insight from Ryan: the three-tier comprehension model (Grandmother → Learner → Expert) naturally creates a security boundary for HTML content.
+
+**How it works:**
+1. **Grandmother (Tier 1 — web editor):** WYSIWYG buttons produce sanitized output. The editor controls what markup gets generated. No raw HTML input exists. A user clicks a highlighter icon → we store `<mark>text</mark>`. She never encounters or types HTML. **No XSS surface.**
+2. **Expert/Coder (Tier 3 — downloaded file):** Downloads `.md`, edits locally with any text editor, can add whatever HTML they want. It's their file on their machine. **No security concern — it's local.**
+3. **Re-publish boundary:** If a coder uploads an edited annotation back for publishing, server-side sanitization (`rehype-sanitize` with a safe-tag allowlist) strips anything dangerous before it reaches other users. This is the same boundary where the existing moderation pipeline sits (AI screening → human review).
+
+**Safe HTML allowlist (editor-generated + permitted on re-publish):**
+`<mark>`, `<details>`, `<summary>`, `<sup>`, `<sub>`, `<abbr>`, `<blockquote>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<br>`, `<hr>`
+
+**Always stripped (even if submitted):**
+`<script>`, `<iframe>`, `<object>`, `<embed>`, `<form>`, `<input>`, `<style>`, `on*` event attributes, `javascript:` URLs
+
+**Architectural note:** This means the sanitizer is a single enforcement point — it runs on all content before rendering to other users, regardless of whether it came from the web editor or a re-published local edit. The editor's WYSIWYG design is defense-in-depth (it can't produce dangerous output), but the sanitizer is the hard security boundary.
+
+### App Compatibility Reference
+
+| App | HTML-in-Markdown support | Best export format |
+|-----|-------------------------|-------------------|
+| Obsidian | Excellent — most safe HTML works | `.md` (full) |
+| Logseq | Good — similar to Obsidian | `.md` (full) |
+| VS Code | Full — renders everything | `.md` (full) |
+| Notion | Strips HTML — own block system | `.md` (clean) |
+| GoodNotes | None — handwriting/PDF app | `.pdf` |
+| Apple Notes | None — basic rich text | `.txt` or `.pdf` |
+| GitHub | Selective — `<details>`, `<sup>`, etc. | `.md` (full) |
+
+---
