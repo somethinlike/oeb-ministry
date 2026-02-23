@@ -5,6 +5,8 @@
  * - Simple dropdowns for book/chapter/verse (no typing reference format)
  * - "Add related verse" button with clear label
  * - Shows added references as removable tags
+ * - Removed references turn red with "+" so the user can restore them
+ * - Prevents adding the anchor verse as a related verse (with explanation)
  */
 
 import { useState } from "react";
@@ -23,22 +25,48 @@ interface CrossReferencePickerProps {
   references: CrossRefEntry[];
   /** Called when references change (add or remove) */
   onChange: (references: CrossRefEntry[]) => void;
+  /** Anchor verse info — prevents duplicating the note's own verse */
+  anchorBook?: BookId;
+  anchorChapter?: number;
+  anchorVerseStart?: number;
+  anchorVerseEnd?: number;
 }
 
 export function CrossReferencePicker({
   references,
   onChange,
+  anchorBook,
+  anchorChapter,
+  anchorVerseStart,
+  anchorVerseEnd,
 }: CrossReferencePickerProps) {
   const [showPicker, setShowPicker] = useState(false);
   const [selectedBook, setSelectedBook] = useState<BookId>("gen");
   const [selectedChapter, setSelectedChapter] = useState(1);
   const [selectedVerseStart, setSelectedVerseStart] = useState(1);
   const [selectedVerseEnd, setSelectedVerseEnd] = useState(1);
+  // Recently removed refs — shown as red "+"-tagged items for quick restore
+  const [removedRefs, setRemovedRefs] = useState<CrossRefEntry[]>([]);
+  // Warning message when the user tries to add the anchor verse
+  const [anchorWarning, setAnchorWarning] = useState<string | null>(null);
 
   const bookInfo = BOOK_BY_ID.get(selectedBook);
   const chapters = bookInfo
     ? Array.from({ length: bookInfo.chapters }, (_, i) => i + 1)
     : [];
+
+  /** Check if a reference overlaps with the anchor verse */
+  function isAnchorVerse(ref: CrossRefEntry): boolean {
+    if (!anchorBook || !anchorChapter || !anchorVerseStart || !anchorVerseEnd) {
+      return false;
+    }
+    return (
+      ref.book === anchorBook &&
+      ref.chapter === anchorChapter &&
+      ref.verseStart === anchorVerseStart &&
+      ref.verseEnd === anchorVerseEnd
+    );
+  }
 
   function handleAdd() {
     const newRef: CrossRefEntry = {
@@ -47,6 +75,23 @@ export function CrossReferencePicker({
       verseStart: selectedVerseStart,
       verseEnd: selectedVerseEnd,
     };
+
+    // Block adding the anchor verse as a cross-reference
+    if (isAnchorVerse(newRef)) {
+      const anchorBookInfo = BOOK_BY_ID.get(anchorBook!);
+      const anchorName = anchorBookInfo?.name ?? anchorBook;
+      const anchorLabel =
+        anchorVerseStart === anchorVerseEnd
+          ? `${anchorName} ${anchorChapter}:${anchorVerseStart}`
+          : `${anchorName} ${anchorChapter}:${anchorVerseStart}-${anchorVerseEnd}`;
+      setAnchorWarning(
+        `${anchorLabel} is already the verse this note is attached to. Related verses are for linking to other passages.`,
+      );
+      return;
+    }
+
+    // Clear any previous warning
+    setAnchorWarning(null);
 
     // Avoid duplicate references
     const isDuplicate = references.some(
@@ -58,13 +103,44 @@ export function CrossReferencePicker({
     );
 
     if (!isDuplicate) {
+      // If restoring a previously removed ref, remove it from the removed list
+      setRemovedRefs((prev) =>
+        prev.filter(
+          (r) =>
+            !(
+              r.book === newRef.book &&
+              r.chapter === newRef.chapter &&
+              r.verseStart === newRef.verseStart &&
+              r.verseEnd === newRef.verseEnd
+            ),
+        ),
+      );
       onChange([...references, newRef]);
     }
     setShowPicker(false);
   }
 
   function handleRemove(index: number) {
+    const removed = references[index];
+    // Move to the removed list so the user can restore it
+    setRemovedRefs((prev) => [...prev, removed]);
     onChange(references.filter((_, i) => i !== index));
+  }
+
+  function handleRestore(ref: CrossRefEntry) {
+    // Move from removed back to active references
+    setRemovedRefs((prev) =>
+      prev.filter(
+        (r) =>
+          !(
+            r.book === ref.book &&
+            r.chapter === ref.chapter &&
+            r.verseStart === ref.verseStart &&
+            r.verseEnd === ref.verseEnd
+          ),
+      ),
+    );
+    onChange([...references, ref]);
   }
 
   function formatRef(ref: CrossRefEntry): string {
@@ -81,12 +157,13 @@ export function CrossReferencePicker({
         Related verses (optional)
       </label>
 
-      {/* Added references as tags */}
-      {references.length > 0 && (
+      {/* Added references as tags, followed by removed refs (red, restorable) */}
+      {(references.length > 0 || removedRefs.length > 0) && (
         <div className="flex flex-wrap gap-2 mb-3">
+          {/* Active references */}
           {references.map((ref, index) => (
             <span
-              key={`${ref.book}-${ref.chapter}-${ref.verseStart}`}
+              key={`active-${ref.book}-${ref.chapter}-${ref.verseStart}`}
               className="inline-flex items-center gap-1 rounded-full bg-blue-100
                          px-3 py-1 text-sm text-blue-800"
             >
@@ -115,6 +192,49 @@ export function CrossReferencePicker({
               </button>
             </span>
           ))}
+
+          {/* Removed references — red with "+" to restore */}
+          {removedRefs.map((ref) => (
+            <span
+              key={`removed-${ref.book}-${ref.chapter}-${ref.verseStart}`}
+              className="inline-flex items-center gap-1 rounded-full bg-red-100
+                         px-3 py-1 text-sm text-red-800"
+            >
+              {formatRef(ref)}
+              <button
+                type="button"
+                onClick={() => handleRestore(ref)}
+                className="ml-1 rounded-full p-0.5 hover:bg-red-200
+                           focus:outline-none focus:ring-2 focus:ring-red-500"
+                aria-label={`Restore ${formatRef(ref)}`}
+              >
+                <svg
+                  className="h-3 w-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={3}
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v12M6 12h12"
+                  />
+                </svg>
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Anchor verse warning */}
+      {anchorWarning && (
+        <div
+          className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 mb-3"
+          role="alert"
+        >
+          {anchorWarning}
         </div>
       )}
 
@@ -138,6 +258,7 @@ export function CrossReferencePicker({
                   setSelectedChapter(1);
                   setSelectedVerseStart(1);
                   setSelectedVerseEnd(1);
+                  setAnchorWarning(null);
                 }}
                 className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm
                            focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -165,6 +286,7 @@ export function CrossReferencePicker({
                   setSelectedChapter(Number(e.target.value));
                   setSelectedVerseStart(1);
                   setSelectedVerseEnd(1);
+                  setAnchorWarning(null);
                 }}
                 className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm
                            focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -194,6 +316,7 @@ export function CrossReferencePicker({
                   const v = Number(e.target.value);
                   setSelectedVerseStart(v);
                   if (v > selectedVerseEnd) setSelectedVerseEnd(v);
+                  setAnchorWarning(null);
                 }}
                 className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm
                            focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -213,9 +336,10 @@ export function CrossReferencePicker({
                 type="number"
                 min={selectedVerseStart}
                 value={selectedVerseEnd}
-                onChange={(e) =>
-                  setSelectedVerseEnd(Number(e.target.value))
-                }
+                onChange={(e) => {
+                  setSelectedVerseEnd(Number(e.target.value));
+                  setAnchorWarning(null);
+                }}
                 className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm
                            focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
@@ -233,7 +357,10 @@ export function CrossReferencePicker({
             </button>
             <button
               type="button"
-              onClick={() => setShowPicker(false)}
+              onClick={() => {
+                setShowPicker(false);
+                setAnchorWarning(null);
+              }}
               className="rounded px-4 py-1.5 text-sm text-gray-600
                          hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >

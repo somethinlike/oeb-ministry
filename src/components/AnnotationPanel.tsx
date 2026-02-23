@@ -300,6 +300,10 @@ export function AnnotationPanel({
       <CrossReferencePicker
         references={crossRefs}
         onChange={setCrossRefs}
+        anchorBook={book as BookId}
+        anchorChapter={chapter}
+        anchorVerseStart={verseStart}
+        anchorVerseEnd={verseEnd}
       />
 
       {/* Action buttons */}
