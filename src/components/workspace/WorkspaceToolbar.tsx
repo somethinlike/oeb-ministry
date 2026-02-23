@@ -15,6 +15,8 @@ import { TranslationPicker } from "./TranslationPicker";
 import { SUPPORTED_TRANSLATIONS, BOOK_BY_ID } from "../../lib/constants";
 import type { BookId } from "../../types/bible";
 import type { ReaderLayout } from "../../lib/workspace-prefs";
+import { TranslationToggleMenu } from "./TranslationToggleMenu";
+import type { TranslationToggles } from "../../lib/translation-toggles";
 
 interface WorkspaceToolbarProps {
   /** Whether the panes are currently swapped */
@@ -31,6 +33,10 @@ interface WorkspaceToolbarProps {
   readerLayout: ReaderLayout;
   /** Toggle between centered and columns layout */
   onToggleReaderLayout: () => void;
+  /** Current translation word-swap toggles */
+  translationToggles: TranslationToggles;
+  /** Called when user flips a word-swap toggle */
+  onToggleChange: (key: keyof TranslationToggles) => void;
 }
 
 export function WorkspaceToolbar({
@@ -41,6 +47,8 @@ export function WorkspaceToolbar({
   onDock,
   readerLayout,
   onToggleReaderLayout,
+  translationToggles,
+  onToggleChange,
 }: WorkspaceToolbarProps) {
   const { translation, book, chapter } = useWorkspace();
 
@@ -212,6 +220,12 @@ export function WorkspaceToolbar({
           )}
           <span>{readerLayout === "centered" ? "Columns" : "Centered"}</span>
         </button>
+
+        {/* Word-swap toggles (LORD↔Yahweh, baptize↔immerse, etc.) */}
+        <TranslationToggleMenu
+          toggles={translationToggles}
+          onToggleChange={onToggleChange}
+        />
 
         {/* Translation switcher */}
         <TranslationPicker />

@@ -26,6 +26,11 @@ vi.mock("./TranslationPicker", () => ({
   TranslationPicker: () => <div data-testid="translation-picker" />,
 }));
 
+// Mock TranslationToggleMenu to avoid testing its internals here
+vi.mock("./TranslationToggleMenu", () => ({
+  TranslationToggleMenu: () => <div data-testid="translation-toggle-menu" />,
+}));
+
 const defaultProps = {
   swapped: false,
   onToggleSwap: vi.fn(),
@@ -34,6 +39,13 @@ const defaultProps = {
   onDock: vi.fn(),
   readerLayout: "centered" as const,
   onToggleReaderLayout: vi.fn(),
+  translationToggles: {
+    divineName: false,
+    baptism: false,
+    assembly: false,
+    onlyBegotten: false,
+  },
+  onToggleChange: vi.fn(),
 };
 
 describe("WorkspaceToolbar", () => {

@@ -11,13 +11,16 @@ import { useMemo } from "react";
 import { ChapterReader } from "../ChapterReader";
 import { useWorkspace } from "./WorkspaceProvider";
 import type { ReaderLayout } from "../../lib/workspace-prefs";
+import type { TranslationToggles } from "../../lib/translation-toggles";
 
 interface ReaderPaneProps {
   /** Text layout mode — "centered" (max-width prose) or "columns" (full-width multi-column) */
   readerLayout?: ReaderLayout;
+  /** Word-swap toggle preferences */
+  translationToggles?: TranslationToggles;
 }
 
-export function ReaderPane({ readerLayout = "centered" }: ReaderPaneProps) {
+export function ReaderPane({ readerLayout = "centered", translationToggles }: ReaderPaneProps) {
   const {
     translation,
     book,
@@ -52,6 +55,7 @@ export function ReaderPane({ readerLayout = "centered" }: ReaderPaneProps) {
         onNavigateChapter={navigateChapter}
         annotatedVerses={annotatedVerses}
         readerLayout={readerLayout}
+        translationToggles={translationToggles}
       />
     </div>
   );

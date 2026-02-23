@@ -896,3 +896,50 @@ Require 2+ signals before prompting to avoid false positives from accidental key
 4. Mobile: command palette via swipe gesture? Or strictly keyboard-only? (Keyboard-only for v2, revisit for v3.)
 
 ---
+
+## Session 7 — 2026-02-23 — Translation Toggles & Site Rename Discussion
+
+### Site Name
+
+Working title changed to **"The Open Bible Ministry"**. Project internal names (repo, code references) stay as-is for now.
+
+### Translation Toggles (Implemented — v1 "Easy" Swaps)
+
+Added user-controllable word-swap toggles that modify Bible verse text at render time. Four toggles, all simple find-and-replace:
+
+| Toggle          | Default        | Alternate     | Why it matters                                              |
+| --------------- | -------------- | ------------- | ----------------------------------------------------------- |
+| God's name      | LORD           | Yahweh        | YHWH is transliterated differently across traditions        |
+| Baptize/immerse | Baptize        | Immerse       | Greek *baptizo* literally means "immerse"                   |
+| Church/assembly | Church         | Assembly      | Greek *ekklesia* means "assembly/gathering"                 |
+| Only begotten   | Only begotten  | One and only  | Greek *monogenes* debate: procreation vs. uniqueness        |
+
+**Architecture**: Preferences in localStorage (`oeb-translation-toggles`), pure text transform function (`applyTranslationToggles`), UI popover in WorkspaceToolbar, applied at render time in ChapterReader.
+
+**Known edge case**: "JESUS IS LORD" (Romans 10:9 etc.) matches the divine name toggle even though it's *kyrios* not YHWH. Documented in code — would need per-verse metadata to fix.
+
+### Deferred Translation Toggles (Later Versions — Context-Dependent)
+
+These toggles require per-verse metadata or more complex logic than simple word replacement. **Planned for late-stage implementation (v3+).**
+
+| Toggle                 | Default    | Alternate                | Why it's hard                                                                                        |
+| ---------------------- | ---------- | ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Hell / afterlife terms | "hell"     | Gehenna / Hades / Sheol  | Three different original-language concepts all flattened to "hell" — need per-verse mapping           |
+| Brothers / siblings    | "brothers" | "brothers and sisters"   | Context-dependent: Greek *adelphoi* sometimes means male siblings, sometimes mixed groups            |
+| Virgin / young woman   | "virgin"   | "young woman"            | Isaiah 7:14 *almah* debate — only relevant in a handful of specific verses, not a global swap        |
+| Servant / slave        | "servant"  | "slave"                  | Greek *doulos* — context matters (metaphorical vs. literal), cultural connotations make blanket swap problematic |
+
+### WEB Translation Research
+
+Identified the **World English Bible (WEB)** as the best candidate for a new default translation:
+
+- Complete (all 66 books), modern English, fully public domain
+- Available with deuterocanonical books from eBible.org
+- Uses "Yahweh" for God's name (our toggle handles this)
+- **Decision**: Add WEB as a translation option and consider making it the default. Not yet implemented — separate task.
+
+### Bug Fixes This Session
+
+- **Ezekiel 1:2 curly brackets**: The OEB source USFM has `{ }` as a placeholder for untranslated verses. Added `isPlaceholderVerse()` detection in ChapterReader to show "(verse not yet translated)" instead of raw brackets.
+
+---

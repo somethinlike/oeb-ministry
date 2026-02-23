@@ -29,6 +29,12 @@ import {
 } from "../lib/verse-selection";
 import { BOOK_BY_ID, BIBLE_BASE_PATH } from "../lib/constants";
 import type { ReaderLayout } from "../lib/workspace-prefs";
+import {
+  applyTranslationToggles,
+  loadTranslationToggles,
+  TOGGLE_DEFAULTS,
+  type TranslationToggles,
+} from "../lib/translation-toggles";
 
 /**
  * Detect placeholder verses in work-in-progress translations.
@@ -53,6 +59,8 @@ interface ChapterReaderProps {
   annotatedVerses?: Set<number>;
   /** Text layout: "centered" for max-width prose, "columns" for full-width multi-column */
   readerLayout?: ReaderLayout;
+  /** Word-swap toggle preferences (in standalone mode, reads from localStorage if not provided) */
+  translationToggles?: TranslationToggles;
 }
 
 export function ChapterReader({
@@ -64,6 +72,7 @@ export function ChapterReader({
   onNavigateChapter,
   annotatedVerses,
   readerLayout = "centered",
+  translationToggles,
 }: ChapterReaderProps) {
   const [chapterData, setChapterData] = useState<ChapterData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,6 +80,10 @@ export function ChapterReader({
   // Internal selection state — only used in standalone mode
   const [internalSelection, setInternalSelection] =
     useState<VerseSelection | null>(null);
+
+  // Resolve toggle prefs — workspace mode passes them as a prop,
+  // standalone mode reads from localStorage
+  const resolvedToggles = translationToggles ?? loadTranslationToggles();
 
   // In workspace mode, selection comes from props; standalone uses local state
   const isWorkspaceMode = onVerseSelect !== undefined;
@@ -182,6 +195,11 @@ export function ChapterReader({
         {chapterData.verses.map((verse) => {
           const selected = isVerseSelected(selection, verse.number);
           const hasAnnotation = annotatedVerses?.has(verse.number) ?? false;
+          const placeholder = isPlaceholderVerse(verse.text);
+          // Apply word-swap toggles (LORD↔Yahweh, baptize↔immerse, etc.)
+          const displayText = placeholder
+            ? verse.text
+            : applyTranslationToggles(verse.text, resolvedToggles);
           return (
             <span
               key={verse.number}
@@ -199,7 +217,7 @@ export function ChapterReader({
                 ${selected ? "bg-blue-100 text-blue-900" : "hover:bg-gray-100"}
                 focus:outline-none focus:ring-2 focus:ring-blue-400
               `}
-              aria-label={`Verse ${verse.number}: ${isPlaceholderVerse(verse.text) ? "verse not yet translated" : verse.text}${hasAnnotation ? " (has note)" : ""}`}
+              aria-label={`Verse ${verse.number}: ${placeholder ? "verse not yet translated" : displayText}${hasAnnotation ? " (has note)" : ""}`}
               aria-pressed={selected}
             >
               {/* Verse number — superscript, subtle */}
@@ -216,10 +234,10 @@ export function ChapterReader({
               </sup>
               {/* Detect placeholder verses — the OEB (a work in progress)
                   uses "{ }" for untranslated verses */}
-              {isPlaceholderVerse(verse.text) ? (
+              {placeholder ? (
                 <em className="text-gray-400 text-sm italic">(verse not yet translated)</em>
               ) : (
-                verse.text
+                displayText
               )}{" "}
             </span>
           );
