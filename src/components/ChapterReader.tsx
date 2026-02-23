@@ -173,9 +173,9 @@ export function ChapterReader({
   // that naturally results in 1 column, on wide screens 2-4+.
   const isColumns = readerLayout === "columns";
 
-  // Shared arrow button styling
-  const arrowBtnClass =
-    "rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  // Shared nav button styling — compact on small screens, with text label on md+
+  const navBtnClass =
+    "flex items-center gap-1.5 rounded-lg border border-gray-300 p-2 md:px-3 md:py-2 text-gray-600 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   /** Render a prev/next navigation element (button in workspace mode, <a> in standalone) */
   function NavButton({
@@ -187,17 +187,30 @@ export function ChapterReader({
   }) {
     const isPrev = direction === "prev";
     const arrow = isPrev ? (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
       </svg>
     ) : (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
       </svg>
     );
 
-    const label = `Chapter ${targetChapter}`;
+    // Text label shown on md+ screens, hidden on small
+    const textLabel = (
+      <span className="hidden md:inline text-sm">
+        Chapter {targetChapter}
+      </span>
+    );
+
     const ariaLabel = `Go to chapter ${targetChapter}`;
+
+    // Content order: prev shows [← Chapter N], next shows [Chapter N →]
+    const content = isPrev ? (
+      <>{arrow}{textLabel}</>
+    ) : (
+      <>{textLabel}{arrow}</>
+    );
 
     // Workspace mode: callback button. Standalone: <a> link.
     if (onNavigateChapter) {
@@ -205,22 +218,20 @@ export function ChapterReader({
         <button
           type="button"
           onClick={() => onNavigateChapter(targetChapter)}
-          className={arrowBtnClass}
+          className={navBtnClass}
           aria-label={ariaLabel}
-          title={label}
         >
-          {arrow}
+          {content}
         </button>
       );
     }
     return (
       <a
         href={`/app/read/${translation}/${book}/${targetChapter}`}
-        className={arrowBtnClass}
+        className={navBtnClass}
         aria-label={ariaLabel}
-        title={label}
       >
-        {arrow}
+        {content}
       </a>
     );
   }
@@ -231,19 +242,26 @@ export function ChapterReader({
   return (
     <div>
       {/* Chapter header with integrated navigation.
-           In centered mode, match the article's max-w-prose centering
-           so the title and arrows align with the verse text. */}
+           3-column grid: [prev] [title] [next] — title is always centered.
+           In centered mode, match the article's max-w-prose centering. */}
       <nav
-        className={`mb-6 flex items-center justify-between gap-2 ${
+        className={`mb-6 grid grid-cols-[auto_1fr_auto] items-center gap-2 ${
           isColumns ? "" : "mx-auto max-w-prose"
         }`}
         aria-label="Chapter navigation"
       >
-        <h2 className="text-2xl font-bold text-gray-900 min-w-0 truncate">
+        {/* Left cell — prev button or empty spacer */}
+        <div>
+          {hasPrev && <NavButton direction="prev" targetChapter={chapter - 1} />}
+        </div>
+
+        {/* Center cell — chapter title, always centered */}
+        <h2 className="text-2xl font-bold text-gray-900 text-center min-w-0 truncate">
           {chapterData.bookName} {chapterData.chapter}
         </h2>
-        <div className="flex items-center gap-1 shrink-0">
-          {hasPrev && <NavButton direction="prev" targetChapter={chapter - 1} />}
+
+        {/* Right cell — next button or empty spacer */}
+        <div>
           {hasNext && <NavButton direction="next" targetChapter={chapter + 1} />}
         </div>
       </nav>
