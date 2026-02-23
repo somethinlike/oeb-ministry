@@ -158,7 +158,7 @@ export function ChapterReader({
         className={
           isColumns
             ? "text-lg leading-relaxed text-gray-800"
-            : "max-w-prose text-lg leading-relaxed text-gray-800"
+            : "mx-auto max-w-prose text-lg leading-relaxed text-gray-800"
         }
         style={isColumns ? { columns: "auto 20rem", columnGap: "2rem" } : undefined}
         aria-label={`${chapterData.bookName} chapter ${chapterData.chapter}`}
