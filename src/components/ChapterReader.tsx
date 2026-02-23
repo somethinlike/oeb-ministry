@@ -30,6 +30,15 @@ import {
 import { BOOK_BY_ID, BIBLE_BASE_PATH } from "../lib/constants";
 import type { ReaderLayout } from "../lib/workspace-prefs";
 
+/**
+ * Detect placeholder verses in work-in-progress translations.
+ * The OEB uses "{ }" or "{}" for verses not yet translated.
+ */
+function isPlaceholderVerse(text: string): boolean {
+  const stripped = text.replace(/[{}\s]/g, "");
+  return stripped.length === 0;
+}
+
 interface ChapterReaderProps {
   translation: string;
   book: string;
@@ -190,7 +199,7 @@ export function ChapterReader({
                 ${selected ? "bg-blue-100 text-blue-900" : "hover:bg-gray-100"}
                 focus:outline-none focus:ring-2 focus:ring-blue-400
               `}
-              aria-label={`Verse ${verse.number}: ${verse.text}${hasAnnotation ? " (has note)" : ""}`}
+              aria-label={`Verse ${verse.number}: ${isPlaceholderVerse(verse.text) ? "verse not yet translated" : verse.text}${hasAnnotation ? " (has note)" : ""}`}
               aria-pressed={selected}
             >
               {/* Verse number — superscript, subtle */}
@@ -205,7 +214,13 @@ export function ChapterReader({
                   />
                 )}
               </sup>
-              {verse.text}{" "}
+              {/* Detect placeholder verses — the OEB (a work in progress)
+                  uses "{ }" for untranslated verses */}
+              {isPlaceholderVerse(verse.text) ? (
+                <em className="text-gray-400 text-sm italic">(verse not yet translated)</em>
+              ) : (
+                verse.text
+              )}{" "}
             </span>
           );
         })}
