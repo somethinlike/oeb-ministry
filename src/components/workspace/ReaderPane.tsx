@@ -45,7 +45,7 @@ export function ReaderPane({ readerLayout = "centered", translationToggles }: Re
   }, [annotations]);
 
   return (
-    <div className="h-full overflow-y-auto p-4 lg:p-6">
+    <div className="h-full overflow-y-auto overscroll-contain p-4 lg:p-6">
       <ChapterReader
         translation={translation}
         book={book}

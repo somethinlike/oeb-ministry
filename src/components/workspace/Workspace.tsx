@@ -120,7 +120,7 @@ export function Workspace({
       chapter={chapter}
       userId={userId}
     >
-      <div className="flex flex-col h-[calc(100vh-8rem)] rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="flex flex-col h-full rounded-lg border border-gray-200 bg-white shadow-sm">
         {/* Toolbar: breadcrumbs + undock/swap + translation picker */}
         <WorkspaceToolbar
           swapped={swapped}

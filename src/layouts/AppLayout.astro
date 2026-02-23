@@ -43,19 +43,27 @@ const authState: AuthState | null = user
 ---
 
 <BaseLayout title={title}>
-  <!-- Offline/online status banner -->
-  <ConnectionStatus client:load />
-
-  <!-- Navigation header — uses server auth if available, placeholder if not -->
-  <AppNav auth={authState ?? { isAuthenticated: false, displayName: null, email: null, avatarUrl: null, userId: null }} client:load />
-
-  <!-- Page content — fullWidth skips max-width for workspace layout -->
-  <div class={fullWidth ? "px-4 py-6 sm:px-6 lg:px-8" : "mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"}>
-    <slot />
-  </div>
-
-  <!-- PWA update notification -->
-  <UpdatePrompt client:load />
+  {fullWidth ? (
+    <!-- Full-viewport flex layout for workspace — fills exactly 100vh,
+         no outer scrollbar. The workspace uses h-full to fill remaining space. -->
+    <div class="flex flex-col h-screen overflow-hidden">
+      <ConnectionStatus client:load />
+      <AppNav auth={authState ?? { isAuthenticated: false, displayName: null, email: null, avatarUrl: null, userId: null }} client:load />
+      <div class="flex-1 min-h-0 px-4 pb-2 sm:px-6 lg:px-8">
+        <slot />
+      </div>
+    </div>
+  ) : (
+    <!-- Normal scrollable layout for non-workspace pages -->
+    <Fragment>
+      <ConnectionStatus client:load />
+      <AppNav auth={authState ?? { isAuthenticated: false, displayName: null, email: null, avatarUrl: null, userId: null }} client:load />
+      <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <slot />
+      </div>
+      <UpdatePrompt client:load />
+    </Fragment>
+  )}
 
   <!--
     Client-side auth check: if the server couldn't read the session
