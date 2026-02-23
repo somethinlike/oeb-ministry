@@ -81,6 +81,9 @@ export function AnnotationPanel({
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // After a successful delete, we stay on the panel so the user can
+  // re-save the content if they change their mind (undo-like behavior).
+  const [justDeleted, setJustDeleted] = useState(false);
 
   const bookInfo = BOOK_BY_ID.get(book as BookId);
   const verseLabel =
@@ -114,7 +117,8 @@ export function AnnotationPanel({
 
       if (navigator.onLine) {
         // Online — save directly to Supabase
-        if (existing) {
+        // After a delete, treat as a new annotation (the old one is gone)
+        if (existing && !justDeleted) {
           savedAnnotation = await updateAnnotation(supabase, existing.id, formData);
         } else {
           savedAnnotation = await createAnnotation(supabase, userId, formData);
@@ -242,9 +246,11 @@ export function AnnotationPanel({
           queuedAt: now,
         });
       }
-      // Notify workspace (if present) so the annotation list updates in-place
+      // Notify workspace so the annotation list updates in-place
       onDeleted?.(existing.id);
-      onComplete?.();
+      // Stay on the panel with the content still visible — the user
+      // can re-save if they change their mind, or navigate away.
+      setJustDeleted(true);
     } catch (err) {
       setError("Couldn't delete your note. Please try again.");
       console.error("Delete failed:", err);
@@ -259,7 +265,11 @@ export function AnnotationPanel({
       {/* Header — shows which verse(s) this note is for */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900">
-          {existing ? "Edit your note" : "Write a note"}
+          {justDeleted
+            ? "Note deleted"
+            : existing
+              ? "Edit your note"
+              : "Write a note"}
         </h3>
         <p className="text-sm text-gray-500 mt-1">{verseLabel}</p>
       </div>
@@ -297,10 +307,27 @@ export function AnnotationPanel({
                      hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
                      focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {saving ? "Saving..." : "Save your note"}
+          {saving
+            ? "Saving..."
+            : justDeleted
+              ? "Save Recently Deleted Note"
+              : "Save your note"}
         </button>
 
-        {existing && !showDeleteConfirm && (
+        {/* Post-delete state: show "Return to My Notes" instead of delete controls */}
+        {justDeleted && (
+          <button
+            type="button"
+            onClick={() => onComplete?.()}
+            className="rounded-lg px-4 py-2.5 text-sm text-gray-600
+                       hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            Return to My Notes
+          </button>
+        )}
+
+        {/* Normal state: delete button and confirmation */}
+        {existing && !justDeleted && !showDeleteConfirm && (
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
