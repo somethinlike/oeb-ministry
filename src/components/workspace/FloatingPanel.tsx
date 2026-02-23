@@ -106,6 +106,7 @@ export function FloatingPanel({ children, onDock }: FloatingPanelProps) {
         <button
           type="button"
           onClick={onDock}
+          onPointerDown={(e) => e.stopPropagation()}
           className="flex items-center gap-1 rounded-md border border-gray-300
                      bg-white px-2 py-1 text-xs font-medium text-gray-600
                      hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"

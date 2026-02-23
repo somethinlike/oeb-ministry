@@ -159,7 +159,7 @@ export function Workspace({
       {undocked && (
         <div className="hidden lg:block">
           <FloatingPanel onDock={handleDock}>
-            <AnnotationSidebar />
+            <AnnotationSidebar hideHeader />
           </FloatingPanel>
         </div>
       )}

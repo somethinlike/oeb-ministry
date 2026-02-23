@@ -14,7 +14,12 @@ import { BOOK_BY_ID } from "../../lib/constants";
 import type { BookId } from "../../types/bible";
 import type { Annotation } from "../../types/annotation";
 
-export function ChapterAnnotationList() {
+interface ChapterAnnotationListProps {
+  /** Hide the "Your Notes" header — used when FloatingPanel already shows a title bar */
+  hideHeader?: boolean;
+}
+
+export function ChapterAnnotationList({ hideHeader = false }: ChapterAnnotationListProps) {
   const {
     book,
     chapter,
@@ -66,27 +71,29 @@ export function ChapterAnnotationList() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header with "Write a note" button */}
-      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-        <h3 className="text-sm font-semibold text-gray-700">
-          Your Notes
-          {annotations.length > 0 && (
-            <span className="ml-1.5 text-xs font-normal text-gray-400">
-              ({annotations.length})
-            </span>
+      {/* Header with "Write a note" button — hidden inside FloatingPanel which has its own title */}
+      {!hideHeader && (
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+          <h3 className="text-sm font-semibold text-gray-700">
+            Your Notes
+            {annotations.length > 0 && (
+              <span className="ml-1.5 text-xs font-normal text-gray-400">
+                ({annotations.length})
+              </span>
+            )}
+          </h3>
+          {selection && (
+            <button
+              type="button"
+              onClick={startNewAnnotation}
+              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white
+                         hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Write a note
+            </button>
           )}
-        </h3>
-        {selection && (
-          <button
-            type="button"
-            onClick={startNewAnnotation}
-            className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white
-                       hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Write a note
-          </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Annotation list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">

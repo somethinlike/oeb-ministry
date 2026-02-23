@@ -13,7 +13,12 @@ import { useWorkspace } from "./WorkspaceProvider";
 import { ChapterAnnotationList } from "./ChapterAnnotationList";
 import { AnnotationPanel } from "../AnnotationPanel";
 
-export function AnnotationSidebar() {
+interface AnnotationSidebarProps {
+  /** Hide the "Your Notes" header — used inside FloatingPanel which has its own title bar */
+  hideHeader?: boolean;
+}
+
+export function AnnotationSidebar({ hideHeader = false }: AnnotationSidebarProps) {
   const {
     translation,
     book,
@@ -31,7 +36,7 @@ export function AnnotationSidebar() {
   if (!userId) {
     return (
       <div className="h-full bg-white">
-        <ChapterAnnotationList />
+        <ChapterAnnotationList hideHeader={hideHeader} />
       </div>
     );
   }
