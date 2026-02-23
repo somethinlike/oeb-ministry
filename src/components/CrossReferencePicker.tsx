@@ -133,31 +133,25 @@ export function CrossReferencePicker({
 
     // Block adding the anchor verse as a cross-reference
     if (isAnchorVerse(newRef)) {
-      const anchorBookInfo = BOOK_BY_ID.get(anchorBook!);
-      const anchorName = anchorBookInfo?.name ?? anchorBook;
-      const anchorLabel =
-        anchorVerseStart === anchorVerseEnd
-          ? `${anchorName} ${anchorChapter}:${anchorVerseStart}`
-          : `${anchorName} ${anchorChapter}:${anchorVerseStart}-${anchorVerseEnd}`;
-      setAnchorWarning(
-        `${anchorLabel} is already the verse this note is attached to. Related verses are for linking to other passages.`,
-      );
+      setAnchorWarning(`${formatRef(newRef)} is already anchored to this note.`);
+      return;
+    }
+
+    // Block adding a reference that's already in the list
+    const isDuplicate = references.some((r) => refsMatch(r, newRef));
+    if (isDuplicate) {
+      setAnchorWarning(`${formatRef(newRef)} is already added as a related verse.`);
       return;
     }
 
     // Clear any previous warning
     setAnchorWarning(null);
 
-    // Avoid duplicate references
-    const isDuplicate = references.some((r) => refsMatch(r, newRef));
-
-    if (!isDuplicate) {
-      // If restoring a previously removed ref, remove it from the removed list
-      const updatedRemoved = removedRefs.filter((r) => !refsMatch(r.ref, newRef));
-      setRemovedRefs(updatedRemoved);
-      saveRemovedRefs(updatedRemoved);
-      onChange([...references, newRef]);
-    }
+    // If restoring a previously removed ref, remove it from the removed list
+    const updatedRemoved = removedRefs.filter((r) => !refsMatch(r.ref, newRef));
+    setRemovedRefs(updatedRemoved);
+    saveRemovedRefs(updatedRemoved);
+    onChange([...references, newRef]);
     setShowPicker(false);
   }
 
