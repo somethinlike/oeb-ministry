@@ -731,3 +731,168 @@ Ryan has a broad device collection covering every major platform. For a PWA, spe
 - Actual testing happens against the Vercel deployment URL, not localhost
 
 ---
+
+## Future: Client-Side Storage Monitoring (deferred)
+
+### Context (2026-02-23)
+Ryan asked whether we need a "storage low" alert for localStorage, with the ability to dump local data to the backend before it's lost.
+
+### Current state
+- **localStorage** (~5-10MB per origin): stores Supabase auth tokens and soft-deleted cross-reference records (tiny, self-cleaning via 48h expiry)
+- **IndexedDB** (hundreds of MB): stores offline annotations and sync queue
+- Current usage is negligible — nowhere near capacity limits
+
+### When to revisit
+This becomes relevant when we add heavier client-side storage:
+- Cached Bible text for offline reading (could be several MB per translation)
+- Local search indexes
+- Cached public annotation feeds
+- Any feature that stores user content client-side beyond small metadata
+
+### Potential approach (not designed yet)
+- Monitor `navigator.storage.estimate()` for quota usage
+- Warn users when approaching limits (Tier 1 language: "Your device is running low on space for offline notes")
+- Offer to sync/upload local data to Supabase before clearing
+- Prioritize what to evict: cached Bible text first (re-downloadable), user content last (irreplaceable)
+
+### Decision
+Deferred until heavier offline features are built. Current localStorage usage is self-cleaning and minimal.
+
+---
+
+## Future: Keyboard Navigation & Command Palette (v2/v3)
+
+### Vision (2026-02-23)
+Ryan's target audience includes highly intelligent, technically-minded people who are typically a "hard sell" for traditional ministry outreach. These users live in terminals, use vim keybindings, and judge software by its respect for their workflow. A Bible app that speaks their language — command palettes, modal navigation, customizable keybinds — signals "this was built by someone who gets it."
+
+This isn't just a power-user feature. It's an evangelism strategy: **meet the prideful intellectual where they live, in their tools.**
+
+### Core Features
+
+#### 1. Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+- VSCode-style fuzzy search over all available actions
+- Actions: navigate to book/chapter, search annotations, toggle panels, open settings, export, etc.
+- Discoverable: shows keyboard shortcuts next to each action
+- Grandmother-safe: hidden unless invoked. No interference with normal mouse/touch usage.
+- Implementation: a React overlay component with a fuzzy-match search input, registered commands array
+
+#### 2. Keybinding Presets
+Three built-in presets:
+- **Default** — minimal shortcuts, browser-standard. Grandmother-friendly.
+- **VSCode** — `Ctrl+P` quick-open, `Ctrl+Shift+P` command palette, `Ctrl+/` toggle annotation panel, `Ctrl+S` save, arrow keys for navigation
+- **Vim** — modal navigation. `j`/`k` scroll or move between verses, `gg`/`G` top/bottom of chapter, `/` search, `n`/`N` next/prev result, `o` open annotation on current verse, `gn`/`gp` next/prev chapter. `:` opens command palette. `Esc` returns to normal mode.
+
+#### 3. Intelligent Keybind Detection
+**This is the key differentiator.** The site passively listens for input patterns that suggest the user is trying vim or VSCode shortcuts:
+- Detected patterns: pressing `j`/`k` outside a text input, typing `:wq` or `:q`, pressing `Ctrl+Shift+P`, hitting `Esc` repeatedly, `/` outside an input
+- On detection, show a subtle, non-intrusive toast:
+  - Tier 1 version: "Looks like you use keyboard shortcuts! Want to turn them on?" with a one-click enable
+  - Tier 2 version: "We detected Vim-style navigation. Enable Vim keybindings?" with a link to keybinding settings
+  - Tier 3 version: (in settings) Full keybinding customization, import/export, preset switching
+- Detection state stored in localStorage so we only prompt once. If dismissed, don't ask again for 30 days.
+- **Privacy note:** No keystrokes are logged or transmitted. Detection runs entirely client-side.
+
+#### 4. Per-User Custom Keybindings
+- Stored in Supabase `user_preferences` table (new, needed for other settings too)
+- Schema: `{ user_id, keybind_preset: 'default' | 'vscode' | 'vim' | 'custom', custom_bindings: jsonb }`
+- RLS: users can only read/write their own preferences
+- Syncs across devices (sign in on laptop → same keybinds on tablet)
+- Falls back to localStorage for unauthenticated users
+
+#### 5. Import Keybindings from VSCode/Vim
+- **VSCode**: User uploads their `keybindings.json` file. We parse it, identify commands that map to OEB actions (e.g., `editor.action.find` → our search, `workbench.action.quickOpen` → our command palette), and show a preview of what will be imported.
+- **Vim**: User uploads their `.vimrc` or provides key mappings. We parse `nmap`/`nnoremap` lines and map them to OEB actions.
+- **AI evaluation layer**: For mappings that don't have an obvious OEB equivalent, an AI pass suggests the closest match. User confirms or skips each suggestion. This runs client-side or via a lightweight API endpoint — no keybinding data is stored beyond what the user approves.
+- **Export**: Users can export their custom keybindings as JSON for backup or sharing.
+
+### Architecture Design
+
+#### Command Registry
+```
+interface Command {
+  id: string;              // e.g., "navigate.nextChapter"
+  label: string;           // "Go to next chapter"
+  category: string;        // "Navigation" | "Annotation" | "Search" | "View"
+  execute: () => void;     // What happens when the command runs
+  when?: () => boolean;    // Condition for when the command is available
+}
+```
+
+All keybindings map to command IDs, not directly to functions. This decouples shortcuts from behavior — the same command can be triggered by a keybind, the command palette, or a button click.
+
+#### Keybinding Resolution
+```
+interface Keybinding {
+  key: string;           // e.g., "ctrl+shift+p", "j", ":wq"
+  command: string;        // Command ID
+  when?: string;          // Context: "normalMode", "editorFocused", etc.
+  mode?: "vim-normal" | "vim-insert" | "vim-command" | "always";
+}
+```
+
+Resolution order (highest priority first):
+1. User custom bindings
+2. Active preset (vim/vscode/default)
+3. Browser defaults (never override `Ctrl+C`, `Ctrl+V`, `Ctrl+T`, etc.)
+
+#### Vim Mode State Machine
+```
+States: normal → insert → command → visual (future)
+Transitions:
+  normal + i/a/o → insert
+  insert + Esc → normal
+  normal + : → command (command palette opens with ":" prefix)
+  command + Esc → normal
+  command + Enter → execute → normal
+```
+
+A visual mode indicator appears in the bottom-left corner (like vim's `-- INSERT --` or `-- NORMAL --`) when vim mode is active.
+
+#### Bible Reader Navigation Commands
+| Command ID | Default | VSCode | Vim (normal) | Description |
+|-----------|---------|--------|-------------|-------------|
+| nav.nextVerse | ↓ | ↓ | j | Move to next verse |
+| nav.prevVerse | ↑ | ↑ | k | Move to previous verse |
+| nav.nextChapter | → | Alt+→ | Ctrl+f / ]] | Next chapter |
+| nav.prevChapter | ← | Alt+← | Ctrl+b / [[ | Previous chapter |
+| nav.firstVerse | Home | Ctrl+Home | gg | Jump to first verse |
+| nav.lastVerse | End | Ctrl+End | G | Jump to last verse |
+| nav.goTo | — | Ctrl+G | : + number | Jump to verse number |
+| search.open | Ctrl+F | Ctrl+F | / | Open search |
+| search.next | — | F3 | n | Next search result |
+| search.prev | — | Shift+F3 | N | Previous search result |
+| annotation.open | Enter | Ctrl+/ | o | Open annotation on current verse |
+| annotation.save | — | Ctrl+S | :w | Save current annotation |
+| palette.open | — | Ctrl+Shift+P | : | Open command palette |
+| view.togglePanel | — | Ctrl+B | Ctrl+\ | Toggle annotation panel |
+
+### Keybind Detection Heuristics
+| Pattern | Suggests | Confidence |
+|---------|----------|------------|
+| `j`/`k` pressed outside input | Vim | High (very distinctive) |
+| `:` pressed outside input | Vim | Medium |
+| `Esc` pressed 2+ times | Vim | Medium |
+| `:wq` or `:q` sequence | Vim | Very high |
+| `Ctrl+Shift+P` | VSCode | Very high |
+| `Ctrl+P` | VSCode | High |
+| `Ctrl+K` then another key | VSCode (chord) | High |
+
+Require 2+ signals before prompting to avoid false positives from accidental keypresses.
+
+### Dependencies
+- New Supabase table: `user_preferences` (user_id, keybind_preset, custom_bindings, etc.)
+- New RLS policies for user_preferences
+- React context for keybinding state (active preset, current vim mode)
+- Event listener system that captures keyboard events before they reach components
+
+### Version Scoping
+- **v2**: Command palette + default/vscode/vim presets + detection/prompting + per-user storage in Supabase
+- **v3**: Custom keybinding editor + VSCode/Vim config import + AI mapping evaluation + export/share
+
+### Open Questions (to resolve before building)
+1. Should vim normal mode highlight the "current verse" with a visible cursor/highlight? (Probably yes — vim without a cursor feels broken.)
+2. How should keybindings interact with the markdown editor? (Editor has its own shortcuts — need to pass through when editor is focused.)
+3. Should the command palette support "recently used" ordering? (Nice-to-have, low effort.)
+4. Mobile: command palette via swipe gesture? Or strictly keyboard-only? (Keyboard-only for v2, revisit for v3.)
+
+---
