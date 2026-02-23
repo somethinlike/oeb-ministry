@@ -159,10 +159,6 @@ export function TranslationPicker() {
                     }
                     focus:outline-none focus:bg-blue-50`}
                 >
-                  {/* Checkmark for selected item */}
-                  <span className="w-4 shrink-0 text-blue-600" aria-hidden="true">
-                    {isSelected ? "✓" : ""}
-                  </span>
                   <span className="font-semibold shrink-0">
                     {t.abbreviation}
                   </span>
