@@ -1,13 +1,13 @@
 /**
- * Reader font options — system/web-safe fonts for Bible reading.
+ * Reader font options — open-source fonts bundled for Bible reading.
+ *
+ * All fonts are SIL Open Font License and self-hosted via fontsource.
+ * WOFF2 variable font files are bundled by Vite and cached by the
+ * service worker — no external requests, works fully offline.
  *
  * Fonts are categorized by screen type:
  * - Sans-serif: large x-height, wide spacing — better for mobile/small screens
  * - Serif: traditional book typography — better for extended reading on desktop
- *
- * Only system/web-safe fonts (no web font downloads) because this is
- * an offline-first PWA. Every font listed here is pre-installed on
- * virtually all devices.
  */
 
 import type { ReaderFont } from "./workspace-prefs";
@@ -24,12 +24,12 @@ export interface FontOption {
 
 /** All available font options */
 export const FONT_OPTIONS: readonly FontOption[] = [
-  { key: "system",    label: "System Default", family: "system-ui, -apple-system, sans-serif",                       category: "sans" },
-  { key: "verdana",   label: "Verdana",        family: "Verdana, Geneva, sans-serif",                                category: "sans" },
-  { key: "trebuchet", label: "Trebuchet",       family: "'Trebuchet MS', Helvetica, sans-serif",                      category: "sans" },
-  { key: "georgia",   label: "Georgia",         family: "Georgia, 'Times New Roman', serif",                          category: "serif" },
-  { key: "charter",   label: "Charter",         family: "'Bitstream Charter', 'Book Antiqua', Georgia, serif",        category: "serif" },
-  { key: "palatino",  label: "Palatino",        family: "Palatino, 'Palatino Linotype', 'Book Antiqua', serif",       category: "serif" },
+  { key: "system",       label: "System Default",  family: "system-ui, -apple-system, sans-serif",                          category: "sans" },
+  { key: "inter",        label: "Inter",            family: "'Inter Variable', Inter, system-ui, sans-serif",                category: "sans" },
+  { key: "source-sans",  label: "Source Sans",      family: "'Source Sans 3 Variable', 'Source Sans 3', system-ui, sans-serif", category: "sans" },
+  { key: "literata",     label: "Literata",         family: "'Literata Variable', Literata, Georgia, serif",                 category: "serif" },
+  { key: "source-serif", label: "Source Serif",     family: "'Source Serif 4 Variable', 'Source Serif 4', Georgia, serif",   category: "serif" },
+  { key: "lora",         label: "Lora",             family: "'Lora Variable', Lora, Georgia, serif",                         category: "serif" },
 ];
 
 /**

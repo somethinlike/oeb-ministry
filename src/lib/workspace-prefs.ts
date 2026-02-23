@@ -14,12 +14,12 @@ const STORAGE_KEY = "oeb-workspace-prefs";
 /** "centered" = max-width prose column; "columns" = full-width CSS multi-column */
 export type ReaderLayout = "centered" | "columns";
 
-/** System/web-safe fonts for Bible reading. See src/lib/reader-fonts.ts for details. */
-export type ReaderFont = "system" | "verdana" | "trebuchet" | "georgia" | "charter" | "palatino";
+/** Open-source bundled fonts for Bible reading. See src/lib/reader-fonts.ts for details. */
+export type ReaderFont = "system" | "inter" | "source-sans" | "literata" | "source-serif" | "lora";
 
 /** Valid font keys for validation on load */
 const VALID_FONTS: ReadonlySet<string> = new Set([
-  "system", "verdana", "trebuchet", "georgia", "charter", "palatino",
+  "system", "inter", "source-sans", "literata", "source-serif", "lora",
 ]);
 
 interface WorkspacePrefs {

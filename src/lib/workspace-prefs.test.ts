@@ -30,7 +30,7 @@ describe("loadWorkspacePrefs", () => {
   it("reads valid stored preferences", () => {
     localStorage.setItem(
       "oeb-workspace-prefs",
-      JSON.stringify({ splitRatio: 0.45, swapped: true, undocked: true, readerLayout: "columns", readerFont: "verdana" }),
+      JSON.stringify({ splitRatio: 0.45, swapped: true, undocked: true, readerLayout: "columns", readerFont: "inter" }),
     );
     const prefs = loadWorkspacePrefs();
     expect(prefs).toEqual({
@@ -38,7 +38,7 @@ describe("loadWorkspacePrefs", () => {
       swapped: true,
       undocked: true,
       readerLayout: "columns",
-      readerFont: "verdana",
+      readerFont: "inter",
     });
   });
 
@@ -116,9 +116,9 @@ describe("loadWorkspacePrefs", () => {
   it("reads valid readerFont value", () => {
     localStorage.setItem(
       "oeb-workspace-prefs",
-      JSON.stringify({ readerFont: "georgia" }),
+      JSON.stringify({ readerFont: "literata" }),
     );
-    expect(loadWorkspacePrefs().readerFont).toBe("georgia");
+    expect(loadWorkspacePrefs().readerFont).toBe("literata");
   });
 
   it("rejects invalid readerFont values", () => {
@@ -144,7 +144,7 @@ describe("saveWorkspacePrefs", () => {
   });
 
   it("saves a full set of preferences", () => {
-    saveWorkspacePrefs({ splitRatio: 0.5, swapped: true, undocked: true, readerLayout: "columns", readerFont: "verdana" });
+    saveWorkspacePrefs({ splitRatio: 0.5, swapped: true, undocked: true, readerLayout: "columns", readerFont: "inter" });
     const stored = JSON.parse(
       localStorage.getItem("oeb-workspace-prefs")!,
     );
@@ -153,7 +153,7 @@ describe("saveWorkspacePrefs", () => {
       swapped: true,
       undocked: true,
       readerLayout: "columns",
-      readerFont: "verdana",
+      readerFont: "inter",
     });
   });
 

@@ -27,28 +27,28 @@ describe("FONT_OPTIONS", () => {
 });
 
 describe("getFontFamily", () => {
-  it("returns the Verdana stack for 'verdana'", () => {
-    expect(getFontFamily("verdana")).toBe("Verdana, Geneva, sans-serif");
+  it("returns the Inter stack for 'inter'", () => {
+    expect(getFontFamily("inter")).toContain("Inter Variable");
   });
 
   it("returns the system stack for 'system'", () => {
     expect(getFontFamily("system")).toContain("system-ui");
   });
 
-  it("returns the Georgia stack for 'georgia'", () => {
-    expect(getFontFamily("georgia")).toContain("Georgia");
+  it("returns the Source Sans stack for 'source-sans'", () => {
+    expect(getFontFamily("source-sans")).toContain("Source Sans 3 Variable");
   });
 
-  it("returns the Charter stack for 'charter'", () => {
-    expect(getFontFamily("charter")).toContain("Bitstream Charter");
+  it("returns the Literata stack for 'literata'", () => {
+    expect(getFontFamily("literata")).toContain("Literata Variable");
   });
 
-  it("returns the Palatino stack for 'palatino'", () => {
-    expect(getFontFamily("palatino")).toContain("Palatino");
+  it("returns the Source Serif stack for 'source-serif'", () => {
+    expect(getFontFamily("source-serif")).toContain("Source Serif 4 Variable");
   });
 
-  it("returns the Trebuchet stack for 'trebuchet'", () => {
-    expect(getFontFamily("trebuchet")).toContain("Trebuchet MS");
+  it("returns the Lora stack for 'lora'", () => {
+    expect(getFontFamily("lora")).toContain("Lora Variable");
   });
 
   it("returns the system default for an unknown key", () => {
@@ -123,7 +123,7 @@ describe("getOrderedFontOptions", () => {
     const ordered = getOrderedFontOptions();
     const sansKeys = ordered.filter((f) => f.category === "sans").map((f) => f.key);
     const serifKeys = ordered.filter((f) => f.category === "serif").map((f) => f.key);
-    expect(sansKeys).toEqual(["system", "verdana", "trebuchet"]);
-    expect(serifKeys).toEqual(["georgia", "charter", "palatino"]);
+    expect(sansKeys).toEqual(["system", "inter", "source-sans"]);
+    expect(serifKeys).toEqual(["literata", "source-serif", "lora"]);
   });
 });

@@ -6,6 +6,14 @@
 // bundles them in production. A raw <link> tag only works in dev mode.
 import "../styles/global.css";
 
+// Self-hosted open-source fonts (SIL OFL) via fontsource.
+// Variable font files (WOFF2) get bundled by Vite and cached by the service worker.
+import "@fontsource-variable/inter";
+import "@fontsource-variable/source-sans-3";
+import "@fontsource-variable/literata";
+import "@fontsource-variable/source-serif-4";
+import "@fontsource-variable/lora";
+
 interface Props {
   title: string;
   description?: string;
