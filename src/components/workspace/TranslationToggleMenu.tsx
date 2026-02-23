@@ -156,6 +156,11 @@ export function TranslationToggleMenu({
                 </div>
               );
             })}
+
+            {/* Tier 2 hint — denomination presets are coming */}
+            <p className="text-[11px] text-gray-400 leading-tight border-t border-gray-100 pt-2 mt-1">
+              Denomination presets coming soon — choose your tradition and these will be set automatically.
+            </p>
           </div>
         </div>
       )}
