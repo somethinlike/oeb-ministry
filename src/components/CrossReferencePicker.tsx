@@ -9,9 +9,18 @@
  * - Prevents adding the anchor verse as a related verse (with explanation)
  */
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BOOKS, BOOK_BY_ID } from "../lib/constants";
 import type { BookId } from "../types/bible";
+
+/** A removed ref with a timestamp for 48-hour expiry */
+interface RemovedRefRecord {
+  ref: CrossRefEntry;
+  removedAt: number; // Unix timestamp (ms)
+}
+
+const REMOVED_REFS_KEY = "oeb-removed-crossrefs";
+const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
 
 export interface CrossRefEntry {
   book: BookId;
@@ -45,15 +54,61 @@ export function CrossReferencePicker({
   const [selectedChapter, setSelectedChapter] = useState(1);
   const [selectedVerseStart, setSelectedVerseStart] = useState(1);
   const [selectedVerseEnd, setSelectedVerseEnd] = useState(1);
-  // Recently removed refs — shown as red "+"-tagged items for quick restore
-  const [removedRefs, setRemovedRefs] = useState<CrossRefEntry[]>([]);
+  // Recently removed refs — persisted to localStorage for 48 hours
+  const [removedRefs, setRemovedRefs] = useState<RemovedRefRecord[]>([]);
   // Warning message when the user tries to add the anchor verse
   const [anchorWarning, setAnchorWarning] = useState<string | null>(null);
+
+  // Build a storage key scoped to this annotation's anchor verse
+  const storageKey = anchorBook
+    ? `${REMOVED_REFS_KEY}:${anchorBook}:${anchorChapter}:${anchorVerseStart}:${anchorVerseEnd}`
+    : REMOVED_REFS_KEY;
+
+  /** Load removed refs from localStorage, filtering out expired entries */
+  const loadRemovedRefs = useCallback((): RemovedRefRecord[] => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return [];
+      const records: RemovedRefRecord[] = JSON.parse(raw);
+      const now = Date.now();
+      // Keep only entries younger than 48 hours
+      return records.filter((r) => now - r.removedAt < FORTY_EIGHT_HOURS_MS);
+    } catch {
+      return [];
+    }
+  }, [storageKey]);
+
+  /** Save removed refs to localStorage */
+  function saveRemovedRefs(records: RemovedRefRecord[]) {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(records));
+    } catch {
+      // localStorage full or unavailable — silently degrade
+    }
+  }
+
+  // Load persisted removed refs on mount
+  useEffect(() => {
+    const loaded = loadRemovedRefs();
+    setRemovedRefs(loaded);
+    // Clean up expired entries in storage
+    saveRemovedRefs(loaded);
+  }, [loadRemovedRefs]);
 
   const bookInfo = BOOK_BY_ID.get(selectedBook);
   const chapters = bookInfo
     ? Array.from({ length: bookInfo.chapters }, (_, i) => i + 1)
     : [];
+
+  /** Check if a ref matches another (same book/chapter/verses) */
+  function refsMatch(a: CrossRefEntry, b: CrossRefEntry): boolean {
+    return (
+      a.book === b.book &&
+      a.chapter === b.chapter &&
+      a.verseStart === b.verseStart &&
+      a.verseEnd === b.verseEnd
+    );
+  }
 
   /** Check if a reference overlaps with the anchor verse */
   function isAnchorVerse(ref: CrossRefEntry): boolean {
@@ -94,27 +149,13 @@ export function CrossReferencePicker({
     setAnchorWarning(null);
 
     // Avoid duplicate references
-    const isDuplicate = references.some(
-      (r) =>
-        r.book === newRef.book &&
-        r.chapter === newRef.chapter &&
-        r.verseStart === newRef.verseStart &&
-        r.verseEnd === newRef.verseEnd,
-    );
+    const isDuplicate = references.some((r) => refsMatch(r, newRef));
 
     if (!isDuplicate) {
       // If restoring a previously removed ref, remove it from the removed list
-      setRemovedRefs((prev) =>
-        prev.filter(
-          (r) =>
-            !(
-              r.book === newRef.book &&
-              r.chapter === newRef.chapter &&
-              r.verseStart === newRef.verseStart &&
-              r.verseEnd === newRef.verseEnd
-            ),
-        ),
-      );
+      const updatedRemoved = removedRefs.filter((r) => !refsMatch(r.ref, newRef));
+      setRemovedRefs(updatedRemoved);
+      saveRemovedRefs(updatedRemoved);
       onChange([...references, newRef]);
     }
     setShowPicker(false);
@@ -122,24 +163,19 @@ export function CrossReferencePicker({
 
   function handleRemove(index: number) {
     const removed = references[index];
-    // Move to the removed list so the user can restore it
-    setRemovedRefs((prev) => [...prev, removed]);
+    // Add to removed list with a timestamp for 48-hour expiry
+    const record: RemovedRefRecord = { ref: removed, removedAt: Date.now() };
+    const updatedRemoved = [...removedRefs, record];
+    setRemovedRefs(updatedRemoved);
+    saveRemovedRefs(updatedRemoved);
     onChange(references.filter((_, i) => i !== index));
   }
 
   function handleRestore(ref: CrossRefEntry) {
     // Move from removed back to active references
-    setRemovedRefs((prev) =>
-      prev.filter(
-        (r) =>
-          !(
-            r.book === ref.book &&
-            r.chapter === ref.chapter &&
-            r.verseStart === ref.verseStart &&
-            r.verseEnd === ref.verseEnd
-          ),
-      ),
-    );
+    const updatedRemoved = removedRefs.filter((r) => !refsMatch(r.ref, ref));
+    setRemovedRefs(updatedRemoved);
+    saveRemovedRefs(updatedRemoved);
     onChange([...references, ref]);
   }
 
@@ -158,7 +194,12 @@ export function CrossReferencePicker({
       </label>
 
       {/* Added references as tags, followed by removed refs (red, restorable) */}
-      {(references.length > 0 || removedRefs.length > 0) && (
+      {/* Filter removed refs to exclude any already in the active list */}
+      {(() => {
+        const visibleRemoved = removedRefs.filter(
+          (r) => !references.some((active) => refsMatch(active, r.ref)),
+        );
+        return (references.length > 0 || visibleRemoved.length > 0) ? (
         <div className="flex flex-wrap gap-2 mb-3">
           {/* Active references */}
           {references.map((ref, index) => (
@@ -193,20 +234,20 @@ export function CrossReferencePicker({
             </span>
           ))}
 
-          {/* Removed references — red with "+" to restore */}
-          {removedRefs.map((ref) => (
+          {/* Removed references — red with "+" to restore, persisted for 48h */}
+          {visibleRemoved.map((record) => (
             <span
-              key={`removed-${ref.book}-${ref.chapter}-${ref.verseStart}`}
+              key={`removed-${record.ref.book}-${record.ref.chapter}-${record.ref.verseStart}`}
               className="inline-flex items-center gap-1 rounded-full bg-red-100
                          px-3 py-1 text-sm text-red-800"
             >
-              {formatRef(ref)}
+              {formatRef(record.ref)}
               <button
                 type="button"
-                onClick={() => handleRestore(ref)}
+                onClick={() => handleRestore(record.ref)}
                 className="ml-1 rounded-full p-0.5 hover:bg-red-200
                            focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label={`Restore ${formatRef(ref)}`}
+                aria-label={`Restore ${formatRef(record.ref)}`}
               >
                 <svg
                   className="h-3 w-3"
@@ -226,7 +267,8 @@ export function CrossReferencePicker({
             </span>
           ))}
         </div>
-      )}
+      ) : null;
+      })()}
 
       {/* Anchor verse warning */}
       {anchorWarning && (
