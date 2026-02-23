@@ -130,7 +130,12 @@ export function AnnotationPanel({
 
       // Notify workspace (if present) so the annotation list updates in-place
       onSaved?.(savedAnnotation);
-      onComplete?.();
+      // If re-saving after a delete, revert to standard edit state
+      if (justDeleted) {
+        setJustDeleted(false);
+      } else {
+        onComplete?.();
+      }
     } catch (err) {
       // If the online save failed (e.g., network dropped mid-request),
       // try the offline fallback before showing an error
@@ -314,16 +319,16 @@ export function AnnotationPanel({
               : "Save your note"}
         </button>
 
-        {/* Post-delete state: show "Return to My Notes" instead of delete controls */}
+        {/* Post-delete state: link back to My Notes instead of delete controls.
+            Uses <a> so middle-click (open in new tab) works as expected. */}
         {justDeleted && (
-          <button
-            type="button"
-            onClick={() => onComplete?.()}
+          <a
+            href="/app/search"
             className="rounded-lg px-4 py-2.5 text-sm text-gray-600
                        hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
           >
             Return to My Notes
-          </button>
+          </a>
         )}
 
         {/* Normal state: delete button and confirmation */}
