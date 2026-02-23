@@ -28,6 +28,7 @@ import {
   type VerseSelection,
 } from "../lib/verse-selection";
 import { BOOK_BY_ID, BIBLE_BASE_PATH } from "../lib/constants";
+import type { ReaderLayout } from "../lib/workspace-prefs";
 
 interface ChapterReaderProps {
   translation: string;
@@ -41,6 +42,8 @@ interface ChapterReaderProps {
   onNavigateChapter?: (chapter: number) => void;
   /** Set of verse numbers that have annotations (shows dot indicators) */
   annotatedVerses?: Set<number>;
+  /** Text layout: "centered" for max-width prose, "columns" for full-width multi-column */
+  readerLayout?: ReaderLayout;
 }
 
 export function ChapterReader({
@@ -51,6 +54,7 @@ export function ChapterReader({
   onVerseSelect,
   onNavigateChapter,
   annotatedVerses,
+  readerLayout = "centered",
 }: ChapterReaderProps) {
   const [chapterData, setChapterData] = useState<ChapterData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -141,18 +145,31 @@ export function ChapterReader({
       : `${bookInfo?.name} ${chapter}:${selection.start}-${selection.end}`
     : "";
 
+  // In column mode, CSS columns handles multi-column layout.
+  // "columns: auto 20rem" means the browser creates as many columns
+  // as fit, each at least 20rem (~320px) wide. On small screens
+  // that naturally results in 1 column, on wide screens 2-4+.
+  const isColumns = readerLayout === "columns";
+
   return (
     <div>
-      {/* Chapter header */}
-      <h2 className="mb-6 text-2xl font-bold text-gray-900">
-        {chapterData.bookName} {chapterData.chapter}
-      </h2>
-
-      {/* Verse text */}
+      {/* Verse text — wraps header + verses so columns flow together */}
       <article
-        className="max-w-prose text-lg leading-relaxed text-gray-800"
+        className={
+          isColumns
+            ? "text-lg leading-relaxed text-gray-800"
+            : "max-w-prose text-lg leading-relaxed text-gray-800"
+        }
+        style={isColumns ? { columns: "auto 20rem", columnGap: "2rem" } : undefined}
         aria-label={`${chapterData.bookName} chapter ${chapterData.chapter}`}
       >
+        {/* Chapter header — spans all columns in column mode */}
+        <h2
+          className="mb-6 text-2xl font-bold text-gray-900"
+          style={isColumns ? { columnSpan: "all" } : undefined}
+        >
+          {chapterData.bookName} {chapterData.chapter}
+        </h2>
         {chapterData.verses.map((verse) => {
           const selected = isVerseSelected(selection, verse.number);
           const hasAnnotation = annotatedVerses?.has(verse.number) ?? false;

@@ -11,6 +11,9 @@
 
 const STORAGE_KEY = "oeb-workspace-prefs";
 
+/** "centered" = max-width prose column; "columns" = full-width CSS multi-column */
+export type ReaderLayout = "centered" | "columns";
+
 interface WorkspacePrefs {
   /** Reader pane width as a fraction (0.3–0.7). Default 0.6 */
   splitRatio: number;
@@ -18,12 +21,15 @@ interface WorkspacePrefs {
   swapped: boolean;
   /** Whether the annotation panel is undocked (floating window). Default false */
   undocked: boolean;
+  /** Reader text layout mode. Default "centered" */
+  readerLayout: ReaderLayout;
 }
 
 const DEFAULTS: WorkspacePrefs = {
   splitRatio: 0.6,
   swapped: false,
   undocked: false,
+  readerLayout: "centered",
 };
 
 /** Clamp split ratio to safe bounds */
@@ -40,6 +46,10 @@ export function loadWorkspacePrefs(): WorkspacePrefs {
       splitRatio: clampRatio(parsed.splitRatio ?? DEFAULTS.splitRatio),
       swapped: typeof parsed.swapped === "boolean" ? parsed.swapped : DEFAULTS.swapped,
       undocked: typeof parsed.undocked === "boolean" ? parsed.undocked : DEFAULTS.undocked,
+      readerLayout:
+        parsed.readerLayout === "centered" || parsed.readerLayout === "columns"
+          ? parsed.readerLayout
+          : DEFAULTS.readerLayout,
     };
   } catch {
     return { ...DEFAULTS };
@@ -53,6 +63,7 @@ export function saveWorkspacePrefs(prefs: Partial<WorkspacePrefs>): void {
       splitRatio: clampRatio(prefs.splitRatio ?? current.splitRatio),
       swapped: prefs.swapped ?? current.swapped,
       undocked: prefs.undocked ?? current.undocked,
+      readerLayout: prefs.readerLayout ?? current.readerLayout,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
   } catch {

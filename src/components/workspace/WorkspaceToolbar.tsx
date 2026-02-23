@@ -14,6 +14,7 @@ import { useWorkspace } from "./WorkspaceProvider";
 import { TranslationPicker } from "./TranslationPicker";
 import { SUPPORTED_TRANSLATIONS, BOOK_BY_ID } from "../../lib/constants";
 import type { BookId } from "../../types/bible";
+import type { ReaderLayout } from "../../lib/workspace-prefs";
 
 interface WorkspaceToolbarProps {
   /** Whether the panes are currently swapped */
@@ -26,6 +27,10 @@ interface WorkspaceToolbarProps {
   onUndock: () => void;
   /** Snap annotation panel back into the split-pane */
   onDock: () => void;
+  /** Current reader text layout mode */
+  readerLayout: ReaderLayout;
+  /** Toggle between centered and columns layout */
+  onToggleReaderLayout: () => void;
 }
 
 export function WorkspaceToolbar({
@@ -34,6 +39,8 @@ export function WorkspaceToolbar({
   undocked,
   onUndock,
   onDock,
+  readerLayout,
+  onToggleReaderLayout,
 }: WorkspaceToolbarProps) {
   const { translation, book, chapter } = useWorkspace();
 
@@ -159,6 +166,52 @@ export function WorkspaceToolbar({
             <span>Swap</span>
           </button>
         )}
+
+        {/* Reader layout toggle — switch between centered prose and multi-column */}
+        <button
+          type="button"
+          onClick={onToggleReaderLayout}
+          className="flex items-center gap-1.5 rounded-md border border-gray-300
+                     bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
+                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label={readerLayout === "centered" ? "Switch to column layout" : "Switch to centered layout"}
+          title={readerLayout === "centered" ? "Switch to column layout" : "Switch to centered layout"}
+        >
+          {readerLayout === "columns" ? (
+            // Single-column / centered icon — lines centered in a box
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6.75h16.5M6 12h12M3.75 17.25h16.5"
+              />
+            </svg>
+          ) : (
+            // Multi-column icon — two columns of lines
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6h6.5M3.75 10h6.5M3.75 14h6.5M3.75 18h6.5M13.75 6h6.5M13.75 10h6.5M13.75 14h6.5M13.75 18h6.5"
+              />
+            </svg>
+          )}
+          <span>{readerLayout === "centered" ? "Columns" : "Centered"}</span>
+        </button>
 
         {/* Translation switcher */}
         <TranslationPicker />

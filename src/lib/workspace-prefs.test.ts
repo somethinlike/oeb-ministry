@@ -22,19 +22,21 @@ describe("loadWorkspacePrefs", () => {
       splitRatio: 0.6,
       swapped: false,
       undocked: false,
+      readerLayout: "centered",
     });
   });
 
   it("reads valid stored preferences", () => {
     localStorage.setItem(
       "oeb-workspace-prefs",
-      JSON.stringify({ splitRatio: 0.45, swapped: true, undocked: true }),
+      JSON.stringify({ splitRatio: 0.45, swapped: true, undocked: true, readerLayout: "columns" }),
     );
     const prefs = loadWorkspacePrefs();
     expect(prefs).toEqual({
       splitRatio: 0.45,
       swapped: true,
       undocked: true,
+      readerLayout: "columns",
     });
   });
 
@@ -61,6 +63,7 @@ describe("loadWorkspacePrefs", () => {
       splitRatio: 0.6,
       swapped: false,
       undocked: false,
+      readerLayout: "centered",
     });
   });
 
@@ -90,6 +93,22 @@ describe("loadWorkspacePrefs", () => {
     );
     expect(loadWorkspacePrefs().undocked).toBe(false);
   });
+
+  it("rejects invalid readerLayout values", () => {
+    localStorage.setItem(
+      "oeb-workspace-prefs",
+      JSON.stringify({ readerLayout: "newspaper" }),
+    );
+    expect(loadWorkspacePrefs().readerLayout).toBe("centered");
+  });
+
+  it("defaults readerLayout when missing from stored prefs", () => {
+    localStorage.setItem(
+      "oeb-workspace-prefs",
+      JSON.stringify({ splitRatio: 0.5 }),
+    );
+    expect(loadWorkspacePrefs().readerLayout).toBe("centered");
+  });
 });
 
 describe("saveWorkspacePrefs", () => {
@@ -98,7 +117,7 @@ describe("saveWorkspacePrefs", () => {
   });
 
   it("saves a full set of preferences", () => {
-    saveWorkspacePrefs({ splitRatio: 0.5, swapped: true, undocked: true });
+    saveWorkspacePrefs({ splitRatio: 0.5, swapped: true, undocked: true, readerLayout: "columns" });
     const stored = JSON.parse(
       localStorage.getItem("oeb-workspace-prefs")!,
     );
@@ -106,6 +125,7 @@ describe("saveWorkspacePrefs", () => {
       splitRatio: 0.5,
       swapped: true,
       undocked: true,
+      readerLayout: "columns",
     });
   });
 

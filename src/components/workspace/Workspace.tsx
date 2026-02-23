@@ -23,6 +23,7 @@ import { BottomSheet } from "./BottomSheet";
 import {
   loadWorkspacePrefs,
   saveWorkspacePrefs,
+  type ReaderLayout,
 } from "../../lib/workspace-prefs";
 
 interface WorkspaceProps {
@@ -43,6 +44,7 @@ export function Workspace({
   const [splitRatio, setSplitRatio] = useState(prefs.splitRatio);
   const [swapped, setSwapped] = useState(prefs.swapped);
   const [undocked, setUndocked] = useState(prefs.undocked);
+  const [readerLayout, setReaderLayout] = useState<ReaderLayout>(prefs.readerLayout);
 
   // Ref to the split container — divider needs it to calculate ratio
   const containerRef = useRef<HTMLDivElement>(null);
@@ -74,6 +76,14 @@ export function Workspace({
     saveWorkspacePrefs({ undocked: false });
   }, []);
 
+  const toggleReaderLayout = useCallback(() => {
+    setReaderLayout((prev) => {
+      const next: ReaderLayout = prev === "centered" ? "columns" : "centered";
+      saveWorkspacePrefs({ readerLayout: next });
+      return next;
+    });
+  }, []);
+
   // Build CSS grid template from the split ratio.
   // The divider gets a fixed 8px (0.5rem) column.
   const readerFr = `${splitRatio}fr`;
@@ -83,8 +93,9 @@ export function Workspace({
     : `${readerFr} 0.5rem ${sidebarFr}`;
 
   // Determine which pane goes first based on swap state
-  const leftPane = swapped ? <AnnotationSidebar /> : <ReaderPane />;
-  const rightPane = swapped ? <ReaderPane /> : <AnnotationSidebar />;
+  const readerPane = <ReaderPane readerLayout={readerLayout} />;
+  const leftPane = swapped ? <AnnotationSidebar /> : readerPane;
+  const rightPane = swapped ? readerPane : <AnnotationSidebar />;
 
   return (
     <WorkspaceProvider
@@ -101,6 +112,8 @@ export function Workspace({
           undocked={undocked}
           onUndock={handleUndock}
           onDock={handleDock}
+          readerLayout={readerLayout}
+          onToggleReaderLayout={toggleReaderLayout}
         />
 
         {/* Split pane area */}
@@ -110,7 +123,7 @@ export function Workspace({
         >
           {/* Mobile: full-screen reader + bottom sheet for annotations */}
           <div className="lg:hidden h-full min-h-0 overflow-hidden">
-            <ReaderPane />
+            <ReaderPane readerLayout={readerLayout} />
             <MobileBottomSheet />
           </div>
 
@@ -118,7 +131,7 @@ export function Workspace({
           {undocked ? (
             // Undocked: reader takes full width
             <div className="hidden lg:block h-full min-h-0 overflow-hidden">
-              <ReaderPane />
+              <ReaderPane readerLayout={readerLayout} />
             </div>
           ) : (
             // Docked: split pane with divider

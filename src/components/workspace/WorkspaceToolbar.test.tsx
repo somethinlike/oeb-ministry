@@ -32,6 +32,8 @@ const defaultProps = {
   undocked: false,
   onUndock: vi.fn(),
   onDock: vi.fn(),
+  readerLayout: "centered" as const,
+  onToggleReaderLayout: vi.fn(),
 };
 
 describe("WorkspaceToolbar", () => {
