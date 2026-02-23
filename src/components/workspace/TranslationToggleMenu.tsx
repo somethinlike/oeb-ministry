@@ -120,56 +120,37 @@ export function TranslationToggleMenu({
             {TOGGLE_KEYS.map((key) => {
               const info = TOGGLE_INFO[key];
               const isOn = toggles[key];
+              // Button shows what you'd switch TO:
+              // when off (default wording active), button shows the alternate
+              // when on (alternate active), button shows the default
+              const buttonLabel = isOn ? info.offLabel : info.onLabel;
 
               return (
                 <div key={key} className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">
-                      {info.label}
-                    </span>
-                    {/* Toggle switch */}
+                  <div className="flex items-center gap-3">
+                    {/* Toggle button — shows the word you'd switch to */}
                     <button
                       type="button"
                       role="switch"
                       aria-checked={isOn}
                       onClick={() => onToggleChange(key)}
                       className={`
-                        relative inline-flex h-6 w-20 items-center rounded-full
-                        transition-colors duration-200 focus:outline-none focus:ring-2
+                        shrink-0 rounded-md px-3 py-1 text-xs font-semibold
+                        transition-colors duration-150 focus:outline-none focus:ring-2
                         focus:ring-blue-500 focus:ring-offset-1
-                        ${isOn ? "bg-blue-600" : "bg-gray-200"}
+                        ${isOn
+                          ? "bg-blue-600 text-white border border-blue-600"
+                          : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"}
                       `}
-                      aria-label={`${info.label}: switch between ${info.offLabel} and ${info.onLabel}`}
+                      aria-label={`${info.label}: switch to ${buttonLabel}`}
                     >
-                      {/* Off label (left side) */}
-                      <span
-                        className={`absolute left-1.5 text-[10px] font-bold transition-opacity ${
-                          isOn ? "opacity-40 text-blue-200" : "opacity-100 text-gray-500"
-                        }`}
-                        aria-hidden="true"
-                      >
-                        {info.offLabel}
-                      </span>
-                      {/* On label (right side) */}
-                      <span
-                        className={`absolute right-1.5 text-[10px] font-bold transition-opacity ${
-                          isOn ? "opacity-100 text-white" : "opacity-40 text-gray-400"
-                        }`}
-                        aria-hidden="true"
-                      >
-                        {info.onLabel}
-                      </span>
-                      {/* Sliding thumb */}
-                      <span
-                        className={`
-                          inline-block h-5 w-5 rounded-full bg-white shadow-sm border border-gray-300
-                          transition-transform duration-200
-                          ${isOn ? "translate-x-[3.5rem]" : "translate-x-0.5"}
-                        `}
-                      />
+                      {buttonLabel}
                     </button>
+                    <span className="text-sm text-gray-500">
+                      {info.label}
+                    </span>
                   </div>
-                  <p className="text-[11px] text-gray-400 leading-tight">
+                  <p className="text-[11px] text-gray-400 leading-tight pl-0.5">
                     {info.description}
                   </p>
                 </div>

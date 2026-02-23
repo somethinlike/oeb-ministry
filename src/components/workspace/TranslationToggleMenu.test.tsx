@@ -44,12 +44,16 @@ describe("TranslationToggleMenu", () => {
   it("shows all four toggle labels when open", () => {
     render(<TranslationToggleMenu {...defaultProps} />);
     fireEvent.click(screen.getByText("Wording"));
+    // Row labels
     expect(screen.getByText("God's name")).toBeInTheDocument();
     expect(screen.getByText("Baptize or immerse")).toBeInTheDocument();
     expect(screen.getByText("Church or assembly")).toBeInTheDocument();
-    // "Only begotten" appears as both the row label and the switch's off-label,
-    // so we check that at least one instance exists
-    expect(screen.getAllByText("Only begotten").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Only begotten")).toBeInTheDocument();
+    // When all off, buttons show the alternate wording (what you'd switch to)
+    expect(screen.getByText("Yahweh")).toBeInTheDocument();
+    expect(screen.getByText("Immerse")).toBeInTheDocument();
+    expect(screen.getByText("Assembly")).toBeInTheDocument();
+    expect(screen.getByText("One and only")).toBeInTheDocument();
   });
 
   it("reflects toggle off state with aria-checked=false", () => {
@@ -60,6 +64,27 @@ describe("TranslationToggleMenu", () => {
     for (const s of switches) {
       expect(s).toHaveAttribute("aria-checked", "false");
     }
+  });
+
+  it("shows default wording on buttons when toggles are on (switch-back labels)", () => {
+    const toggles: TranslationToggles = {
+      divineName: true,
+      baptism: true,
+      assembly: true,
+      onlyBegotten: true,
+    };
+    render(
+      <TranslationToggleMenu
+        toggles={toggles}
+        onToggleChange={defaultProps.onToggleChange}
+      />,
+    );
+    fireEvent.click(screen.getByText("Wording"));
+    // When all on, buttons show the default wording (what you'd switch back to)
+    expect(screen.getByText("LORD")).toBeInTheDocument();
+    expect(screen.getByText("Baptize")).toBeInTheDocument();
+    expect(screen.getByText("Church")).toBeInTheDocument();
+    expect(screen.getAllByText("Only begotten").length).toBeGreaterThanOrEqual(1);
   });
 
   it("reflects toggle on state with aria-checked=true", () => {
