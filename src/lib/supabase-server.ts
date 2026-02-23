@@ -65,7 +65,12 @@ export function createSupabaseServerClient(
               // the ones we need to control.
               ...options,
               path: "/",
-              httpOnly: true,
+              // httpOnly must be false so the browser-side Supabase client
+              // (createBrowserClient) can read the auth tokens from cookies
+              // and attach them to client-side API calls. This is the
+              // standard @supabase/ssr pattern. RLS is the real security
+              // boundary, not cookie visibility.
+              httpOnly: false,
               sameSite: "lax",
               // MUST come after ...options so we override Supabase's
               // default of secure:true. On local dev (HTTP), secure

@@ -691,3 +691,43 @@ Key insight from Ryan: the three-tier comprehension model (Grandmother → Learn
 | GitHub | Selective — `<details>`, `<sup>`, etc. | `.md` (full) |
 
 ---
+
+## Cross-Device Test Matrix (for future QA phase)
+
+### Decision (2026-02-23)
+Ryan has a broad device collection covering every major platform. For a PWA, specific device models don't matter — what matters is browser engine, OS version, screen category, and input method. This matrix captures the meaningful test axes.
+
+### Ryan's Available Devices
+- macOS (desktop)
+- Windows (desktop)
+- iPadOS (tablet)
+- iOS (phone)
+- Android — Pixel (phone)
+- Apple Watch, Pixel Watch (wearable — not a test target for this app)
+
+### Test Matrix
+
+| Device | Browser(s) | Engine | What it validates |
+|--------|-----------|--------|-------------------|
+| macOS | Safari | WebKit | Desktop WebKit rendering, Web Crypto API |
+| macOS | Chrome | Blink | Desktop Chromium baseline |
+| Windows | Chrome | Blink | Primary desktop target |
+| Windows | Edge | Blink | Chromium variant, enterprise users |
+| Windows | Firefox | Gecko | Third engine — catches WebKit/Blink assumptions |
+| iPad | Safari | WebKit | Tablet viewport, touch input, PWA install |
+| iPhone | Safari | WebKit | iOS WebKit (strictest engine), small viewport, PWA |
+| Android (Pixel) | Chrome | Blink | Mobile Chromium, PWA install, offline/sync |
+
+### Why this covers everything
+- **All three browser engines**: Blink (Chrome/Edge), WebKit (Safari), Gecko (Firefox)
+- **All input methods**: pointer (desktop), touch (phone/tablet)
+- **All viewport categories**: small phone, large phone/tablet, desktop
+- **PWA install paths**: iOS Safari, Android Chrome, desktop Chrome/Edge
+- **The strictest environment**: iOS Safari — if it works there, it works everywhere
+
+### Notes
+- Watches are excluded — screen too small for a Bible reader app
+- Linux native browser testing is unnecessary — same engines as above
+- Actual testing happens against the Vercel deployment URL, not localhost
+
+---

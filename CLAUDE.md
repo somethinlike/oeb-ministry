@@ -45,6 +45,21 @@ Every new conversation begins with these steps before any code is written:
 4. Run tests if they exist (know what's passing/failing).
 5. Only then respond to Ryan's request.
 
+### Browser MCP Protocol (Chrome DevTools)
+When Chrome is connected via the DevTools MCP (`chrome-mcp` alias), Claude has full access to the browser: snapshots, screenshots, clicking, filling forms, reading console/network, and running scripts.
+
+**Standard procedure when debugging UI issues:**
+1. **Take a screenshot** (`take_screenshot`) so Ryan can see exactly what Claude sees. Ryan is a theologian, not a mind-reader — show, don't just describe.
+2. **Take a snapshot** (`take_snapshot`) to read the page's accessibility tree and identify elements.
+3. **Check console errors** (`list_console_messages`) for any JS failures.
+4. **Check network requests** (`list_network_requests`) to see if API calls went out and what came back.
+
+**When to screenshot proactively (without being asked):**
+- When reporting a visual bug or UI issue.
+- When confirming a fix looks right after a code change.
+- When the page state is relevant to the conversation and Ryan might not be looking at Chrome.
+- When something looks wrong or unexpected.
+
 ### Git Commit & Push Protocol
 Claude owns git operations. Ryan should never have to remember to commit or push. Claude follows these rules:
 
