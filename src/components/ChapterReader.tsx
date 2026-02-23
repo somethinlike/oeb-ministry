@@ -173,9 +173,82 @@ export function ChapterReader({
   // that naturally results in 1 column, on wide screens 2-4+.
   const isColumns = readerLayout === "columns";
 
+  // Shared arrow button styling
+  const arrowBtnClass =
+    "rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500";
+
+  /** Render a prev/next navigation element (button in workspace mode, <a> in standalone) */
+  function NavButton({
+    direction,
+    targetChapter,
+  }: {
+    direction: "prev" | "next";
+    targetChapter: number;
+  }) {
+    const isPrev = direction === "prev";
+    const arrow = isPrev ? (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+      </svg>
+    ) : (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+      </svg>
+    );
+
+    const label = `Chapter ${targetChapter}`;
+    const ariaLabel = `Go to chapter ${targetChapter}`;
+
+    // Workspace mode: callback button. Standalone: <a> link.
+    if (onNavigateChapter) {
+      return (
+        <button
+          type="button"
+          onClick={() => onNavigateChapter(targetChapter)}
+          className={arrowBtnClass}
+          aria-label={ariaLabel}
+          title={label}
+        >
+          {arrow}
+        </button>
+      );
+    }
+    return (
+      <a
+        href={`/app/read/${translation}/${book}/${targetChapter}`}
+        className={arrowBtnClass}
+        aria-label={ariaLabel}
+        title={label}
+      >
+        {arrow}
+      </a>
+    );
+  }
+
+  const hasPrev = chapter > 1;
+  const hasNext = bookInfo ? chapter < bookInfo.chapters : false;
+
   return (
     <div>
-      {/* Verse text — wraps header + verses so columns flow together */}
+      {/* Chapter header with integrated navigation.
+           In centered mode, match the article's max-w-prose centering
+           so the title and arrows align with the verse text. */}
+      <nav
+        className={`mb-6 flex items-center justify-between gap-2 ${
+          isColumns ? "" : "mx-auto max-w-prose"
+        }`}
+        aria-label="Chapter navigation"
+      >
+        <h2 className="text-2xl font-bold text-gray-900 min-w-0 truncate">
+          {chapterData.bookName} {chapterData.chapter}
+        </h2>
+        <div className="flex items-center gap-1 shrink-0">
+          {hasPrev && <NavButton direction="prev" targetChapter={chapter - 1} />}
+          {hasNext && <NavButton direction="next" targetChapter={chapter + 1} />}
+        </div>
+      </nav>
+
+      {/* Verse text */}
       <article
         className={
           isColumns
@@ -185,13 +258,6 @@ export function ChapterReader({
         style={isColumns ? { columns: "auto 20rem", columnGap: "2rem" } : undefined}
         aria-label={`${chapterData.bookName} chapter ${chapterData.chapter}`}
       >
-        {/* Chapter header — spans all columns in column mode */}
-        <h2
-          className="mb-6 text-2xl font-bold text-gray-900"
-          style={isColumns ? { columnSpan: "all" } : undefined}
-        >
-          {chapterData.bookName} {chapterData.chapter}
-        </h2>
         {chapterData.verses.map((verse) => {
           const selected = isVerseSelected(selection, verse.number);
           const hasAnnotation = annotatedVerses?.has(verse.number) ?? false;
@@ -286,57 +352,6 @@ export function ChapterReader({
         </div>
       )}
 
-      {/* Chapter navigation */}
-      <nav
-        className="mt-12 flex items-center justify-between border-t border-gray-200 pt-6"
-        aria-label="Chapter navigation"
-      >
-        {chapter > 1 ? (
-          onNavigateChapter ? (
-            <button
-              type="button"
-              onClick={() => onNavigateChapter(chapter - 1)}
-              className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700
-                         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              &larr; Chapter {chapter - 1}
-            </button>
-          ) : (
-            <a
-              href={`/app/read/${translation}/${book}/${chapter - 1}`}
-              className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700
-                         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              &larr; Chapter {chapter - 1}
-            </a>
-          )
-        ) : (
-          <div /> /* Spacer for flex layout */
-        )}
-
-        {bookInfo && chapter < bookInfo.chapters ? (
-          onNavigateChapter ? (
-            <button
-              type="button"
-              onClick={() => onNavigateChapter(chapter + 1)}
-              className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700
-                         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Chapter {chapter + 1} &rarr;
-            </button>
-          ) : (
-            <a
-              href={`/app/read/${translation}/${book}/${chapter + 1}`}
-              className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700
-                         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Chapter {chapter + 1} &rarr;
-            </a>
-          )
-        ) : (
-          <div />
-        )}
-      </nav>
     </div>
   );
 }
