@@ -20,6 +20,7 @@ export const BIBLE_BASE_PATH = "/bibles";
 export const SUPPORTED_TRANSLATIONS = [
   {
     id: "oeb-us",
+    abbreviation: "OEB",
     name: "Open English Bible (US)",
     license: "CC0 / Public Domain",
     hasApocrypha: false,
@@ -27,6 +28,7 @@ export const SUPPORTED_TRANSLATIONS = [
   },
   {
     id: "kjv1611",
+    abbreviation: "KJV",
     name: "King James Version (1611)",
     license: "Public Domain",
     hasApocrypha: true,
@@ -34,6 +36,7 @@ export const SUPPORTED_TRANSLATIONS = [
   },
   {
     id: "dra",
+    abbreviation: "DRA",
     name: "Douay-Rheims American Edition",
     license: "Public Domain",
     hasApocrypha: true,
