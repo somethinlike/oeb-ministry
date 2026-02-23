@@ -299,6 +299,15 @@ describe("applyTranslationToggles", () => {
       ).toBe("One and only of the Father.");
     });
 
+    it("replaces archaic KJV 1611 spelling 'onely begotten'", () => {
+      expect(
+        applyTranslationToggles(
+          "the glory as of the onely begotten of the Father",
+          toggles,
+        ),
+      ).toBe("the glory as of the one and only of the Father");
+    });
+
     it("does NOT replace 'only' or 'begotten' individually", () => {
       expect(
         applyTranslationToggles(

@@ -171,7 +171,10 @@ export function applyTranslationToggles(
   }
 
   if (toggles.onlyBegotten) {
-    // Multi-word phrase replacement (case-preserving on first letter)
+    // Multi-word phrase replacement (case-preserving on first letter).
+    // The KJV 1611 uses "onely begotten" (archaic spelling) in most
+    // occurrences — handle both spellings.
+    result = replacePhrase(result, "onely begotten", "one and only");
     result = replacePhrase(result, "only begotten", "one and only");
   }
 
