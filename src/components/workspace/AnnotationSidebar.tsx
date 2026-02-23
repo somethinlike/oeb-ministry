@@ -84,7 +84,7 @@ export function AnnotationSidebar({ hideHeader = false }: AnnotationSidebarProps
   // ── Default: list view ──
   return (
     <div className="h-full bg-white">
-      <ChapterAnnotationList />
+      <ChapterAnnotationList hideHeader={hideHeader} />
     </div>
   );
 }
