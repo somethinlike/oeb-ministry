@@ -10,7 +10,7 @@
 import { useMemo } from "react";
 import { ChapterReader } from "../ChapterReader";
 import { useWorkspace } from "./WorkspaceProvider";
-import type { ReaderLayout } from "../../lib/workspace-prefs";
+import type { ReaderLayout, ReaderFont } from "../../lib/workspace-prefs";
 import type { TranslationToggles } from "../../lib/translation-toggles";
 
 interface ReaderPaneProps {
@@ -18,9 +18,11 @@ interface ReaderPaneProps {
   readerLayout?: ReaderLayout;
   /** Word-swap toggle preferences */
   translationToggles?: TranslationToggles;
+  /** Reader font for Bible text */
+  readerFont?: ReaderFont;
 }
 
-export function ReaderPane({ readerLayout = "centered", translationToggles }: ReaderPaneProps) {
+export function ReaderPane({ readerLayout = "centered", translationToggles, readerFont }: ReaderPaneProps) {
   const {
     translation,
     book,
@@ -56,6 +58,7 @@ export function ReaderPane({ readerLayout = "centered", translationToggles }: Re
         annotatedVerses={annotatedVerses}
         readerLayout={readerLayout}
         translationToggles={translationToggles}
+        readerFont={readerFont}
       />
     </div>
   );

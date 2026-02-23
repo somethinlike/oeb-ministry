@@ -24,6 +24,7 @@ import {
   loadWorkspacePrefs,
   saveWorkspacePrefs,
   type ReaderLayout,
+  type ReaderFont,
 } from "../../lib/workspace-prefs";
 import {
   loadTranslationToggles,
@@ -50,6 +51,7 @@ export function Workspace({
   const [swapped, setSwapped] = useState(prefs.swapped);
   const [undocked, setUndocked] = useState(prefs.undocked);
   const [readerLayout, setReaderLayout] = useState<ReaderLayout>(prefs.readerLayout);
+  const [readerFont, setReaderFont] = useState<ReaderFont>(prefs.readerFont);
   const [translationToggles, setTranslationToggles] = useState<TranslationToggles>(
     () => loadTranslationToggles(),
   );
@@ -92,6 +94,11 @@ export function Workspace({
     });
   }, []);
 
+  const handleFontChange = useCallback((font: ReaderFont) => {
+    setReaderFont(font);
+    saveWorkspacePrefs({ readerFont: font });
+  }, []);
+
   const handleToggleChange = useCallback((key: keyof TranslationToggles) => {
     setTranslationToggles((prev) => {
       const next = { ...prev, [key]: !prev[key] };
@@ -109,7 +116,7 @@ export function Workspace({
     : `${readerFr} 0.5rem ${sidebarFr}`;
 
   // Determine which pane goes first based on swap state
-  const readerPane = <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} />;
+  const readerPane = <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} readerFont={readerFont} />;
   const leftPane = swapped ? <AnnotationSidebar /> : readerPane;
   const rightPane = swapped ? readerPane : <AnnotationSidebar />;
 
@@ -132,6 +139,8 @@ export function Workspace({
           onToggleReaderLayout={toggleReaderLayout}
           translationToggles={translationToggles}
           onToggleChange={handleToggleChange}
+          readerFont={readerFont}
+          onFontChange={handleFontChange}
         />
 
         {/* Split pane area */}
@@ -141,7 +150,7 @@ export function Workspace({
         >
           {/* Mobile: full-screen reader + bottom sheet for annotations */}
           <div className="lg:hidden h-full min-h-0 overflow-hidden">
-            <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} />
+            <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} readerFont={readerFont} />
             <MobileBottomSheet />
           </div>
 
@@ -149,7 +158,7 @@ export function Workspace({
           {undocked ? (
             // Undocked: reader takes full width
             <div className="hidden lg:block h-full min-h-0 overflow-hidden">
-              <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} />
+              <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} readerFont={readerFont} />
             </div>
           ) : (
             // Docked: split pane with divider

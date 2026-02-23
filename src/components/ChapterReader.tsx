@@ -28,7 +28,8 @@ import {
   type VerseSelection,
 } from "../lib/verse-selection";
 import { BOOK_BY_ID, BIBLE_BASE_PATH } from "../lib/constants";
-import type { ReaderLayout } from "../lib/workspace-prefs";
+import type { ReaderLayout, ReaderFont } from "../lib/workspace-prefs";
+import { getFontFamily } from "../lib/reader-fonts";
 import {
   applyTranslationToggles,
   loadTranslationToggles,
@@ -61,6 +62,8 @@ interface ChapterReaderProps {
   readerLayout?: ReaderLayout;
   /** Word-swap toggle preferences (in standalone mode, reads from localStorage if not provided) */
   translationToggles?: TranslationToggles;
+  /** Reading font preference (workspace mode passes this; standalone uses browser default) */
+  readerFont?: ReaderFont;
 }
 
 export function ChapterReader({
@@ -73,6 +76,7 @@ export function ChapterReader({
   annotatedVerses,
   readerLayout = "centered",
   translationToggles,
+  readerFont,
 }: ChapterReaderProps) {
   const [chapterData, setChapterData] = useState<ChapterData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,6 +88,9 @@ export function ChapterReader({
   // Resolve toggle prefs — workspace mode passes them as a prop,
   // standalone mode reads from localStorage
   const resolvedToggles = translationToggles ?? loadTranslationToggles();
+
+  // Compute CSS font-family from the font key (undefined in standalone → browser default)
+  const fontFamily = readerFont ? getFontFamily(readerFont) : undefined;
 
   // In workspace mode, selection comes from props; standalone uses local state
   const isWorkspaceMode = onVerseSelect !== undefined;
@@ -248,6 +255,7 @@ export function ChapterReader({
         className={`mb-6 grid grid-cols-[auto_1fr_auto] items-center gap-2 ${
           isColumns ? "" : "mx-auto max-w-prose"
         }`}
+        style={fontFamily ? { fontFamily } : undefined}
         aria-label="Chapter navigation"
       >
         {/* Left cell — prev button or empty spacer */}
@@ -273,7 +281,10 @@ export function ChapterReader({
             ? "text-lg leading-relaxed text-gray-800"
             : "mx-auto max-w-prose text-lg leading-relaxed text-gray-800"
         }
-        style={isColumns ? { columns: "auto 20rem", columnGap: "2rem" } : undefined}
+        style={{
+          ...(isColumns ? { columns: "auto 20rem", columnGap: "2rem" } : {}),
+          ...(fontFamily ? { fontFamily } : {}),
+        }}
         aria-label={`${chapterData.bookName} chapter ${chapterData.chapter}`}
       >
         {chapterData.verses.map((verse) => {

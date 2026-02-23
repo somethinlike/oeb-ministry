@@ -31,6 +31,11 @@ vi.mock("./TranslationToggleMenu", () => ({
   TranslationToggleMenu: () => <div data-testid="translation-toggle-menu" />,
 }));
 
+// Mock FontPicker to avoid testing its internals here
+vi.mock("./FontPicker", () => ({
+  FontPicker: () => <div data-testid="font-picker" />,
+}));
+
 const defaultProps = {
   swapped: false,
   onToggleSwap: vi.fn(),
@@ -46,6 +51,8 @@ const defaultProps = {
     onlyBegotten: false,
   },
   onToggleChange: vi.fn(),
+  readerFont: "system" as const,
+  onFontChange: vi.fn(),
 };
 
 describe("WorkspaceToolbar", () => {
@@ -146,5 +153,10 @@ describe("WorkspaceToolbar", () => {
   it("includes the translation picker", () => {
     render(<WorkspaceToolbar {...defaultProps} />);
     expect(screen.getByTestId("translation-picker")).toBeInTheDocument();
+  });
+
+  it("includes the font picker", () => {
+    render(<WorkspaceToolbar {...defaultProps} />);
+    expect(screen.getByTestId("font-picker")).toBeInTheDocument();
   });
 });

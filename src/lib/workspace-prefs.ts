@@ -14,6 +14,14 @@ const STORAGE_KEY = "oeb-workspace-prefs";
 /** "centered" = max-width prose column; "columns" = full-width CSS multi-column */
 export type ReaderLayout = "centered" | "columns";
 
+/** System/web-safe fonts for Bible reading. See src/lib/reader-fonts.ts for details. */
+export type ReaderFont = "system" | "verdana" | "trebuchet" | "georgia" | "charter" | "palatino";
+
+/** Valid font keys for validation on load */
+const VALID_FONTS: ReadonlySet<string> = new Set([
+  "system", "verdana", "trebuchet", "georgia", "charter", "palatino",
+]);
+
 interface WorkspacePrefs {
   /** Reader pane width as a fraction (0.3–0.7). Default 0.6 */
   splitRatio: number;
@@ -23,6 +31,8 @@ interface WorkspacePrefs {
   undocked: boolean;
   /** Reader text layout mode. Default "centered" */
   readerLayout: ReaderLayout;
+  /** Reader font for Bible text. Default "system" */
+  readerFont: ReaderFont;
 }
 
 const DEFAULTS: WorkspacePrefs = {
@@ -30,6 +40,7 @@ const DEFAULTS: WorkspacePrefs = {
   swapped: false,
   undocked: false,
   readerLayout: "centered",
+  readerFont: "system",
 };
 
 /** Clamp split ratio to safe bounds */
@@ -50,6 +61,9 @@ export function loadWorkspacePrefs(): WorkspacePrefs {
         parsed.readerLayout === "centered" || parsed.readerLayout === "columns"
           ? parsed.readerLayout
           : DEFAULTS.readerLayout,
+      readerFont: VALID_FONTS.has(parsed.readerFont ?? "")
+        ? (parsed.readerFont as ReaderFont)
+        : DEFAULTS.readerFont,
     };
   } catch {
     return { ...DEFAULTS };
@@ -64,6 +78,7 @@ export function saveWorkspacePrefs(prefs: Partial<WorkspacePrefs>): void {
       swapped: prefs.swapped ?? current.swapped,
       undocked: prefs.undocked ?? current.undocked,
       readerLayout: prefs.readerLayout ?? current.readerLayout,
+      readerFont: prefs.readerFont ?? current.readerFont,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
   } catch {
