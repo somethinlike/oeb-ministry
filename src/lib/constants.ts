@@ -27,6 +27,14 @@ export const SUPPORTED_TRANSLATIONS = [
     isDefault: true,
   },
   {
+    id: "web",
+    abbreviation: "WEB",
+    name: "World English Bible",
+    license: "Public Domain",
+    hasApocrypha: true,
+    isDefault: false,
+  },
+  {
     id: "kjv1611",
     abbreviation: "KJV",
     name: "King James Version (1611)",

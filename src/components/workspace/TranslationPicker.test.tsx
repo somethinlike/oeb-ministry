@@ -77,11 +77,12 @@ describe("TranslationPicker", () => {
       screen.getByRole("button", { name: /choose a bible translation/i }),
     );
     const options = screen.getAllByRole("option");
-    expect(options).toHaveLength(3);
+    expect(options).toHaveLength(4);
     // Each option should contain its abbreviation
     expect(options[0]).toHaveTextContent("OEB");
-    expect(options[1]).toHaveTextContent("KJV");
-    expect(options[2]).toHaveTextContent("DRA");
+    expect(options[1]).toHaveTextContent("WEB");
+    expect(options[2]).toHaveTextContent("KJV");
+    expect(options[3]).toHaveTextContent("DRA");
   });
 
   it("marks the current translation as selected", () => {
@@ -93,6 +94,7 @@ describe("TranslationPicker", () => {
     expect(options[0]).toHaveAttribute("aria-selected", "true");
     expect(options[1]).toHaveAttribute("aria-selected", "false");
     expect(options[2]).toHaveAttribute("aria-selected", "false");
+    expect(options[3]).toHaveAttribute("aria-selected", "false");
   });
 
   it("calls switchTranslation when a different option is clicked", () => {
@@ -101,7 +103,7 @@ describe("TranslationPicker", () => {
       screen.getByRole("button", { name: /choose a bible translation/i }),
     );
     const options = screen.getAllByRole("option");
-    fireEvent.click(options[1]); // KJV
+    fireEvent.click(options[2]); // KJV
     expect(mockContextValue.switchTranslation).toHaveBeenCalledWith("kjv1611");
   });
 

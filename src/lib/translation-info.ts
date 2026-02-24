@@ -40,7 +40,7 @@ export interface TranslationInfo {
 /**
  * Historical info for each supported translation.
  *
- * Ordered chronologically — DRA (1582), KJV (1611), OEB (2010).
+ * Ordered chronologically — DRA (1582), KJV (1611), WEB (2000), OEB (2010).
  * The map key matches SUPPORTED_TRANSLATIONS[].id from constants.ts.
  */
 export const TRANSLATION_INFO: ReadonlyMap<string, TranslationInfo> = new Map([
@@ -100,6 +100,38 @@ export const TRANSLATION_INFO: ReadonlyMap<string, TranslationInfo> = new Map([
       timelineColor: "bg-red-600",
       badgeColor: "bg-red-100",
       badgeTextColor: "text-red-800",
+    },
+  ],
+  [
+    "web",
+    {
+      id: "web",
+      name: "World English Bible",
+      yearPublished: 2000,
+      tradition: "Ecumenical",
+      summary:
+        "A complete, modern English Bible in the public domain — the most widely used free translation online.",
+      description: [
+        "The World English Bible is an updated revision of the American Standard Version (1901), modernized into contemporary English by a team of volunteers led by Michael Paul Johnson starting in 1994. The full Bible — including all 66 Protestant books plus the deuterocanonical books — was completed in 2000 and continues to receive minor updates.",
+        "What sets the WEB apart is its combination of completeness and freedom. It is one of the very few modern English translations that covers the full biblical canon (including deuterocanonical books) while being entirely in the public domain. No copyright restrictions, no permission needed, no licensing fees — anyone can freely use, quote, print, or redistribute the entire text.",
+        "The WEB uses \"Yahweh\" for God's covenant name (the Hebrew tetragrammaton YHWH) rather than the traditional \"LORD\" in small capitals. This is a deliberate scholarly choice — transliterating the divine name rather than substituting a title. Our word choice toggles let you switch between \"Yahweh\" and \"LORD\" if you prefer the traditional rendering.",
+      ],
+      significance: [
+        "Complete Bible — 66 Protestant books plus deuterocanonical books, fully translated",
+        "Public domain — no copyright, freely usable without permission or payment",
+        "Based on the American Standard Version (1901), updated to modern English",
+        "Uses \"Yahweh\" for God's name (YHWH) rather than the traditional \"LORD\"",
+        "One of the most widely used free Bible translations on the internet",
+        "Translated from the Masoretic Hebrew text (OT) and the Byzantine Majority Greek text (NT)",
+      ],
+      canonBookCount: "81 books (includes deuterocanon)",
+      sourceLanguages: [
+        "Hebrew (Masoretic text)",
+        "Greek (Byzantine Majority text)",
+      ],
+      timelineColor: "bg-green-600",
+      badgeColor: "bg-green-100",
+      badgeTextColor: "text-green-800",
     },
   ],
   [
