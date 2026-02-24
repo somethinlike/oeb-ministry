@@ -32,6 +32,6 @@ test.describe("Landing page", () => {
 
   test("has proper page title", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/OEB Ministry/);
+    await expect(page).toHaveTitle(/Open Bible Ministry/);
   });
 });

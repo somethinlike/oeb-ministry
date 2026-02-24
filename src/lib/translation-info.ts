@@ -146,14 +146,14 @@ export const TRANSLATION_INFO: ReadonlyMap<string, TranslationInfo> = new Map([
       description: [
         "The Open English Bible is a modern English translation released under Creative Commons Zero (CC0), making it completely free for anyone to use, modify, and distribute without restriction. It began in 2010 as a revision of the Twentieth Century New Testament (1904), updated to contemporary American English.",
         "What makes the OEB unique isn't just the translation itself — it's the licensing. Most modern Bible translations are copyrighted, meaning you need permission (and often payment) to quote more than a few verses. The OEB removes those barriers entirely. Churches, apps, websites, and individuals can use the full text without asking anyone.",
-        "The New Testament is complete. The Old Testament is actively being developed by an open community of contributors. The OEB is the default translation on this site because its CC0 license aligns perfectly with our ethic of freely sharing God's word — the same principle that drove Tyndale, the King James translators, and every community that believed scripture should be accessible to all.",
+        "The New Testament is complete. The Old Testament is actively being developed by an open community of contributors. The OEB's CC0 license aligns perfectly with our ethic of freely sharing God's word — the same principle that drove Tyndale, the King James translators, and every community that believed scripture should be accessible to all.",
       ],
       significance: [
         "Completely free — released under CC0 (Creative Commons Zero, public domain)",
         "No permission needed to quote, share, remix, or redistribute the full text",
         "Based on the Twentieth Century New Testament (1904), updated to modern English",
         "Open source development — anyone can contribute to the translation",
-        "Default translation on this site — its CC0 license matches our ethic of free access",
+        "CC0 license matches our ethic of free access to God's word",
         "New Testament complete; Old Testament in active development",
       ],
       canonBookCount: "Full NT; OT in progress",

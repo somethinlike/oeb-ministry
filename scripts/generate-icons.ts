@@ -130,7 +130,7 @@ function generateIcon(size: number, filename: string) {
   ctx.font = `bold ${size * 0.09}px sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("OEB Ministry", cx, size * 0.82);
+  ctx.fillText("Open Bible Ministry", cx, size * 0.82);
 
   // Save
   const buffer = canvas.toBuffer("image/png");

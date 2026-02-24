@@ -1,6 +1,6 @@
 {
-  "name": "OEB Ministry",
-  "short_name": "OEB Ministry",
+  "name": "Open Bible Ministry",
+  "short_name": "Open Bible Ministry",
   "description": "Create Devotional Bibles through verse-anchored annotations",
   "start_url": "/app/read",
   "display": "standalone",

@@ -24,7 +24,7 @@ export const SUPPORTED_TRANSLATIONS = [
     name: "Open English Bible (US)",
     license: "CC0 / Public Domain",
     hasApocrypha: false,
-    isDefault: true,
+    isDefault: false,
   },
   {
     id: "web",
@@ -32,7 +32,7 @@ export const SUPPORTED_TRANSLATIONS = [
     name: "World English Bible",
     license: "Public Domain",
     hasApocrypha: true,
-    isDefault: false,
+    isDefault: true,
   },
   {
     id: "kjv1611",
@@ -53,7 +53,7 @@ export const SUPPORTED_TRANSLATIONS = [
 ] as const;
 
 /** The default translation shown when a user first opens the reader. */
-export const DEFAULT_TRANSLATION = "oeb-us";
+export const DEFAULT_TRANSLATION = "web";
 
 /**
  * Regex for validating canonical verse references.

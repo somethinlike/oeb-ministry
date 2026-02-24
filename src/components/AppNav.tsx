@@ -72,9 +72,9 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             <a
               href="/app/read"
               className="text-xl font-bold text-gray-900"
-              aria-label="OEB Ministry home"
+              aria-label="Open Bible Ministry home"
             >
-              OEB Ministry
+              Open Bible Ministry
             </a>
 
             {/* Desktop nav links — hidden on mobile */}
