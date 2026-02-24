@@ -149,12 +149,30 @@ export function ChapterReader({
 
   // ── Error state ──
   if (error) {
+    const isOEB = translation === "oeb-us";
     return (
       <div
         className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-center"
         role="alert"
       >
         <p className="text-lg text-amber-800">{error}</p>
+        {/* OEB-specific explanation — the OEB is still being translated,
+            so missing chapters are expected. Link to their project. */}
+        {isOEB && (
+          <p className="mt-3 text-sm text-amber-700">
+            The Open English Bible is a free, open-source translation that's still in progress.
+            Some books and chapters haven't been translated yet.{" "}
+            <a
+              href="https://openenglishbible.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline font-medium hover:text-amber-900"
+            >
+              Visit their project
+            </a>{" "}
+            to learn more or contribute.
+          </p>
+        )}
         <a
           href={`/app/read/${translation}/${book}`}
           className="mt-4 inline-block rounded-lg bg-amber-600 px-6 py-2 font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -328,9 +346,23 @@ export function ChapterReader({
                 )}
               </sup>
               {/* Detect placeholder verses — the OEB (a work in progress)
-                  uses "{ }" for untranslated verses */}
+                  uses "{ }" for untranslated verses. Show an ⓘ icon that
+                  links to the OEB project so users can learn more. */}
               {placeholder ? (
-                <em className="text-gray-400 text-sm italic">(verse not yet translated)</em>
+                <a
+                  href="https://openenglishbible.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="This verse hasn't been translated yet. The Open English Bible is a free, open-source translation still in progress — visit their site to learn more or contribute."
+                  className="inline-flex items-center text-blue-400 hover:text-blue-600 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Verse not yet translated — visit the Open English Bible project"
+                >
+                  {/* Info circle icon (ⓘ) */}
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clipRule="evenodd" />
+                  </svg>
+                </a>
               ) : (
                 displayText
               )}{" "}
