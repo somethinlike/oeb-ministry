@@ -943,3 +943,59 @@ Identified the **World English Bible (WEB)** as the best candidate for a new def
 - **Ezekiel 1:2 curly brackets**: The OEB source USFM has `{ }` as a placeholder for untranslated verses. Added `isPlaceholderVerse()` detection in ChapterReader to show "(verse not yet translated)" instead of raw brackets.
 
 ---
+
+## Session 8 — 2026-02-25 — Verse Citations, Humble Materials, Settings Architecture
+
+### Verse Citation Feature (Implemented)
+
+Added a "Cite a verse" popover to the annotation editor that lets users insert styled Markdown blockquotes from their anchor or cross-reference verses. Word-by-word trim with leading/trailing ellipsis. Output is standard Markdown (`> **Genesis 1:3** — ...text...`). No database changes — pure Humble Materials.
+
+**Files created:** `VerseCitePicker.tsx`, `VerseCitePicker.test.tsx` (16 tests)
+**Files modified:** `MarkdownEditor.tsx` (added `extraToolbarSlot` render prop), `AnnotationPanel.tsx` (wired picker), `global.css` (blockquote styling)
+
+### "Humble Materials" Principle Refined
+
+Ryan clarified the intent: the constraint is on the **export format**, not the database. The database can be as sophisticated as needed for a modern PWA. The export pipeline filters out non-portable stuff and produces clean `.md` files. Updated CLAUDE.md Architecture Principle #3 accordingly.
+
+### Design Discussion: User Settings & Offline Bible Downloads
+
+**Context:** Ryan asked about PWA data usage. Current Bible caching is on-demand (Cache-First per chapter, ~5 KB each, no pre-downloading). Ryan wants users to be able to choose which translations to pre-download for offline use, with a storage estimate.
+
+**Agreed architecture:**
+
+#### Settings page (`/app/settings`)
+
+- **One page to rule them all.** Every user preference lives here.
+- Accessible only to signed-in users.
+- Contains (at minimum):
+  - Translation toggles (currently in toolbar popover, localStorage only)
+  - Reader font preference (currently localStorage only)
+  - Default Bible translation
+  - **Offline Bible downloads** — user selects which translations to pre-cache, with storage estimate before committing. Eventually includes "offline devotionals" too.
+  - Account info (email, connected OAuth providers)
+  - Export all data
+
+#### Public profile (future)
+
+- Separate page (`/profile/{username}` or similar) — what other people see.
+- Contents TBD — Ryan will outline later.
+- The settings page lives "behind" this — the private counterpart.
+
+#### Preference sync (`user_preferences` table)
+
+- **New Supabase table** needed: stores all user preferences so they roam across devices.
+- Current localStorage preferences (translation toggles, reader font, workspace layout) migrate to Supabase.
+- localStorage becomes the fallback for unauthenticated users and the offline cache.
+- RLS: users can only read/write their own preferences.
+
+#### Offline Bible download feature
+
+- User picks translations → we calculate total size from manifest data (chapter count × ~5 KB average).
+- Show "This will use approximately X MB" before downloading.
+- Service worker handles the bulk download, stores in the existing `oeb-bibles-v1` cache.
+- Settings page shows current cache usage and lets users manage (add/remove translations).
+- On-demand caching continues to work alongside — if a user reads a chapter from a non-downloaded translation, it still caches that chapter individually.
+
+**Status:** Design discussion only. Not yet scoped to a version or scheduled for implementation.
+
+---
