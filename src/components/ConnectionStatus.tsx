@@ -16,30 +16,44 @@ import { useState, useEffect, useCallback } from "react";
 import { processSync } from "../lib/sync-engine";
 
 /**
- * Checks real connectivity by making a cross-origin request.
+ * Checks real connectivity by making cross-origin requests.
  * navigator.onLine lies on Android, WSL Chrome, and some service-worker setups.
  *
  * Must be cross-origin because the service worker caches same-origin requests
  * and would return cached responses even when truly offline.
  * Cross-origin requests bypass our service worker entirely.
+ *
+ * Tries multiple endpoints because some mobile carriers block direct IP access
+ * (e.g., 1.1.1.1) and some networks block specific DNS providers.
  */
 async function checkConnectivity(): Promise<boolean> {
+  // Try multiple endpoints — if ANY succeed, we're online.
+  // mode: "no-cors" gives opaque responses but the promise resolving
+  // means the network actually works.
+  const endpoints = [
+    "https://dns.google/resolve?name=example.com&type=A",
+    "https://1.1.1.1",
+    "https://www.google.com/generate_204",
+  ];
+
   try {
-    // Cloudflare's DNS — fast, globally available, tiny response.
-    // mode: "no-cors" gives an opaque response but the promise resolving
-    // means the network actually works. Our service worker skips cross-origin
-    // requests, so this tests real network reachability.
-    await fetch("https://1.1.1.1", { method: "HEAD", mode: "no-cors" });
+    await Promise.any(
+      endpoints.map((url) =>
+        fetch(url, { method: "HEAD", mode: "no-cors" }),
+      ),
+    );
     return true;
   } catch {
+    // All endpoints failed — genuinely offline
     return false;
   }
 }
 
 export function ConnectionStatus() {
-  const [isOnline, setIsOnline] = useState(
-    typeof navigator !== "undefined" ? navigator.onLine : true,
-  );
+  // Always assume online initially. navigator.onLine is unreliable on Android,
+  // WSL Chrome, and service-worker pages — it returns false even with internet.
+  // We verify with real network requests before ever showing the offline banner.
+  const [isOnline, setIsOnline] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
@@ -75,24 +89,21 @@ export function ConnectionStatus() {
     }
 
     function handleOffline() {
-      setIsOnline(false);
-      setSyncMessage(null);
+      // Don't trust the offline event blindly — verify with a real request.
+      // navigator.onLine and its events lie on Android, WSL Chrome, etc.
+      checkConnectivity().then((reachable) => {
+        if (reachable) {
+          // Browser lied — we're actually online. Ignore the event.
+          return;
+        }
+        // Genuinely offline — show the banner
+        setIsOnline(false);
+        setSyncMessage(null);
+      });
     }
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-
-    // navigator.onLine is unreliable on mobile and service-worker pages.
-    // If it says we're offline, verify with a real network request.
-    // If the fetch succeeds, we're actually online and navigator lied.
-    if (!navigator.onLine) {
-      checkConnectivity().then((reachable) => {
-        if (reachable) {
-          setIsOnline(true);
-          triggerSync();
-        }
-      });
-    }
 
     return () => {
       window.removeEventListener("online", handleOnline);
