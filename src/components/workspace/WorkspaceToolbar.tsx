@@ -114,7 +114,7 @@ export function WorkspaceToolbar({
       </nav>
 
       {/* Right-side actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
         {/* Clean view — hide toolbar and show only a cog in the nav bar */}
         <button
           type="button"
