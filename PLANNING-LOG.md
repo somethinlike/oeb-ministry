@@ -1021,4 +1021,25 @@ Ryan clarified the intent: the constraint is on the **export format**, not the d
 
 **Status:** Distant future. Ryan is focused on building the core platform and personally studying scripture before taking on theological reference material. This requires significant manual review effort that isn't justified until the site is mature and Ryan has the bandwidth. Logged for when the time comes.
 
+### Future: Offline Bible Recording & Commentary
+
+**Context:** Ryan wants users to be able to record themselves reading the Bible aloud and making personal commentary — an audio devotional/study tool captured locally on the user's device.
+
+**Concept:**
+
+- User selects a passage, hits record, reads aloud with their own commentary and reflections
+- Recording is stored locally on the user's system (not uploaded to our servers)
+- System needs to be robust and easy to use for non-technical end users
+- Ties into the offline-first PWA philosophy — your recordings are yours, on your device
+
+**Open questions (for when the time comes):**
+
+- Audio format and compression (WebM/Opus via MediaRecorder API is the natural PWA choice)
+- How recordings associate with specific passages/annotations
+- Whether recordings can optionally sync/backup (cloud storage, export)
+- Playback UI within the app
+- Storage management — recordings are much larger than text
+
+**Status:** Distant future. Significant UX and technical design work needed to make the recording experience smooth and the storage/playback system robust. Logged for when the time comes.
+
 ---
