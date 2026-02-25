@@ -10,12 +10,12 @@
  * outside-click and Escape to close.
  */
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { FontPicker } from "./FontPicker";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { TranslationToggleMenu } from "./TranslationToggleMenu";
 import { TranslationPicker } from "./TranslationPicker";
 import type { ReaderLayout, ReaderFont, AnnotationDotStyle } from "../../lib/workspace-prefs";
 import type { TranslationToggles } from "../../lib/translation-toggles";
+import { getOrderedFontOptions } from "../../lib/reader-fonts";
 
 export interface ReaderSettingsProps {
   readerLayout: ReaderLayout;
@@ -32,6 +32,7 @@ export interface ReaderSettingsProps {
 export function ReaderSettingsPopover(props: ReaderSettingsProps) {
   const [open, setOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const orderedFonts = useMemo(() => getOrderedFontOptions(), []);
 
   // Close on outside click
   useEffect(() => {
@@ -118,9 +119,23 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
               </button>
             </div>
 
-            {/* Font picker */}
+            {/* Font picker — inline select matching label/control pattern */}
             <div className="flex items-center justify-between">
-              <FontPicker readerFont={props.readerFont} onFontChange={props.onFontChange} />
+              <span className="text-sm text-gray-700">Font</span>
+              <select
+                value={props.readerFont}
+                onChange={(e) => props.onFontChange(e.target.value as ReaderFont)}
+                className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs
+                           font-medium text-gray-600
+                           focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Choose a reading font"
+              >
+                {orderedFonts.map((font) => (
+                  <option key={font.key} value={font.key}>
+                    {font.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Annotation dots */}
@@ -162,10 +177,12 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
               />
             </div>
 
-            {/* Translation picker */}
+            {/* Translation picker — constrain width so label isn't cramped */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Translation</span>
-              <TranslationPicker />
+              <span className="text-sm text-gray-700 shrink-0">Translation</span>
+              <div className="min-w-0">
+                <TranslationPicker />
+              </div>
             </div>
 
             {/* Divider + show toolbar button */}
