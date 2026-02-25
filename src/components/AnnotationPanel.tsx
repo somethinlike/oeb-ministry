@@ -18,6 +18,7 @@ import {
   CrossReferencePicker,
   type CrossRefEntry,
 } from "./CrossReferencePicker";
+import { VerseCitePicker } from "./VerseCitePicker";
 import { supabase } from "../lib/supabase";
 import {
   createAnnotation,
@@ -289,11 +290,22 @@ export function AnnotationPanel({
         </div>
       )}
 
-      {/* Markdown editor */}
+      {/* Markdown editor — with Cite button wired to VerseCitePicker */}
       <MarkdownEditor
         initialContent={existing?.contentMd ?? ""}
         onChange={setContent}
         placeholder="Write your thoughts about this verse..."
+        extraToolbarSlot={({ insertText }) => (
+          <VerseCitePicker
+            anchorBook={book as BookId}
+            anchorChapter={chapter}
+            anchorVerseStart={verseStart}
+            anchorVerseEnd={verseEnd}
+            crossReferences={crossRefs}
+            translation={translation}
+            onCite={insertText}
+          />
+        )}
       />
 
       {/* Cross-references */}

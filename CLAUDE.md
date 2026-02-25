@@ -188,7 +188,7 @@ The site adheres to Christ's ethics as defined by the project. Content that cont
 ## Architecture Principles
 1. **Astro Islands** - Pages are static by default. Only interactive parts (editor, annotation panel) use React components with `client:load` or `client:visible`.
 2. **Supabase RLS** - Row Level Security policies are the security boundary. Never trust client-side checks alone.
-3. **Markdown-first** - All annotation content is stored as Markdown. Rendered at display time.
+3. **Markdown-first ("Humble Materials")** - All annotation content is stored as Markdown in plain text columns. Rendered at display time. Markdown is the "humble material" of this project — wood and copper, not steel and gold. Every feature that touches user content must produce **standard, portable Markdown** that round-trips cleanly through: storage (`contentMd` text column) → rendering (`react-markdown`) → export (`.md` files readable in Obsidian, Logseq, any text editor). No JSON blobs for content. No structured data objects where a text format suffices. No custom schemas when a standard one exists. The database stays as simple as possible. If a feature can be expressed as plain Markdown, it must be.
 4. **CC0 by default** - Public annotations are CC0. Private annotations are encrypted client-side before reaching Supabase.
 5. **Progressive enhancement** - Core reading experience works without JS. Editing/annotating requires JS.
 6. **Offline-first (PWA)** - Full Progressive Web App from v1. Service worker caches Bible text. IndexedDB stores annotations locally. Offline edits queue and sync to Supabase when connectivity returns. Conflict resolution: last-write-wins (simplest, revisit if needed).

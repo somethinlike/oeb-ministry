@@ -12,10 +12,16 @@
  * - No dangerouslySetInnerHTML anywhere
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+
+/** Helpers passed to the extraToolbarSlot render prop. */
+export interface ToolbarSlotHelpers {
+  /** Insert block-level text at the current cursor position. */
+  insertText: (text: string) => void;
+}
 
 interface MarkdownEditorProps {
   /** Initial content (empty for new annotations) */
@@ -24,6 +30,12 @@ interface MarkdownEditorProps {
   onChange: (content: string) => void;
   /** Placeholder text for empty editor */
   placeholder?: string;
+  /**
+   * Optional extra buttons rendered in the toolbar after the built-in
+   * formatting actions. Receives helpers so the slot can insert text
+   * into the editor without knowing about the textarea ref.
+   */
+  extraToolbarSlot?: (helpers: ToolbarSlotHelpers) => ReactNode;
 }
 
 /** Toolbar button config — each one wraps selected text with markdown syntax. */
@@ -84,6 +96,7 @@ export function MarkdownEditor({
   initialContent = "",
   onChange,
   placeholder = "Write your thoughts here...",
+  extraToolbarSlot,
 }: MarkdownEditorProps) {
   const [content, setContent] = useState(initialContent);
   const [showPreview, setShowPreview] = useState(false);
@@ -92,6 +105,36 @@ export function MarkdownEditor({
   function handleContentChange(newContent: string) {
     setContent(newContent);
     onChange(newContent);
+  }
+
+  /**
+   * Insert block-level text at the current cursor position.
+   * Adds a preceding newline if the cursor isn't at the start of a line.
+   * Used by the extraToolbarSlot (e.g., VerseCitePicker) to inject
+   * Markdown without needing direct textarea access.
+   */
+  function insertText(text: string) {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const cursorPos = textarea.selectionStart;
+    const beforeCursor = content.substring(0, cursorPos);
+    const afterCursor = content.substring(cursorPos);
+
+    // Ensure block-level content starts on its own line
+    const needsNewline =
+      beforeCursor.length > 0 && !beforeCursor.endsWith("\n");
+    const prefix = needsNewline ? "\n" : "";
+
+    const newContent = beforeCursor + prefix + text + "\n" + afterCursor;
+    const newCursorPos = cursorPos + prefix.length + text.length + 1;
+
+    handleContentChange(newContent);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    });
   }
 
   function applyFormatting(action: ToolbarAction) {
@@ -164,6 +207,9 @@ export function MarkdownEditor({
             {action.icon}
           </button>
         ))}
+
+        {/* Extra toolbar slot — parent can inject context-aware buttons (e.g., Cite verse) */}
+        {extraToolbarSlot?.({ insertText })}
 
         {/* Spacer */}
         <div className="flex-1" />

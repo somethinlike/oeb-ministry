@@ -1,3 +1,25 @@
 /* Tailwind CSS v4 — this single import activates all utility classes.
    Unlike v3, there's no @tailwind base/components/utilities split. */
 @import "tailwindcss";
+
+/* ── Verse citation blockquotes ──
+   Styled for the MarkdownEditor preview (.prose container).
+   Applies to all blockquotes — both manual ">" quotes and
+   VerseCitePicker citations get the same treatment. */
+
+.prose blockquote {
+  border-left: 3px solid #3b82f6;    /* blue-500 */
+  background-color: #eff6ff;          /* blue-50 */
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-radius: 0 0.375rem 0.375rem 0;
+  color: #1e3a5f;
+}
+
+.prose blockquote p {
+  margin: 0;
+}
+
+.prose blockquote strong {
+  color: #1d4ed8;                     /* blue-700 */
+}
