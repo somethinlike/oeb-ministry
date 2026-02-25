@@ -53,6 +53,9 @@ const defaultProps = {
   onToggleChange: vi.fn(),
   readerFont: "system" as const,
   onFontChange: vi.fn(),
+  annotationDots: "blue" as const,
+  onAnnotationDotsChange: vi.fn(),
+  onEnterCleanView: vi.fn(),
 };
 
 describe("WorkspaceToolbar", () => {

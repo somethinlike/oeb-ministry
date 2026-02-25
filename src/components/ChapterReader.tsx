@@ -28,7 +28,7 @@ import {
   type VerseSelection,
 } from "../lib/verse-selection";
 import { BOOK_BY_ID, BIBLE_BASE_PATH } from "../lib/constants";
-import type { ReaderLayout, ReaderFont } from "../lib/workspace-prefs";
+import type { ReaderLayout, ReaderFont, AnnotationDotStyle } from "../lib/workspace-prefs";
 import { getFontFamily } from "../lib/reader-fonts";
 import {
   applyTranslationToggles,
@@ -36,6 +36,7 @@ import {
   TOGGLE_DEFAULTS,
   type TranslationToggles,
 } from "../lib/translation-toggles";
+import { ReaderSettingsPopover, type ReaderSettingsProps } from "./workspace/ReaderSettingsPopover";
 
 /**
  * Detect placeholder verses in work-in-progress translations.
@@ -64,6 +65,12 @@ interface ChapterReaderProps {
   translationToggles?: TranslationToggles;
   /** Reading font preference (workspace mode passes this; standalone uses browser default) */
   readerFont?: ReaderFont;
+  /** How annotation dots display next to verse numbers. Default "blue" */
+  annotationDots?: AnnotationDotStyle;
+  /** Whether clean view is active (hides toolbar, shows cog in nav) */
+  cleanView?: boolean;
+  /** Settings callbacks for the cog popover in clean view */
+  settingsProps?: ReaderSettingsProps;
 }
 
 export function ChapterReader({
@@ -77,6 +84,9 @@ export function ChapterReader({
   readerLayout = "centered",
   translationToggles,
   readerFont,
+  annotationDots = "blue",
+  cleanView = false,
+  settingsProps,
 }: ChapterReaderProps) {
   const [chapterData, setChapterData] = useState<ChapterData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -267,12 +277,13 @@ export function ChapterReader({
   return (
     <div>
       {/* Chapter header with integrated navigation.
-           3-column grid: [prev] [title] [next] — title is always centered.
+           Normal: 3-column grid [prev] [title] [next].
+           Clean view: 4-column grid [prev] [title] [cog] [next].
            In centered mode, match the article's max-w-prose centering. */}
       <nav
-        className={`mb-6 grid grid-cols-[auto_1fr_auto] items-center gap-2 ${
-          isColumns ? "" : "mx-auto max-w-prose"
-        }`}
+        className={`mb-6 grid items-center gap-2 ${
+          cleanView ? "grid-cols-[auto_1fr_auto_auto]" : "grid-cols-[auto_1fr_auto]"
+        } ${isColumns ? "" : "mx-auto max-w-prose"}`}
         style={fontFamily ? { fontFamily } : undefined}
         aria-label="Chapter navigation"
       >
@@ -285,6 +296,11 @@ export function ChapterReader({
         <h2 className="text-2xl font-bold text-gray-900 text-center min-w-0 truncate">
           {chapterData.bookName} {chapterData.chapter}
         </h2>
+
+        {/* Cog button — only in clean view */}
+        {cleanView && settingsProps && (
+          <ReaderSettingsPopover {...settingsProps} />
+        )}
 
         {/* Right cell — next button or empty spacer */}
         <div>
@@ -337,9 +353,11 @@ export function ChapterReader({
               <sup className="mr-0.5 text-xs font-semibold text-gray-400 select-none">
                 {verse.number}
                 {/* Annotation dot indicator */}
-                {hasAnnotation && (
+                {hasAnnotation && annotationDots !== "hidden" && (
                   <span
-                    className="ml-0.5 inline-block h-1.5 w-1.5 rounded-full bg-blue-500 align-super"
+                    className={`ml-0.5 inline-block h-1.5 w-1.5 rounded-full align-super ${
+                      annotationDots === "subtle" ? "bg-gray-300" : "bg-blue-500"
+                    }`}
                     aria-hidden="true"
                     title="Has a note"
                   />

@@ -24,6 +24,8 @@ describe("loadWorkspacePrefs", () => {
       undocked: false,
       readerLayout: "centered",
       readerFont: "system",
+      annotationDots: "blue",
+      cleanView: false,
     });
   });
 
@@ -39,6 +41,8 @@ describe("loadWorkspacePrefs", () => {
       undocked: true,
       readerLayout: "columns",
       readerFont: "inter",
+      annotationDots: "blue",
+      cleanView: false,
     });
   });
 
@@ -67,6 +71,8 @@ describe("loadWorkspacePrefs", () => {
       undocked: false,
       readerLayout: "centered",
       readerFont: "system",
+      annotationDots: "blue",
+      cleanView: false,
     });
   });
 
@@ -136,6 +142,54 @@ describe("loadWorkspacePrefs", () => {
     );
     expect(loadWorkspacePrefs().readerFont).toBe("system");
   });
+
+  it("reads valid annotationDots value", () => {
+    localStorage.setItem(
+      "oeb-workspace-prefs",
+      JSON.stringify({ annotationDots: "hidden" }),
+    );
+    expect(loadWorkspacePrefs().annotationDots).toBe("hidden");
+  });
+
+  it("rejects invalid annotationDots values", () => {
+    localStorage.setItem(
+      "oeb-workspace-prefs",
+      JSON.stringify({ annotationDots: "rainbow" }),
+    );
+    expect(loadWorkspacePrefs().annotationDots).toBe("blue");
+  });
+
+  it("defaults annotationDots when missing from stored prefs (backward compat)", () => {
+    localStorage.setItem(
+      "oeb-workspace-prefs",
+      JSON.stringify({ splitRatio: 0.5 }),
+    );
+    expect(loadWorkspacePrefs().annotationDots).toBe("blue");
+  });
+
+  it("reads valid cleanView value", () => {
+    localStorage.setItem(
+      "oeb-workspace-prefs",
+      JSON.stringify({ cleanView: true }),
+    );
+    expect(loadWorkspacePrefs().cleanView).toBe(true);
+  });
+
+  it("rejects non-boolean cleanView values", () => {
+    localStorage.setItem(
+      "oeb-workspace-prefs",
+      JSON.stringify({ cleanView: "yes" }),
+    );
+    expect(loadWorkspacePrefs().cleanView).toBe(false);
+  });
+
+  it("defaults cleanView when missing from stored prefs (backward compat)", () => {
+    localStorage.setItem(
+      "oeb-workspace-prefs",
+      JSON.stringify({ splitRatio: 0.5 }),
+    );
+    expect(loadWorkspacePrefs().cleanView).toBe(false);
+  });
 });
 
 describe("saveWorkspacePrefs", () => {
@@ -154,6 +208,8 @@ describe("saveWorkspacePrefs", () => {
       undocked: true,
       readerLayout: "columns",
       readerFont: "inter",
+      annotationDots: "blue",
+      cleanView: false,
     });
   });
 

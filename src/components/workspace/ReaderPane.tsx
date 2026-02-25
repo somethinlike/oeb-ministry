@@ -10,8 +10,9 @@
 import { useMemo } from "react";
 import { ChapterReader } from "../ChapterReader";
 import { useWorkspace } from "./WorkspaceProvider";
-import type { ReaderLayout, ReaderFont } from "../../lib/workspace-prefs";
+import type { ReaderLayout, ReaderFont, AnnotationDotStyle } from "../../lib/workspace-prefs";
 import type { TranslationToggles } from "../../lib/translation-toggles";
+import type { ReaderSettingsProps } from "./ReaderSettingsPopover";
 
 interface ReaderPaneProps {
   /** Text layout mode — "centered" (max-width prose) or "columns" (full-width multi-column) */
@@ -20,9 +21,15 @@ interface ReaderPaneProps {
   translationToggles?: TranslationToggles;
   /** Reader font for Bible text */
   readerFont?: ReaderFont;
+  /** Annotation dot display style */
+  annotationDots?: AnnotationDotStyle;
+  /** Whether clean view is active */
+  cleanView?: boolean;
+  /** Settings callbacks for clean-view cog popover */
+  settingsProps?: ReaderSettingsProps;
 }
 
-export function ReaderPane({ readerLayout = "centered", translationToggles, readerFont }: ReaderPaneProps) {
+export function ReaderPane({ readerLayout = "centered", translationToggles, readerFont, annotationDots, cleanView, settingsProps }: ReaderPaneProps) {
   const {
     translation,
     book,
@@ -59,6 +66,9 @@ export function ReaderPane({ readerLayout = "centered", translationToggles, read
         readerLayout={readerLayout}
         translationToggles={translationToggles}
         readerFont={readerFont}
+        annotationDots={annotationDots}
+        cleanView={cleanView}
+        settingsProps={settingsProps}
       />
     </div>
   );

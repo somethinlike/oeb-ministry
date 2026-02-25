@@ -25,12 +25,14 @@ import {
   saveWorkspacePrefs,
   type ReaderLayout,
   type ReaderFont,
+  type AnnotationDotStyle,
 } from "../../lib/workspace-prefs";
 import {
   loadTranslationToggles,
   saveTranslationToggles,
   type TranslationToggles,
 } from "../../lib/translation-toggles";
+import type { ReaderSettingsProps } from "./ReaderSettingsPopover";
 
 interface WorkspaceProps {
   translation: string;
@@ -52,6 +54,8 @@ export function Workspace({
   const [undocked, setUndocked] = useState(prefs.undocked);
   const [readerLayout, setReaderLayout] = useState<ReaderLayout>(prefs.readerLayout);
   const [readerFont, setReaderFont] = useState<ReaderFont>(prefs.readerFont);
+  const [annotationDots, setAnnotationDots] = useState<AnnotationDotStyle>(prefs.annotationDots);
+  const [cleanView, setCleanView] = useState(prefs.cleanView);
   const [translationToggles, setTranslationToggles] = useState<TranslationToggles>(
     () => loadTranslationToggles(),
   );
@@ -99,6 +103,21 @@ export function Workspace({
     saveWorkspacePrefs({ readerFont: font });
   }, []);
 
+  const handleEnterCleanView = useCallback(() => {
+    setCleanView(true);
+    saveWorkspacePrefs({ cleanView: true });
+  }, []);
+
+  const handleExitCleanView = useCallback(() => {
+    setCleanView(false);
+    saveWorkspacePrefs({ cleanView: false });
+  }, []);
+
+  const handleAnnotationDotsChange = useCallback((style: AnnotationDotStyle) => {
+    setAnnotationDots(style);
+    saveWorkspacePrefs({ annotationDots: style });
+  }, []);
+
   const handleToggleChange = useCallback((key: keyof TranslationToggles) => {
     setTranslationToggles((prev) => {
       const next = { ...prev, [key]: !prev[key] };
@@ -115,8 +134,30 @@ export function Workspace({
     ? `${sidebarFr} 0.5rem ${readerFr}`
     : `${readerFr} 0.5rem ${sidebarFr}`;
 
+  // Settings props for the clean-view cog popover
+  const settingsProps: ReaderSettingsProps = {
+    readerLayout,
+    onToggleReaderLayout: toggleReaderLayout,
+    readerFont,
+    onFontChange: handleFontChange,
+    annotationDots,
+    onAnnotationDotsChange: handleAnnotationDotsChange,
+    translationToggles,
+    onToggleChange: handleToggleChange,
+    onExitCleanView: handleExitCleanView,
+  };
+
   // Determine which pane goes first based on swap state
-  const readerPane = <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} readerFont={readerFont} />;
+  const readerPane = (
+    <ReaderPane
+      readerLayout={readerLayout}
+      translationToggles={translationToggles}
+      readerFont={readerFont}
+      annotationDots={annotationDots}
+      cleanView={cleanView}
+      settingsProps={settingsProps}
+    />
+  );
   const leftPane = swapped ? <AnnotationSidebar /> : readerPane;
   const rightPane = swapped ? readerPane : <AnnotationSidebar />;
 
@@ -128,20 +169,26 @@ export function Workspace({
       userId={userId}
     >
       <div className="flex flex-col h-full rounded-lg border border-gray-200 bg-white shadow-sm">
-        {/* Toolbar: breadcrumbs + undock/swap + translation picker */}
-        <WorkspaceToolbar
-          swapped={swapped}
-          onToggleSwap={toggleSwap}
-          undocked={undocked}
-          onUndock={handleUndock}
-          onDock={handleDock}
-          readerLayout={readerLayout}
-          onToggleReaderLayout={toggleReaderLayout}
-          translationToggles={translationToggles}
-          onToggleChange={handleToggleChange}
-          readerFont={readerFont}
-          onFontChange={handleFontChange}
-        />
+        {/* Toolbar: breadcrumbs + undock/swap + translation picker.
+             Hidden in clean view — settings move to cog in chapter nav. */}
+        {!cleanView && (
+          <WorkspaceToolbar
+            swapped={swapped}
+            onToggleSwap={toggleSwap}
+            undocked={undocked}
+            onUndock={handleUndock}
+            onDock={handleDock}
+            readerLayout={readerLayout}
+            onToggleReaderLayout={toggleReaderLayout}
+            translationToggles={translationToggles}
+            onToggleChange={handleToggleChange}
+            readerFont={readerFont}
+            onFontChange={handleFontChange}
+            annotationDots={annotationDots}
+            onAnnotationDotsChange={handleAnnotationDotsChange}
+            onEnterCleanView={handleEnterCleanView}
+          />
+        )}
 
         {/* Split pane area */}
         <div
@@ -150,7 +197,7 @@ export function Workspace({
         >
           {/* Mobile: full-screen reader + bottom sheet for annotations */}
           <div className="lg:hidden h-full min-h-0 overflow-hidden">
-            <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} readerFont={readerFont} />
+            <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} readerFont={readerFont} annotationDots={annotationDots} cleanView={cleanView} settingsProps={settingsProps} />
             <MobileBottomSheet />
           </div>
 
@@ -158,7 +205,7 @@ export function Workspace({
           {undocked ? (
             // Undocked: reader takes full width
             <div className="hidden lg:block h-full min-h-0 overflow-hidden">
-              <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} readerFont={readerFont} />
+              <ReaderPane readerLayout={readerLayout} translationToggles={translationToggles} readerFont={readerFont} annotationDots={annotationDots} cleanView={cleanView} settingsProps={settingsProps} />
             </div>
           ) : (
             // Docked: split pane with divider

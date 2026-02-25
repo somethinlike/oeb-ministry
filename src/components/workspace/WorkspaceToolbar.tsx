@@ -14,7 +14,7 @@ import { useWorkspace } from "./WorkspaceProvider";
 import { TranslationPicker } from "./TranslationPicker";
 import { SUPPORTED_TRANSLATIONS, BOOK_BY_ID } from "../../lib/constants";
 import type { BookId } from "../../types/bible";
-import type { ReaderLayout, ReaderFont } from "../../lib/workspace-prefs";
+import type { ReaderLayout, ReaderFont, AnnotationDotStyle } from "../../lib/workspace-prefs";
 import { TranslationToggleMenu } from "./TranslationToggleMenu";
 import { FontPicker } from "./FontPicker";
 import type { TranslationToggles } from "../../lib/translation-toggles";
@@ -42,6 +42,12 @@ interface WorkspaceToolbarProps {
   readerFont: ReaderFont;
   /** Called when user picks a different font */
   onFontChange: (font: ReaderFont) => void;
+  /** Current annotation dot display style */
+  annotationDots: AnnotationDotStyle;
+  /** Called when user changes annotation dot style */
+  onAnnotationDotsChange: (style: AnnotationDotStyle) => void;
+  /** Enter clean view mode (hides toolbar, shows cog in nav) */
+  onEnterCleanView: () => void;
 }
 
 export function WorkspaceToolbar({
@@ -56,6 +62,9 @@ export function WorkspaceToolbar({
   onToggleChange,
   readerFont,
   onFontChange,
+  annotationDots,
+  onAnnotationDotsChange,
+  onEnterCleanView,
 }: WorkspaceToolbarProps) {
   const { translation, book, chapter } = useWorkspace();
 
@@ -106,6 +115,23 @@ export function WorkspaceToolbar({
 
       {/* Right-side actions */}
       <div className="flex items-center gap-2">
+        {/* Clean view — hide toolbar and show only a cog in the nav bar */}
+        <button
+          type="button"
+          onClick={onEnterCleanView}
+          className="flex items-center gap-1.5 rounded-md border border-gray-300
+                     bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
+                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Switch to clean reading view"
+          title="Hide toolbar for distraction-free reading"
+        >
+          {/* Minimize/compress icon */}
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+          </svg>
+          <span>Focus</span>
+        </button>
+
         {/* Undock / dock toggle — desktop only */}
         <button
           type="button"
@@ -230,6 +256,40 @@ export function WorkspaceToolbar({
 
         {/* Font selector */}
         <FontPicker readerFont={readerFont} onFontChange={onFontChange} />
+
+        {/* Annotation dot style — cycles: blue → subtle → hidden */}
+        <button
+          type="button"
+          onClick={() => {
+            const next: AnnotationDotStyle =
+              annotationDots === "blue" ? "subtle" : annotationDots === "subtle" ? "hidden" : "blue";
+            onAnnotationDotsChange(next);
+          }}
+          className="flex items-center gap-1.5 rounded-md border border-gray-300
+                     bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
+                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label={`Note markers: ${annotationDots}. Click to change.`}
+          title={`Note markers: ${annotationDots === "blue" ? "Blue dots" : annotationDots === "subtle" ? "Gray dots" : "Hidden"}`}
+        >
+          {/* Dot icon that reflects the current style */}
+          {annotationDots === "hidden" ? (
+            // Crossed-out dot — eye-off icon
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+            </svg>
+          ) : (
+            // Circle dot in the appropriate color
+            <span
+              className={`inline-block h-2.5 w-2.5 rounded-full ${
+                annotationDots === "subtle" ? "bg-gray-300" : "bg-blue-500"
+              }`}
+              aria-hidden="true"
+            />
+          )}
+          <span>
+            {annotationDots === "blue" ? "Dots" : annotationDots === "subtle" ? "Subtle" : "No dots"}
+          </span>
+        </button>
 
         {/* Word-swap toggles (LORD↔Yahweh, baptize↔immerse, etc.) */}
         <TranslationToggleMenu
