@@ -18,6 +18,7 @@ function makeAnnotation(overrides: Partial<Annotation> = {}): Annotation {
     crossReferences: [],
     createdAt: "2026-02-14T12:00:00Z",
     updatedAt: "2026-02-14T12:00:00Z",
+    deletedAt: null,
     ...overrides,
   };
 }

@@ -52,6 +52,7 @@ export function ExportButton({
           .from("annotations")
           .select("*")
           .eq("user_id", userId)
+          .is("deleted_at", null)
           .order("book")
           .order("chapter")
           .order("verse_start");
@@ -73,6 +74,7 @@ export function ExportButton({
           crossReferences: [],
           createdAt: row.created_at,
           updatedAt: row.updated_at,
+          deletedAt: row.deleted_at,
         }));
 
         if (annotations.length === 0) {

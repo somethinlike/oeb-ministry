@@ -169,14 +169,17 @@ async function processItem(item: SyncQueueItem): Promise<void> {
     }
 
     case "delete": {
-      // Cross-references cascade-delete via FK constraint in the database
+      // Soft-delete: set deleted_at instead of removing the row.
+      // Cross-references are preserved so they survive a restore.
       const { error } = await supabase
         .from("annotations")
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq("id", item.annotationId);
 
       if (error) throw new Error(error.message);
 
+      // Remove from local IndexedDB — the server has the soft-deleted record;
+      // the Recycle Bin page queries Supabase directly.
       await deleteAnnotationLocally(item.annotationId);
       break;
     }

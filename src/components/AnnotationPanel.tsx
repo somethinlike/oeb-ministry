@@ -23,7 +23,7 @@ import { supabase } from "../lib/supabase";
 import {
   createAnnotation,
   updateAnnotation,
-  deleteAnnotation,
+  softDeleteAnnotation,
 } from "../lib/annotations";
 import {
   saveAnnotationLocally,
@@ -174,6 +174,7 @@ export function AnnotationPanel({
       })),
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
+      deletedAt: null,
       syncStatus: isUpdate ? "pending_update" : "pending_create",
     };
 
@@ -211,6 +212,7 @@ export function AnnotationPanel({
       })),
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
+      deletedAt: null,
     };
   }
 
@@ -224,7 +226,7 @@ export function AnnotationPanel({
       // Always try Supabase first — fall back to offline delete if it fails
       let deletedOnline = false;
       try {
-        await deleteAnnotation(supabase, existing.id);
+        await softDeleteAnnotation(supabase, existing.id);
         deletedOnline = true;
       } catch {
         // Supabase call failed — queue for offline deletion
@@ -250,6 +252,7 @@ export function AnnotationPanel({
           })),
           createdAt: existing.createdAt,
           updatedAt: existing.updatedAt,
+          deletedAt: now,
           syncStatus: "pending_delete",
         };
         await saveAnnotationLocally(deleteRecord);
@@ -280,7 +283,7 @@ export function AnnotationPanel({
       <div>
         <h3 className="text-lg font-semibold text-gray-900">
           {justDeleted
-            ? "Note deleted"
+            ? "Moved to Recycle Bin"
             : existing
               ? "Edit your note"
               : "Write a note"}
@@ -367,10 +370,10 @@ export function AnnotationPanel({
           </button>
         )}
 
-        {/* Delete confirmation — Grandmother Principle: confirm before irreversible action */}
+        {/* Delete confirmation — Grandmother Principle: confirm before action */}
         {showDeleteConfirm && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-red-600">Delete this note?</span>
+            <span className="text-sm text-red-600">Move to Recycle Bin?</span>
             <button
               type="button"
               onClick={handleDelete}
@@ -379,7 +382,7 @@ export function AnnotationPanel({
                          hover:bg-red-700 disabled:opacity-50
                          focus:outline-none focus:ring-2 focus:ring-red-500"
             >
-              {deleting ? "Deleting..." : "Yes, delete"}
+              {deleting ? "Moving..." : "Yes, move it"}
             </button>
             <button
               type="button"

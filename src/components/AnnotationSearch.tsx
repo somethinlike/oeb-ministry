@@ -40,6 +40,7 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
         .from("annotations")
         .select("*")
         .eq("user_id", auth.userId!)
+        .is("deleted_at", null)
         .order("updated_at", { ascending: false })
         .limit(20);
 
@@ -61,6 +62,7 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
           crossReferences: [],
           createdAt: row.created_at,
           updatedAt: row.updated_at,
+          deletedAt: row.deleted_at,
         })),
       );
     } catch {

@@ -1,0 +1,35 @@
+---
+/**
+ * Recycle Bin page — shows soft-deleted annotations that can be
+ * restored or permanently deleted.
+ *
+ * Grandmother Principle:
+ * - "Recycle Bin" not "Soft-deleted annotations"
+ * - Restore and Delete Forever buttons with confirmation
+ * - Clear empty state when nothing is in the bin
+ */
+import AppLayout from "../../layouts/AppLayout.astro";
+import { RecycleBin } from "../../components/RecycleBin";
+import type { AuthState } from "../../types/auth";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const authState: AuthState = {
+  isAuthenticated: true,
+  displayName: user.user_metadata?.full_name ?? user.email ?? "User",
+  email: user.email ?? null,
+  avatarUrl: user.user_metadata?.avatar_url ?? null,
+  userId: user.id,
+};
+---
+
+<AppLayout title="Recycle Bin">
+  <div class="mx-auto max-w-2xl">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Recycle Bin</h2>
+    <RecycleBin auth={authState} client:load />
+  </div>
+</AppLayout>

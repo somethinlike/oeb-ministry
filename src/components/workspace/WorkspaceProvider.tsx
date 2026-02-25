@@ -76,6 +76,7 @@ function annotationToOffline(ann: Annotation): OfflineAnnotation {
     })),
     createdAt: ann.createdAt,
     updatedAt: ann.updatedAt,
+    deletedAt: ann.deletedAt,
     syncStatus: "synced",
   };
 }
@@ -104,6 +105,7 @@ function offlineToAnnotation(off: OfflineAnnotation): Annotation {
     })),
     createdAt: off.createdAt,
     updatedAt: off.updatedAt,
+    deletedAt: off.deletedAt ?? null,
   };
 }
 

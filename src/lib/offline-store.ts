@@ -34,6 +34,8 @@ export interface OfflineAnnotation {
   crossReferences: OfflineCrossReference[];
   createdAt: string;
   updatedAt: string;
+  /** When set, this annotation is soft-deleted (in recycle bin) */
+  deletedAt: string | null;
   /** Tracks sync status: "synced" | "pending_create" | "pending_update" | "pending_delete" */
   syncStatus: "synced" | "pending_create" | "pending_update" | "pending_delete";
 }
@@ -50,7 +52,7 @@ export interface SyncQueueItem {
 }
 
 const DB_NAME = "oeb-ministry";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
@@ -69,6 +71,9 @@ function getDb(): Promise<IDBPDatabase> {
         // v2: OfflineAnnotation now includes crossReferences field.
         // No structural change — existing records get crossReferences: []
         // via the ?? [] default in getLocalAnnotationsForChapter().
+        // v3: OfflineAnnotation now includes deletedAt field.
+        // No structural change — existing records get deletedAt: null
+        // via the ?? null default in getLocalAnnotationsForChapter().
       },
     });
   }
@@ -97,10 +102,11 @@ export async function getLocalAnnotationsForChapter(
     book,
     chapter,
   ]);
-  // Normalize: records from DB version 1 lack crossReferences
+  // Normalize: records from older DB versions may lack newer fields
   return raw.map((r: OfflineAnnotation) => ({
     ...r,
     crossReferences: r.crossReferences ?? [],
+    deletedAt: r.deletedAt ?? null,
   }));
 }
 

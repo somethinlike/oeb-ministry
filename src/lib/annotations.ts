@@ -44,6 +44,7 @@ function rowToAnnotation(
     })),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
   };
 }
 
@@ -66,6 +67,7 @@ export async function getAnnotationsForChapter(
     .eq("translation", translation)
     .eq("book", book)
     .eq("chapter", chapter)
+    .is("deleted_at", null)
     .order("verse_start", { ascending: true });
 
   if (error) throw new Error(`Failed to load annotations: ${error.message}`);
@@ -237,9 +239,46 @@ export async function updateAnnotation(
 }
 
 /**
- * Deletes an annotation and its cross-references (cascade).
+ * Soft-deletes an annotation by setting deleted_at.
+ * The annotation moves to the Recycle Bin instead of being permanently removed.
+ * Cross-references are preserved (not cascade-deleted) so they survive a restore.
  */
-export async function deleteAnnotation(
+export async function softDeleteAnnotation(
+  client: DbClient,
+  annotationId: string,
+): Promise<void> {
+  const { error } = await client
+    .from("annotations")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", annotationId);
+
+  if (error) {
+    throw new Error(`Failed to delete annotation: ${error.message}`);
+  }
+}
+
+/**
+ * Restores a soft-deleted annotation from the Recycle Bin.
+ */
+export async function restoreAnnotation(
+  client: DbClient,
+  annotationId: string,
+): Promise<void> {
+  const { error } = await client
+    .from("annotations")
+    .update({ deleted_at: null })
+    .eq("id", annotationId);
+
+  if (error) {
+    throw new Error(`Failed to restore annotation: ${error.message}`);
+  }
+}
+
+/**
+ * Permanently deletes an annotation and its cross-references (cascade).
+ * Used from the Recycle Bin — this is irreversible.
+ */
+export async function permanentlyDeleteAnnotation(
   client: DbClient,
   annotationId: string,
 ): Promise<void> {
@@ -249,8 +288,88 @@ export async function deleteAnnotation(
     .eq("id", annotationId);
 
   if (error) {
-    throw new Error(`Failed to delete annotation: ${error.message}`);
+    throw new Error(`Failed to permanently delete annotation: ${error.message}`);
   }
+}
+
+/**
+ * Fetches soft-deleted annotations for the Recycle Bin.
+ * Ordered by deletion date (most recently deleted first).
+ */
+export async function getDeletedAnnotations(
+  client: DbClient,
+  userId: string,
+): Promise<Annotation[]> {
+  const { data, error } = await client
+    .from("annotations")
+    .select("*")
+    .eq("user_id", userId)
+    .not("deleted_at", "is", null)
+    .order("deleted_at", { ascending: false })
+    .limit(50);
+
+  if (error) throw new Error(`Failed to load deleted annotations: ${error.message}`);
+  return (data ?? []).map((row) => rowToAnnotation(row));
+}
+
+/**
+ * Fetches published (is_public = true) annotations for the user.
+ * Only returns active annotations (not soft-deleted).
+ */
+export async function getPublishedAnnotations(
+  client: DbClient,
+  userId: string,
+): Promise<Annotation[]> {
+  const { data, error } = await client
+    .from("annotations")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_public", true)
+    .is("deleted_at", null)
+    .order("updated_at", { ascending: false })
+    .limit(50);
+
+  if (error) throw new Error(`Failed to load published annotations: ${error.message}`);
+  return (data ?? []).map((row) => rowToAnnotation(row));
+}
+
+/**
+ * Checks if the user has any soft-deleted annotations (for NavBar menu).
+ * Uses a COUNT query with head: true — no row data transferred.
+ */
+export async function hasDeletedAnnotations(
+  client: DbClient,
+  userId: string,
+): Promise<boolean> {
+  const { count, error } = await client
+    .from("annotations")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .not("deleted_at", "is", null)
+    .limit(1);
+
+  if (error) return false;
+  return (count ?? 0) > 0;
+}
+
+/**
+ * Checks if the user has any published annotations (for NavBar menu).
+ * Uses a COUNT query with head: true — no row data transferred.
+ */
+export async function hasPublishedAnnotations(
+  client: DbClient,
+  userId: string,
+): Promise<boolean> {
+  const { count, error } = await client
+    .from("annotations")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("is_public", true)
+    .is("deleted_at", null)
+    .limit(1);
+
+  if (error) return false;
+  return (count ?? 0) > 0;
 }
 
 /**
@@ -276,6 +395,7 @@ export async function searchAnnotations(
     .from("annotations")
     .select("*")
     .eq("user_id", userId)
+    .is("deleted_at", null)
     .textSearch("search_vector", tsQuery)
     .order("updated_at", { ascending: false })
     .limit(50);

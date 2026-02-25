@@ -48,6 +48,8 @@ export interface Annotation {
   crossReferences: CrossReference[];
   createdAt: string;
   updatedAt: string;
+  /** When set, this annotation is in the recycle bin (soft-deleted) */
+  deletedAt: string | null;
 }
 
 /**

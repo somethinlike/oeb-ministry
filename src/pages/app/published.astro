@@ -1,0 +1,33 @@
+---
+/**
+ * Published Notes page — shows annotations the user has made public (CC0).
+ *
+ * Grandmother Principle:
+ * - Simple list of public notes
+ * - Clear empty state when nothing is published yet
+ */
+import AppLayout from "../../layouts/AppLayout.astro";
+import { PublishedNotes } from "../../components/PublishedNotes";
+import type { AuthState } from "../../types/auth";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const authState: AuthState = {
+  isAuthenticated: true,
+  displayName: user.user_metadata?.full_name ?? user.email ?? "User",
+  email: user.email ?? null,
+  avatarUrl: user.user_metadata?.avatar_url ?? null,
+  userId: user.id,
+};
+---
+
+<AppLayout title="My Published Notes">
+  <div class="mx-auto max-w-2xl">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">My Published Notes</h2>
+    <PublishedNotes auth={authState} client:load />
+  </div>
+</AppLayout>

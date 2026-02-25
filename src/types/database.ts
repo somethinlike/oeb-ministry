@@ -23,6 +23,7 @@ export interface Database {
           is_public: boolean;
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
           search_vector: string | null;
         };
         Insert: {
@@ -37,6 +38,7 @@ export interface Database {
           is_public?: boolean;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
           id?: string;
@@ -50,6 +52,7 @@ export interface Database {
           is_public?: boolean;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [
           {

@@ -1,13 +1,21 @@
 /**
  * AppNav — top navigation bar for authenticated pages.
  *
- * Shows: Bible reader link, My Notes link, user avatar/name, sign out.
+ * Shows: Bible reader link, My Notes link (with optional dropdown), user avatar/name, sign out.
  * Mobile responsive: collapses to hamburger menu on small screens.
  * Follows Grandmother Principle: clear labels, large tap targets.
+ *
+ * "My Notes" transforms into an expandable dropdown when the user has
+ * deleted notes (Recycle Bin) or published notes. When neither exists,
+ * it stays as a simple link.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
+import {
+  hasDeletedAnnotations,
+  hasPublishedAnnotations,
+} from "../lib/annotations";
 import type { AuthState } from "../types/auth";
 
 interface AppNavProps {
@@ -17,6 +25,9 @@ interface AppNavProps {
 export function AppNav({ auth: initialAuth }: AppNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [auth, setAuth] = useState<AuthState>(initialAuth);
+  const [notesMenuOpen, setNotesMenuOpen] = useState(false);
+  const [hasDeleted, setHasDeleted] = useState(false);
+  const [hasPublished, setHasPublished] = useState(false);
 
   useEffect(() => {
     // If server already provided full auth data, no need to re-fetch
@@ -60,6 +71,17 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Check if the user has deleted or published notes (for the dropdown menu).
+  // Two lightweight COUNT queries — sub-millisecond, no row data transferred.
+  useEffect(() => {
+    if (!auth.isAuthenticated || !auth.userId) return;
+
+    hasDeletedAnnotations(supabase, auth.userId).then(setHasDeleted).catch(() => {});
+    hasPublishedAnnotations(supabase, auth.userId).then(setHasPublished).catch(() => {});
+  }, [auth.isAuthenticated, auth.userId]);
+
+  const needsNotesMenu = hasDeleted || hasPublished;
+
   return (
     <nav
       className="border-b border-gray-200 bg-white"
@@ -80,7 +102,17 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             {/* Desktop nav links — hidden on mobile */}
             <div className="hidden sm:flex sm:gap-4">
               <NavLink href="/app/read" label="Read Bible" />
-              <NavLink href="/app/search" label="My Notes" />
+              {needsNotesMenu ? (
+                <NotesDropdown
+                  open={notesMenuOpen}
+                  onToggle={() => setNotesMenuOpen((prev) => !prev)}
+                  onClose={() => setNotesMenuOpen(false)}
+                  hasDeleted={hasDeleted}
+                  hasPublished={hasPublished}
+                />
+              ) : (
+                <NavLink href="/app/search" label="My Notes" />
+              )}
               <NavLink href="/translations" label="Translations" />
               <NavLink href="/open-source-theology" label="Our Ethics" />
             </div>
@@ -155,6 +187,12 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
           <div className="space-y-1 px-4 py-3">
             <MobileNavLink href="/app/read" label="Read Bible" />
             <MobileNavLink href="/app/search" label="My Notes" />
+            {hasDeleted && (
+              <MobileNavLink href="/app/recycle-bin" label="Recycle Bin" indent />
+            )}
+            {hasPublished && (
+              <MobileNavLink href="/app/published" label="My Published Notes" indent />
+            )}
             <MobileNavLink href="/translations" label="Translations" />
             <MobileNavLink href="/open-source-theology" label="Our Ethics" />
             <hr className="my-2 border-gray-200" />
@@ -178,6 +216,97 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
   );
 }
 
+/** Desktop "My Notes" dropdown — shows sub-links for Recycle Bin and Published Notes. */
+function NotesDropdown({
+  open,
+  onToggle,
+  onClose,
+  hasDeleted,
+  hasPublished,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  hasDeleted: boolean;
+  hasPublished: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return;
+
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        onClose();
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open, onClose]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open, onClose]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
+        My Notes
+        <svg
+          className={`h-4 w-4 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          className="absolute left-0 top-full mt-1 w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-lg z-50"
+          role="menu"
+        >
+          <DropdownLink href="/app/search" label="My Notes" />
+          {hasDeleted && <DropdownLink href="/app/recycle-bin" label="Recycle Bin" />}
+          {hasPublished && <DropdownLink href="/app/published" label="My Published Notes" />}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** A single link inside the desktop dropdown menu. */
+function DropdownLink({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      role="menuitem"
+      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:bg-gray-100"
+    >
+      {label}
+    </a>
+  );
+}
+
 /** Desktop navigation link with consistent styling. */
 function NavLink({ href, label }: { href: string; label: string }) {
   return (
@@ -191,11 +320,13 @@ function NavLink({ href, label }: { href: string; label: string }) {
 }
 
 /** Mobile navigation link — full width, larger tap target. */
-function MobileNavLink({ href, label }: { href: string; label: string }) {
+function MobileNavLink({ href, label, indent }: { href: string; label: string; indent?: boolean }) {
   return (
     <a
       href={href}
-      className="block rounded-lg px-3 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className={`block rounded-lg py-3 text-base font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        indent ? "pl-8 pr-3 text-sm text-gray-500" : "px-3"
+      }`}
     >
       {label}
     </a>
