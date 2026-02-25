@@ -177,12 +177,10 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
               />
             </div>
 
-            {/* Translation picker — constrain width so label isn't cramped */}
+            {/* Translation picker — compact mode shows abbreviation only */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700 shrink-0">Translation</span>
-              <div className="min-w-0">
-                <TranslationPicker />
-              </div>
+              <span className="text-sm text-gray-700">Translation</span>
+              <TranslationPicker compact />
             </div>
 
             {/* Divider + show toolbar button */}

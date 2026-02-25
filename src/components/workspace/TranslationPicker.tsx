@@ -22,7 +22,12 @@ import { SUPPORTED_TRANSLATIONS } from "../../lib/constants";
 import { TranslationInfoIcon } from "./TranslationInfoIcon";
 import { TranslationFirstOpenPopup } from "./TranslationFirstOpenPopup";
 
-export function TranslationPicker() {
+interface TranslationPickerProps {
+  /** When true, always show abbreviation only (used in compact popover contexts) */
+  compact?: boolean;
+}
+
+export function TranslationPicker({ compact = false }: TranslationPickerProps) {
   const { translation, switchTranslation } = useWorkspace();
   const [open, setOpen] = useState(false);
   // Track whether the user has interacted at least once (for first-open popup)
@@ -104,10 +109,12 @@ export function TranslationPicker() {
           <span className="font-semibold">
             {currentTranslation?.abbreviation ?? translation}
           </span>
-          {/* Full name hidden on small screens */}
-          <span className="hidden md:inline text-gray-500">
-            — {currentTranslation?.name ?? translation}
-          </span>
+          {/* Full name hidden on small screens or in compact mode */}
+          {!compact && (
+            <span className="hidden md:inline text-gray-500">
+              — {currentTranslation?.name ?? translation}
+            </span>
+          )}
           {/* Chevron indicator */}
           <svg
             className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150 ${
