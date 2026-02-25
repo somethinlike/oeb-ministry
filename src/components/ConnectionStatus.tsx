@@ -16,19 +16,20 @@ import { useState, useEffect, useCallback } from "react";
 import { processSync } from "../lib/sync-engine";
 
 /**
- * Checks real connectivity by making a lightweight HEAD request.
+ * Checks real connectivity by making a cross-origin request.
  * navigator.onLine lies on Android, WSL Chrome, and some service-worker setups.
- * A real fetch that resolves means the network actually works.
+ *
+ * Must be cross-origin because the service worker caches same-origin requests
+ * and would return cached responses even when truly offline.
+ * Cross-origin requests bypass our service worker entirely.
  */
 async function checkConnectivity(): Promise<boolean> {
   try {
-    // Use a tiny same-origin request with cache busting.
-    // The service worker won't cache HEAD requests to non-navigation URLs,
-    // so this tests real network reachability.
-    await fetch(`/favicon.svg?_=${Date.now()}`, {
-      method: "HEAD",
-      cache: "no-store",
-    });
+    // Cloudflare's DNS — fast, globally available, tiny response.
+    // mode: "no-cors" gives an opaque response but the promise resolving
+    // means the network actually works. Our service worker skips cross-origin
+    // requests, so this tests real network reachability.
+    await fetch("https://1.1.1.1", { method: "HEAD", mode: "no-cors" });
     return true;
   } catch {
     return false;
