@@ -998,4 +998,27 @@ Ryan clarified the intent: the constraint is on the **export format**, not the d
 
 **Status:** Design discussion only. Not yet scoped to a version or scheduled for implementation.
 
+### Future: Supplementary Theological Texts (Catechisms, Confessions)
+
+**Context:** Ryan asked about adding catechisms (Lutheran, Catholic, Orthodox) as supplementary reference material alongside Bible text.
+
+**Copyright research:**
+
+| Text | Date | Public Domain? | Notes |
+| ------ | ------ | --------------- | ------- |
+| Roman Catechism (Council of Trent) | 1566 | Yes | Full PDF freely available |
+| Luther's Small Catechism (pre-1923 translations) | 1529/1912 | Yes | 1986 LCMS translation is copyrighted by Concordia Publishing House |
+| Heidelberg Catechism | 1563 | Yes | Reformed/Presbyterian |
+| St. Philaret's Longer Catechism | 1823/1845 | Yes | Orthodox. English translation in public domain |
+| Catechism of the Catholic Church (CCC, 1992) | 1992 | **No** | USCCB controls rights; >5,000 words requires permission |
+| Luther's Small Catechism (1986 LCMS) | 1986 | **No** | Concordia Publishing House copyright |
+
+**Key insight:** All historical catechisms are public domain. Modern ones are locked. AI-generated modernizations of public domain originals would be new creative works we'd own and CC0 — producing the first freely-licensed modern-English catechisms for each tradition.
+
+**Pipeline:** AI produces modern English draft → theological review by tradition-knowledgeable reviewers → publish as CC0.
+
+**Architecture:** Same static JSON pattern as Bible text, same caching, same offline capability. Catechisms are much smaller than Bibles (~100 pages max).
+
+**Status:** Distant future. Ryan is focused on building the core platform and personally studying scripture before taking on theological reference material. This requires significant manual review effort that isn't justified until the site is mature and Ryan has the bandwidth. Logged for when the time comes.
+
 ---
