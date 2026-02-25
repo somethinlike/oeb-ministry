@@ -116,16 +116,17 @@ export function AnnotationPanel({
 
       let savedAnnotation: Annotation;
 
-      if (navigator.onLine) {
-        // Online — save directly to Supabase
-        // After a delete, treat as a new annotation (the old one is gone)
+      // Always try Supabase first — navigator.onLine is unreliable on mobile
+      // and service-worker pages. If the network call fails, fall back to
+      // offline save (IndexedDB + sync queue).
+      try {
         if (existing && !justDeleted) {
           savedAnnotation = await updateAnnotation(supabase, existing.id, formData);
         } else {
           savedAnnotation = await createAnnotation(supabase, userId, formData);
         }
-      } else {
-        // Offline — save to IndexedDB and queue for sync
+      } catch {
+        // Supabase call failed (network down, timeout, etc.) — save offline
         savedAnnotation = await saveOffline(formData);
       }
 
@@ -138,24 +139,6 @@ export function AnnotationPanel({
         onComplete?.();
       }
     } catch (err) {
-      // If the online save failed (e.g., network dropped mid-request),
-      // try the offline fallback before showing an error
-      if (!navigator.onLine) {
-        try {
-          const formData: AnnotationFormData = {
-            translation,
-            anchor: { book: book as BookId, chapter, verseStart, verseEnd },
-            contentMd: content,
-            crossReferences: crossRefs,
-          };
-          const savedAnnotation = await saveOffline(formData);
-          onSaved?.(savedAnnotation);
-          onComplete?.();
-          return;
-        } catch {
-          // Fall through to error display
-        }
-      }
       setError("Couldn't save your note. Please try again.");
       console.error("Save failed:", err);
     } finally {
@@ -238,11 +221,16 @@ export function AnnotationPanel({
     setError(null);
 
     try {
-      if (navigator.onLine) {
-        // Online — delete from Supabase directly
+      // Always try Supabase first — fall back to offline delete if it fails
+      let deletedOnline = false;
+      try {
         await deleteAnnotation(supabase, existing.id);
-      } else {
-        // Offline — mark for deletion and queue the sync
+        deletedOnline = true;
+      } catch {
+        // Supabase call failed — queue for offline deletion
+      }
+
+      if (!deletedOnline) {
         const now = new Date().toISOString();
         const deleteRecord: OfflineAnnotation = {
           id: existing.id,

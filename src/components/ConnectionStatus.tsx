@@ -6,10 +6,34 @@
  * - "You're offline — your changes will be saved when you reconnect"
  * - "Back online — saving your changes..." with a brief success message
  * - No technical jargon about IndexedDB or sync queues
+ *
+ * Note: navigator.onLine is unreliable on mobile devices and service-worker
+ * pages — it can return false even when the device has internet. We verify
+ * with a real network request before showing the offline banner.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { processSync } from "../lib/sync-engine";
+
+/**
+ * Checks real connectivity by making a lightweight HEAD request.
+ * navigator.onLine lies on Android, WSL Chrome, and some service-worker setups.
+ * A real fetch that resolves means the network actually works.
+ */
+async function checkConnectivity(): Promise<boolean> {
+  try {
+    // Use a tiny same-origin request with cache busting.
+    // The service worker won't cache HEAD requests to non-navigation URLs,
+    // so this tests real network reachability.
+    await fetch(`/favicon.svg?_=${Date.now()}`, {
+      method: "HEAD",
+      cache: "no-store",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function ConnectionStatus() {
   const [isOnline, setIsOnline] = useState(
@@ -18,28 +42,7 @@ export function ConnectionStatus() {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    function handleOnline() {
-      setIsOnline(true);
-      // Trigger sync when we come back online
-      triggerSync();
-    }
-
-    function handleOffline() {
-      setIsOnline(false);
-      setSyncMessage(null);
-    }
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
-
-  async function triggerSync() {
+  const triggerSync = useCallback(async () => {
     setSyncing(true);
     setSyncMessage("Saving your changes...");
 
@@ -62,7 +65,39 @@ export function ConnectionStatus() {
     } finally {
       setSyncing(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    function handleOnline() {
+      setIsOnline(true);
+      triggerSync();
+    }
+
+    function handleOffline() {
+      setIsOnline(false);
+      setSyncMessage(null);
+    }
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    // navigator.onLine is unreliable on mobile and service-worker pages.
+    // If it says we're offline, verify with a real network request.
+    // If the fetch succeeds, we're actually online and navigator lied.
+    if (!navigator.onLine) {
+      checkConnectivity().then((reachable) => {
+        if (reachable) {
+          setIsOnline(true);
+          triggerSync();
+        }
+      });
+    }
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [triggerSync]);
 
   // Don't render anything when online and there's no sync message
   if (isOnline && !syncMessage) return null;

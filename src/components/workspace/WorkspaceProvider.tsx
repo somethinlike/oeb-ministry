@@ -197,20 +197,20 @@ export function WorkspaceProvider({
     async function loadAnnotations() {
       let serverAnnotations: Annotation[] | null = null;
 
-      // Step 1: Try Supabase if online
-      if (navigator.onLine) {
-        try {
-          serverAnnotations = await getAnnotationsForChapter(
-            supabase,
-            userId!,
-            translation,
-            book,
-            chapter,
-          );
-        } catch (err) {
-          console.error("Failed to load annotations from Supabase:", err);
-          // Fall through to IndexedDB
-        }
+      // Step 1: Always try Supabase first — navigator.onLine is unreliable
+      // on mobile and service-worker pages. If the fetch fails, we fall
+      // through to IndexedDB below.
+      try {
+        serverAnnotations = await getAnnotationsForChapter(
+          supabase,
+          userId!,
+          translation,
+          book,
+          chapter,
+        );
+      } catch (err) {
+        console.error("Failed to load annotations from Supabase:", err);
+        // Fall through to IndexedDB
       }
 
       if (cancelled) return;
