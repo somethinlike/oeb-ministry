@@ -183,6 +183,12 @@ export function AnnotationPanel({
       verseEnd: formData.anchor.verseEnd,
       contentMd: formData.contentMd,
       isPublic: false,
+      crossReferences: formData.crossReferences.map((ref) => ({
+        book: ref.book,
+        chapter: ref.chapter,
+        verseStart: ref.verseStart,
+        verseEnd: ref.verseEnd,
+      })),
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       syncStatus: isUpdate ? "pending_update" : "pending_create",
@@ -211,7 +217,15 @@ export function AnnotationPanel({
       anchor: formData.anchor,
       contentMd: formData.contentMd,
       isPublic: false,
-      crossReferences: [],
+      crossReferences: formData.crossReferences.map((ref, index) => ({
+        // Temporary IDs for UI rendering — real IDs created on sync
+        id: `offline-${id}-xref-${index}`,
+        annotationId: id,
+        book: ref.book as BookId,
+        chapter: ref.chapter,
+        verseStart: ref.verseStart,
+        verseEnd: ref.verseEnd,
+      })),
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     };
@@ -240,6 +254,12 @@ export function AnnotationPanel({
           verseEnd: existing.anchor.verseEnd,
           contentMd: existing.contentMd,
           isPublic: existing.isPublic,
+          crossReferences: existing.crossReferences.map((ref) => ({
+            book: ref.book,
+            chapter: ref.chapter,
+            verseStart: ref.verseStart,
+            verseEnd: ref.verseEnd,
+          })),
           createdAt: existing.createdAt,
           updatedAt: existing.updatedAt,
           syncStatus: "pending_delete",

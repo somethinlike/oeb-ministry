@@ -58,6 +58,14 @@ export async function processSync(): Promise<SyncResult> {
     }
   }
 
+  // Notify the workspace to refetch annotations after sync completes.
+  // Follows the same CustomEvent pattern as register-sw.ts ("sw-update-available").
+  if (result.processed > 0 && typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("oeb-sync-complete", { detail: result }),
+    );
+  }
+
   return result;
 }
 
@@ -81,8 +89,32 @@ async function processItem(item: SyncQueueItem): Promise<void> {
 
       if (error) throw new Error(error.message);
 
+      // Sync cross-references if any were saved offline
+      const crossRefs = item.data.crossReferences ?? [];
+      if (crossRefs.length > 0) {
+        const { error: refError } = await supabase
+          .from("cross_references")
+          .insert(
+            crossRefs.map((ref) => ({
+              annotation_id: item.data!.id,
+              book: ref.book,
+              chapter: ref.chapter,
+              verse_start: ref.verseStart,
+              verse_end: ref.verseEnd,
+            })),
+          );
+        if (refError) {
+          // Cross-ref failure is non-fatal — the annotation itself is saved
+          console.error("Failed to sync cross-references:", refError.message);
+        }
+      }
+
       // Update local copy to "synced" status
-      await saveAnnotationLocally({ ...item.data, syncStatus: "synced" });
+      await saveAnnotationLocally({
+        ...item.data,
+        crossReferences: crossRefs,
+        syncStatus: "synced",
+      });
       break;
     }
 
@@ -103,11 +135,41 @@ async function processItem(item: SyncQueueItem): Promise<void> {
 
       if (error) throw new Error(error.message);
 
-      await saveAnnotationLocally({ ...item.data, syncStatus: "synced" });
+      // Replace cross-references: delete old ones, insert new ones
+      // (same pattern as updateAnnotation in annotations.ts)
+      const crossRefs = item.data.crossReferences ?? [];
+      await supabase
+        .from("cross_references")
+        .delete()
+        .eq("annotation_id", item.annotationId);
+
+      if (crossRefs.length > 0) {
+        const { error: refError } = await supabase
+          .from("cross_references")
+          .insert(
+            crossRefs.map((ref) => ({
+              annotation_id: item.annotationId,
+              book: ref.book,
+              chapter: ref.chapter,
+              verse_start: ref.verseStart,
+              verse_end: ref.verseEnd,
+            })),
+          );
+        if (refError) {
+          console.error("Failed to sync cross-references:", refError.message);
+        }
+      }
+
+      await saveAnnotationLocally({
+        ...item.data,
+        crossReferences: crossRefs,
+        syncStatus: "synced",
+      });
       break;
     }
 
     case "delete": {
+      // Cross-references cascade-delete via FK constraint in the database
       const { error } = await supabase
         .from("annotations")
         .delete()

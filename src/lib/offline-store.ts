@@ -10,6 +10,14 @@
 
 import { openDB, type IDBPDatabase } from "idb";
 
+/** A cross-reference stored alongside an annotation in IndexedDB. */
+export interface OfflineCrossReference {
+  book: string;
+  chapter: number;
+  verseStart: number;
+  verseEnd: number;
+}
+
 /** The shape of an annotation in IndexedDB (mirrors the Supabase row). */
 export interface OfflineAnnotation {
   /** Local UUID (matches Supabase ID if synced, otherwise client-generated) */
@@ -22,6 +30,8 @@ export interface OfflineAnnotation {
   verseEnd: number;
   contentMd: string;
   isPublic: boolean;
+  /** Cross-references stored with the annotation for offline support */
+  crossReferences: OfflineCrossReference[];
   createdAt: string;
   updatedAt: string;
   /** Tracks sync status: "synced" | "pending_create" | "pending_update" | "pending_delete" */
@@ -40,7 +50,7 @@ export interface SyncQueueItem {
 }
 
 const DB_NAME = "oeb-ministry";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
@@ -48,18 +58,17 @@ let dbPromise: Promise<IDBPDatabase> | null = null;
 function getDb(): Promise<IDBPDatabase> {
   if (!dbPromise) {
     dbPromise = openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        // Annotations store — local cache of the user's annotations
-        if (!db.objectStoreNames.contains("annotations")) {
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          // Fresh install — create both stores
           const store = db.createObjectStore("annotations", { keyPath: "id" });
           store.createIndex("by-chapter", ["translation", "book", "chapter"]);
           store.createIndex("by-sync-status", "syncStatus");
-        }
-
-        // Sync queue — operations waiting to be pushed to Supabase
-        if (!db.objectStoreNames.contains("sync-queue")) {
           db.createObjectStore("sync-queue", { keyPath: "id" });
         }
+        // v2: OfflineAnnotation now includes crossReferences field.
+        // No structural change — existing records get crossReferences: []
+        // via the ?? [] default in getLocalAnnotationsForChapter().
       },
     });
   }
@@ -83,11 +92,16 @@ export async function getLocalAnnotationsForChapter(
   chapter: number,
 ): Promise<OfflineAnnotation[]> {
   const db = await getDb();
-  return db.getAllFromIndex("annotations", "by-chapter", [
+  const raw = await db.getAllFromIndex("annotations", "by-chapter", [
     translation,
     book,
     chapter,
   ]);
+  // Normalize: records from DB version 1 lack crossReferences
+  return raw.map((r: OfflineAnnotation) => ({
+    ...r,
+    crossReferences: r.crossReferences ?? [],
+  }));
 }
 
 /** Gets all annotations with pending sync operations. */

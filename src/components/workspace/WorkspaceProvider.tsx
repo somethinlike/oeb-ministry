@@ -8,7 +8,11 @@
  *
  * URL is the source of truth for navigation (translation/book/chapter).
  * Selection and sidebar state are ephemeral (lost on page reload).
- * Annotations are fetched from Supabase whenever the chapter changes.
+ *
+ * Annotation loading strategy:
+ * - Online: fetch from Supabase, cache in IndexedDB, merge with pending local edits
+ * - Offline: load from IndexedDB cache (populated by previous online fetches + offline saves)
+ * - After sync: refetch from Supabase when "oeb-sync-complete" event fires
  */
 
 import {
@@ -27,7 +31,12 @@ import type {
 } from "../../types/workspace";
 import { supabase } from "../../lib/supabase";
 import { getAnnotationsForChapter } from "../../lib/annotations";
-import { BOOK_BY_ID, SUPPORTED_TRANSLATIONS } from "../../lib/constants";
+import {
+  getLocalAnnotationsForChapter,
+  saveAnnotationLocally,
+  type OfflineAnnotation,
+} from "../../lib/offline-store";
+import { BOOK_BY_ID } from "../../lib/constants";
 import type { BookId } from "../../types/bible";
 
 /** The context itself — components read from this */
@@ -43,6 +52,106 @@ export function useWorkspace(): WorkspaceContextValue {
     throw new Error("useWorkspace must be used within a WorkspaceProvider");
   }
   return ctx;
+}
+
+// ── Conversion helpers between Supabase Annotation and IndexedDB OfflineAnnotation ──
+
+/** Converts a Supabase Annotation → OfflineAnnotation for IndexedDB caching. */
+function annotationToOffline(ann: Annotation): OfflineAnnotation {
+  return {
+    id: ann.id,
+    userId: ann.userId,
+    translation: ann.translation,
+    book: ann.anchor.book,
+    chapter: ann.anchor.chapter,
+    verseStart: ann.anchor.verseStart,
+    verseEnd: ann.anchor.verseEnd,
+    contentMd: ann.contentMd,
+    isPublic: ann.isPublic,
+    crossReferences: ann.crossReferences.map((ref) => ({
+      book: ref.book,
+      chapter: ref.chapter,
+      verseStart: ref.verseStart,
+      verseEnd: ref.verseEnd,
+    })),
+    createdAt: ann.createdAt,
+    updatedAt: ann.updatedAt,
+    syncStatus: "synced",
+  };
+}
+
+/** Converts an OfflineAnnotation → Annotation for the UI. */
+function offlineToAnnotation(off: OfflineAnnotation): Annotation {
+  return {
+    id: off.id,
+    userId: off.userId,
+    translation: off.translation,
+    anchor: {
+      book: off.book as BookId,
+      chapter: off.chapter,
+      verseStart: off.verseStart,
+      verseEnd: off.verseEnd,
+    },
+    contentMd: off.contentMd,
+    isPublic: off.isPublic,
+    crossReferences: (off.crossReferences ?? []).map((ref, i) => ({
+      id: `local-${off.id}-xref-${i}`,
+      annotationId: off.id,
+      book: ref.book as BookId,
+      chapter: ref.chapter,
+      verseStart: ref.verseStart,
+      verseEnd: ref.verseEnd,
+    })),
+    createdAt: off.createdAt,
+    updatedAt: off.updatedAt,
+  };
+}
+
+/**
+ * Merges server annotations with pending local changes.
+ * Server data is the base; local pending ops overlay on top.
+ *
+ * - synced      → already in server results, skip
+ * - pending_create → not on server yet, add
+ * - pending_update → server has stale data, replace with local
+ * - pending_delete → user deleted locally, remove
+ */
+function mergeAnnotations(
+  server: Annotation[],
+  local: OfflineAnnotation[],
+): Annotation[] {
+  const result = new Map<string, Annotation>();
+
+  // Start with server annotations
+  for (const ann of server) {
+    result.set(ann.id, ann);
+  }
+
+  // Overlay local pending changes
+  for (const localAnn of local) {
+    switch (localAnn.syncStatus) {
+      case "synced":
+        // Already represented by server data
+        break;
+      case "pending_create":
+        // Not on server yet — add to results
+        result.set(localAnn.id, offlineToAnnotation(localAnn));
+        break;
+      case "pending_update":
+        // On server with stale data — replace with local version
+        result.set(localAnn.id, offlineToAnnotation(localAnn));
+        break;
+      case "pending_delete":
+        // User deleted locally — remove from results
+        result.delete(localAnn.id);
+        break;
+    }
+  }
+
+  // Sort by verse start (matches existing behavior)
+  return Array.from(result.values()).sort(
+    (a, b) => a.anchor.verseStart - b.anchor.verseStart,
+  );
 }
 
 interface WorkspaceProviderProps {
@@ -75,7 +184,7 @@ export function WorkspaceProvider({
     null,
   );
 
-  // ── Fetch annotations whenever the chapter changes ──
+  // ── Load annotations: Supabase → IndexedDB cache → merge with pending edits ──
   useEffect(() => {
     if (!userId) {
       setAnnotations([]);
@@ -85,25 +194,131 @@ export function WorkspaceProvider({
     let cancelled = false;
     setAnnotationsLoading(true);
 
-    getAnnotationsForChapter(supabase, userId, translation, book, chapter)
-      .then((result) => {
+    async function loadAnnotations() {
+      let serverAnnotations: Annotation[] | null = null;
+
+      // Step 1: Try Supabase if online
+      if (navigator.onLine) {
+        try {
+          serverAnnotations = await getAnnotationsForChapter(
+            supabase,
+            userId!,
+            translation,
+            book,
+            chapter,
+          );
+        } catch (err) {
+          console.error("Failed to load annotations from Supabase:", err);
+          // Fall through to IndexedDB
+        }
+      }
+
+      if (cancelled) return;
+
+      // Step 2: Got server data → cache it and merge with pending local edits
+      if (serverAnnotations !== null) {
+        // Cache each server annotation in IndexedDB (non-blocking, fire-and-forget)
+        for (const ann of serverAnnotations) {
+          saveAnnotationLocally(annotationToOffline(ann)).catch(() => {
+            // Caching failure is non-fatal
+          });
+        }
+
+        // Check for any pending local edits that haven't synced yet
+        try {
+          const localAnnotations = await getLocalAnnotationsForChapter(
+            translation,
+            book,
+            chapter,
+          );
+          const hasPending = localAnnotations.some(
+            (a) => a.syncStatus !== "synced",
+          );
+
+          if (!cancelled) {
+            // Only run the merge if there are pending local edits;
+            // otherwise just use server data directly (common case)
+            setAnnotations(
+              hasPending
+                ? mergeAnnotations(serverAnnotations, localAnnotations)
+                : serverAnnotations,
+            );
+            setAnnotationsLoading(false);
+          }
+        } catch {
+          // IndexedDB query failed — just use server data
+          if (!cancelled) {
+            setAnnotations(serverAnnotations);
+            setAnnotationsLoading(false);
+          }
+        }
+        return;
+      }
+
+      // Step 3: Fully offline — load from IndexedDB only
+      try {
+        const localAnnotations = await getLocalAnnotationsForChapter(
+          translation,
+          book,
+          chapter,
+        );
+        // Filter out pending_delete, convert the rest to Annotation type
+        const visible = localAnnotations
+          .filter((a) => a.syncStatus !== "pending_delete")
+          .map(offlineToAnnotation);
+
         if (!cancelled) {
-          setAnnotations(result);
+          setAnnotations(visible);
           setAnnotationsLoading(false);
         }
-      })
-      .catch((err) => {
-        console.error("Failed to load annotations:", err);
+      } catch (err) {
+        console.error("Failed to load annotations from IndexedDB:", err);
         if (!cancelled) {
           setAnnotations([]);
           setAnnotationsLoading(false);
         }
-      });
+      }
+    }
+
+    loadAnnotations();
 
     return () => {
       cancelled = true;
     };
   }, [userId, translation, book, chapter]);
+
+  // ── Refetch annotations after sync completes ──
+  // When ConnectionStatus runs processSync() and the sync engine dispatches
+  // "oeb-sync-complete", we refetch from Supabase to get the authoritative
+  // server state (with real IDs, timestamps, etc.).
+  const refetchAnnotations = useCallback(() => {
+    if (!userId) return;
+    setAnnotationsLoading(true);
+    getAnnotationsForChapter(supabase, userId, translation, book, chapter)
+      .then((result) => {
+        setAnnotations(result);
+        // Re-cache the fresh server data
+        for (const ann of result) {
+          saveAnnotationLocally(annotationToOffline(ann)).catch(() => {});
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to refetch annotations after sync:", err);
+      })
+      .finally(() => {
+        setAnnotationsLoading(false);
+      });
+  }, [userId, translation, book, chapter]);
+
+  useEffect(() => {
+    function handleSyncComplete() {
+      refetchAnnotations();
+    }
+    window.addEventListener("oeb-sync-complete", handleSyncComplete);
+    return () => {
+      window.removeEventListener("oeb-sync-complete", handleSyncComplete);
+    };
+  }, [refetchAnnotations]);
 
   // ── Navigation: update URL via pushState (no full page reload) ──
   const navigateChapter = useCallback(
