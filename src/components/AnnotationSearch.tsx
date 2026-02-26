@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
-import { searchAnnotations } from "../lib/annotations";
+import { searchAnnotations, batchSoftDeleteAnnotations } from "../lib/annotations";
 import type { Annotation } from "../types/annotation";
 import type { AuthState } from "../types/auth";
 import { BOOK_BY_ID } from "../lib/constants";
@@ -27,6 +27,8 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
   const [results, setResults] = useState<Annotation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkActionInProgress, setBulkActionInProgress] = useState(false);
 
   // Load recent annotations on mount
   useEffect(() => {
@@ -35,6 +37,7 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
 
   async function loadRecent() {
     setLoading(true);
+    setSelectedIds(new Set());
     try {
       const { data, error: dbError } = await supabase
         .from("annotations")
@@ -80,6 +83,7 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
 
     setLoading(true);
     setError(null);
+    setSelectedIds(new Set());
 
     try {
       const found = await searchAnnotations(supabase, auth.userId!, query);
@@ -97,6 +101,38 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
     return annotation.anchor.verseStart === annotation.anchor.verseEnd
       ? `${name} ${annotation.anchor.chapter}:${annotation.anchor.verseStart}`
       : `${name} ${annotation.anchor.chapter}:${annotation.anchor.verseStart}-${annotation.anchor.verseEnd}`;
+  }
+
+  function toggleSelection(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelectedIds(new Set(results.map((a) => a.id)));
+  }
+
+  function deselectAll() {
+    setSelectedIds(new Set());
+  }
+
+  async function handleBulkSoftDelete() {
+    const ids = Array.from(selectedIds);
+    setBulkActionInProgress(true);
+    setError(null);
+    try {
+      await batchSoftDeleteAnnotations(supabase, ids);
+      setResults((prev) => prev.filter((a) => !selectedIds.has(a.id)));
+      setSelectedIds(new Set());
+    } catch {
+      setError("Couldn't move notes to Recycle Bin. Please try again.");
+    } finally {
+      setBulkActionInProgress(false);
+    }
   }
 
   return (
@@ -156,30 +192,67 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
 
       {/* Results */}
       {!loading && results.length > 0 && (
-        <div className="space-y-3">
-          {results.map((annotation) => (
-            <a
-              key={annotation.id}
-              href={`/app/annotate?t=${annotation.translation}&b=${annotation.anchor.book}&c=${annotation.anchor.chapter}&vs=${annotation.anchor.verseStart}&ve=${annotation.anchor.verseEnd}&id=${annotation.id}`}
-              className="block rounded-lg border border-gray-200 p-4
-                         hover:border-blue-300 hover:bg-blue-50
-                         focus:outline-none focus:ring-2 focus:ring-blue-500
-                         transition-colors duration-150"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-gray-900">
-                  {formatVerseRef(annotation)}
-                </span>
-                <span className="text-xs text-gray-400">
-                  {new Date(annotation.updatedAt).toLocaleDateString()}
-                </span>
+        <>
+          {/* Select All */}
+          <div className="flex items-center justify-between mb-3">
+            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedIds.size === results.length}
+                onChange={() =>
+                  selectedIds.size === results.length ? deselectAll() : selectAll()
+                }
+                className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                aria-label="Select all notes"
+              />
+              Select all
+            </label>
+            {selectedIds.size > 0 && (
+              <span className="text-sm text-gray-500">
+                {selectedIds.size} selected
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            {results.map((annotation) => (
+              <div
+                key={annotation.id}
+                className={`flex items-start gap-3 rounded-lg border p-4
+                           transition-colors duration-150
+                           ${selectedIds.has(annotation.id)
+                             ? "border-blue-300 bg-blue-50"
+                             : "border-gray-200 hover:border-blue-300"}`}
+              >
+                <label className="flex items-center pt-0.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(annotation.id)}
+                    onChange={() => toggleSelection(annotation.id)}
+                    className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                    aria-label={`Select ${formatVerseRef(annotation)}`}
+                  />
+                </label>
+                <a
+                  href={`/app/annotate?t=${annotation.translation}&b=${annotation.anchor.book}&c=${annotation.anchor.chapter}&vs=${annotation.anchor.verseStart}&ve=${annotation.anchor.verseEnd}&id=${annotation.id}`}
+                  className="flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-gray-900">
+                      {formatVerseRef(annotation)}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {new Date(annotation.updatedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {annotation.contentMd}
+                  </p>
+                </a>
               </div>
-              <p className="text-sm text-gray-600 line-clamp-2">
-                {annotation.contentMd}
-              </p>
-            </a>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Empty state */}
@@ -203,6 +276,43 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
         <p className="text-center text-gray-500 py-8">
           No notes match &quot;{query}&quot;
         </p>
+      )}
+
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div
+          className="sticky bottom-0 z-10 mt-4 -mx-4 border-t border-gray-200
+                     bg-white/95 backdrop-blur px-4 py-3
+                     flex items-center justify-between"
+          role="toolbar"
+          aria-label="Bulk actions"
+        >
+          <span className="text-sm font-medium text-gray-700">
+            {selectedIds.size} note{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={deselectAll}
+              className="rounded-lg px-3 py-1.5 text-sm text-gray-600
+                         hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleBulkSoftDelete}
+              disabled={bulkActionInProgress}
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-600
+                         hover:bg-red-50 disabled:opacity-50
+                         focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              {bulkActionInProgress
+                ? "Moving..."
+                : `Move to Recycle Bin (${selectedIds.size})`}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

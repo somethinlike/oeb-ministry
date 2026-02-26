@@ -404,3 +404,46 @@ export async function searchAnnotations(
 
   return (annotations ?? []).map((row) => rowToAnnotation(row));
 }
+
+// ---------------------------------------------------------------------------
+// Batch operations (multi-select)
+// ---------------------------------------------------------------------------
+
+/** Soft-deletes multiple annotations at once. */
+export async function batchSoftDeleteAnnotations(
+  client: DbClient,
+  annotationIds: string[],
+): Promise<void> {
+  if (annotationIds.length === 0) return;
+  const { error } = await client
+    .from("annotations")
+    .update({ deleted_at: new Date().toISOString() })
+    .in("id", annotationIds);
+  if (error) throw new Error(`Failed to delete annotations: ${error.message}`);
+}
+
+/** Restores multiple soft-deleted annotations at once. */
+export async function batchRestoreAnnotations(
+  client: DbClient,
+  annotationIds: string[],
+): Promise<void> {
+  if (annotationIds.length === 0) return;
+  const { error } = await client
+    .from("annotations")
+    .update({ deleted_at: null })
+    .in("id", annotationIds);
+  if (error) throw new Error(`Failed to restore annotations: ${error.message}`);
+}
+
+/** Permanently deletes multiple annotations at once (irreversible). */
+export async function batchPermanentlyDeleteAnnotations(
+  client: DbClient,
+  annotationIds: string[],
+): Promise<void> {
+  if (annotationIds.length === 0) return;
+  const { error } = await client
+    .from("annotations")
+    .delete()
+    .in("id", annotationIds);
+  if (error) throw new Error(`Failed to permanently delete annotations: ${error.message}`);
+}
