@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
-import { searchAnnotations, batchSoftDeleteAnnotations } from "../lib/annotations";
+import { searchAnnotations, batchSoftDeleteAnnotations, hasDeletedAnnotations } from "../lib/annotations";
 import type { Annotation } from "../types/annotation";
 import type { AuthState } from "../types/auth";
 import { BOOK_BY_ID } from "../lib/constants";
@@ -29,11 +29,18 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkActionInProgress, setBulkActionInProgress] = useState(false);
+  const [hasDeleted, setHasDeleted] = useState(false);
 
   // Load recent annotations on mount
   useEffect(() => {
     loadRecent();
   }, []);
+
+  // Check if recycle bin has items (lightweight COUNT query)
+  useEffect(() => {
+    if (!auth.userId) return;
+    hasDeletedAnnotations(supabase, auth.userId).then(setHasDeleted).catch(() => {});
+  }, [auth.userId]);
 
   async function loadRecent() {
     setLoading(true);
@@ -128,6 +135,7 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
       await batchSoftDeleteAnnotations(supabase, ids);
       setResults((prev) => prev.filter((a) => !selectedIds.has(a.id)));
       setSelectedIds(new Set());
+      setHasDeleted(true);
     } catch {
       setError("Couldn't move notes to Recycle Bin. Please try again.");
     } finally {
@@ -195,18 +203,43 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
         <>
           {/* Select All */}
           <div className="flex items-center justify-between mb-3">
-            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={selectedIds.size === results.length}
-                onChange={() =>
-                  selectedIds.size === results.length ? deselectAll() : selectAll()
-                }
-                className="h-4 w-4 rounded border-gray-300 accent-blue-600"
-                aria-label="Select all notes"
-              />
-              Select all
-            </label>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.size === results.length}
+                  onChange={() =>
+                    selectedIds.size === results.length ? deselectAll() : selectAll()
+                  }
+                  className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                  aria-label="Select all notes"
+                />
+                Select all
+              </label>
+              {hasDeleted && (
+                <a
+                  href="/app/recycle-bin"
+                  className="flex items-center gap-1 text-sm text-gray-400 hover:text-red-600 transition-colors"
+                  title="Recycle Bin"
+                  aria-label="Open Recycle Bin"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                    />
+                  </svg>
+                </a>
+              )}
+            </div>
             {selectedIds.size > 0 && (
               <span className="text-sm text-gray-500">
                 {selectedIds.size} selected
