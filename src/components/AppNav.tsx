@@ -115,6 +115,9 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
               )}
               <NavLink href="/translations" label="Translations" />
               <NavLink href="/open-source-theology" label="Our Ethics" />
+              {auth.isAuthenticated && (
+                <NavLink href="/app/settings" label="Settings" />
+              )}
             </div>
           </div>
 
@@ -195,6 +198,9 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             )}
             <MobileNavLink href="/translations" label="Translations" />
             <MobileNavLink href="/open-source-theology" label="Our Ethics" />
+            {auth.isAuthenticated && (
+              <MobileNavLink href="/app/settings" label="Settings" />
+            )}
             <hr className="my-2 border-gray-200" />
             {auth.isAuthenticated ? (
               <>

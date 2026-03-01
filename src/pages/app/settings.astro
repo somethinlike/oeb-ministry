@@ -1,0 +1,38 @@
+---
+/**
+ * Settings page — user preferences for reading, word choices,
+ * translation defaults, and data export.
+ *
+ * Follows the same auth-gated pattern as recycle-bin.astro.
+ * Preferences sync between localStorage (instant) and Supabase (roaming).
+ */
+import AppLayout from "../../layouts/AppLayout.astro";
+import { SettingsPage } from "../../components/SettingsPage";
+import type { AuthState } from "../../types/auth";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const authState: AuthState = {
+  isAuthenticated: true,
+  displayName: user.user_metadata?.full_name ?? user.email ?? "User",
+  email: user.email ?? null,
+  avatarUrl: user.user_metadata?.avatar_url ?? null,
+  userId: user.id,
+};
+
+// Extract connected OAuth providers from Supabase user identities
+const providers: string[] = (user.identities ?? [])
+  .map((id: { provider?: string }) => id.provider)
+  .filter((p): p is string => !!p);
+---
+
+<AppLayout title="Settings">
+  <div class="mx-auto max-w-2xl">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Settings</h2>
+    <SettingsPage auth={authState} providers={providers} client:load />
+  </div>
+</AppLayout>
