@@ -21,7 +21,7 @@ import {
   syncPreferences,
   type UserPreferences,
 } from "../lib/preference-sync";
-import { FONT_OPTIONS, getOrderedFontOptions } from "../lib/reader-fonts";
+import { FONT_OPTIONS } from "../lib/reader-fonts";
 import type { ReaderFont, ReaderLayout, AnnotationDotStyle } from "../lib/workspace-prefs";
 import {
   TOGGLE_INFO,
@@ -118,7 +118,6 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
     // (we don't clear the preset ID — just show "Custom" in the UI)
   }
 
-  const fontOptions = typeof window !== "undefined" ? getOrderedFontOptions() : FONT_OPTIONS;
   const rootPresets = getRootPresets();
   const children = currentPreset && !currentPreset.parentId
     ? getChildPresets(currentPreset.id)
@@ -173,7 +172,7 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
             onChange={(e) => updatePref({ readerFont: e.target.value as ReaderFont })}
             className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
-            {fontOptions.map((f) => (
+            {FONT_OPTIONS.map((f) => (
               <option key={f.key} value={f.key}>{f.label}</option>
             ))}
           </select>
