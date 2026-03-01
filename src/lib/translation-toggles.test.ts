@@ -318,6 +318,95 @@ describe("applyTranslationToggles", () => {
     });
   });
 
+  // ── Reverse Direction (alternate → traditional) ──
+  // Translations like WEB use "Yahweh" in source text, so toggle OFF
+  // must replace alternate wording back to traditional.
+
+  describe("reverse: divineName OFF normalizes Yahweh → LORD", () => {
+    const toggles: TranslationToggles = { ...allOff, divineName: false };
+
+    it("replaces Yahweh with LORD", () => {
+      expect(
+        applyTranslationToggles(
+          "Yahweh called to Moses from the Tent of Meeting.",
+          toggles,
+        ),
+      ).toBe("LORD called to Moses from the Tent of Meeting.");
+    });
+
+    it("replaces multiple Yahweh occurrences", () => {
+      expect(
+        applyTranslationToggles(
+          "Yahweh said to Yahweh of hosts.",
+          toggles,
+        ),
+      ).toBe("LORD said to LORD of hosts.");
+    });
+
+    it("is case-insensitive (YAHWEH → LORD)", () => {
+      expect(
+        applyTranslationToggles("YAHWEH is God.", toggles),
+      ).toBe("LORD is God.");
+    });
+  });
+
+  describe("reverse: baptism OFF normalizes immerse → baptize", () => {
+    const toggles: TranslationToggles = { ...allOff, baptism: false };
+
+    it("replaces immerse with baptize", () => {
+      expect(
+        applyTranslationToggles("I immerse you with water.", toggles),
+      ).toBe("I baptize you with water.");
+    });
+
+    it("replaces immersed with baptized", () => {
+      expect(
+        applyTranslationToggles("He was immersed in the Jordan.", toggles),
+      ).toBe("He was baptized in the Jordan.");
+    });
+
+    it("replaces immersion with baptism", () => {
+      expect(
+        applyTranslationToggles("The immersion of Jesus.", toggles),
+      ).toBe("The baptism of Jesus.");
+    });
+
+    it("replaces Immerser with Baptizer (title case)", () => {
+      expect(
+        applyTranslationToggles("John the Immerser came.", toggles),
+      ).toBe("John the Baptizer came.");
+    });
+  });
+
+  describe("reverse: assembly OFF normalizes assembly → church", () => {
+    const toggles: TranslationToggles = { ...allOff, assembly: false };
+
+    it("replaces assembly with church", () => {
+      expect(
+        applyTranslationToggles("Tell it to the assembly.", toggles),
+      ).toBe("Tell it to the church.");
+    });
+
+    it("replaces assemblies with churches", () => {
+      expect(
+        applyTranslationToggles("The seven assemblies of Asia.", toggles),
+      ).toBe("The seven churches of Asia.");
+    });
+  });
+
+  describe("reverse: onlyBegotten OFF normalizes one and only → only begotten", () => {
+    const toggles: TranslationToggles = { ...allOff, onlyBegotten: false };
+
+    it("replaces 'one and only' with 'only begotten'", () => {
+      expect(
+        applyTranslationToggles(
+          "He gave his one and only Son.",
+          toggles,
+        ),
+      ).toBe("He gave his only begotten Son.");
+    });
+  });
+
   // ── Multiple Toggles Active ──
 
   describe("multiple toggles active simultaneously", () => {
@@ -333,6 +422,14 @@ describe("applyTranslationToggles", () => {
       const expected =
         "The Yahweh said to the assembly: immerse in the name of the one and only Son.";
       expect(applyTranslationToggles(input, toggles)).toBe(expected);
+    });
+
+    it("reverse: all toggles OFF normalizes alternate wording back to traditional", () => {
+      const input =
+        "Yahweh said to the assembly: immerse in the name of the one and only Son.";
+      const expected =
+        "LORD said to the church: baptize in the name of the only begotten Son.";
+      expect(applyTranslationToggles(input, allOff)).toBe(expected);
     });
   });
 });

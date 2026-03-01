@@ -127,18 +127,9 @@ export function applyTranslationToggles(
   text: string,
   toggles: TranslationToggles,
 ): string {
-  // Fast path — no toggles active
-  if (
-    !toggles.divineName &&
-    !toggles.baptism &&
-    !toggles.assembly &&
-    !toggles.onlyBegotten
-  ) {
-    return text;
-  }
-
   let result = text;
 
+  // ── Divine Name: LORD ↔ Yahweh ──
   if (toggles.divineName) {
     // Replace all-caps LORD with Yahweh.
     // In English Bibles, "LORD" (all caps) specifically marks the Hebrew
@@ -150,8 +141,14 @@ export function applyTranslationToggles(
     // an inherent limitation of text-level replacement — distinguishing
     // tetragrammaton-LORD from emphasis-LORD would need per-verse metadata.
     result = result.replace(/\bLORD\b/g, "Yahweh");
+  } else {
+    // Reverse: Yahweh → LORD (for translations like WEB that use Yahweh
+    // in their source text). Always outputs all-caps "LORD" since that's
+    // the typographic convention for the tetragrammaton.
+    result = result.replace(/\bYahweh\b/gi, "LORD");
   }
 
+  // ── Baptism: baptize ↔ immerse ──
   if (toggles.baptism) {
     result = replaceWord(result, "baptize", "immerse");
     result = replaceWord(result, "baptized", "immersed");
@@ -162,20 +159,34 @@ export function applyTranslationToggles(
     // KJV archaic forms
     result = replaceWord(result, "baptizeth", "immerseth");
     result = replaceWord(result, "baptizest", "immersest");
+  } else {
+    result = replaceWord(result, "immerse", "baptize");
+    result = replaceWord(result, "immersed", "baptized");
+    result = replaceWord(result, "immersing", "baptizing");
+    result = replaceWord(result, "immersion", "baptism");
+    result = replaceWord(result, "immersions", "baptisms");
+    result = replaceWord(result, "immerser", "baptizer");
   }
 
+  // ── Assembly: church ↔ assembly ──
   if (toggles.assembly) {
     // Order matters: "churches" before "church" to avoid partial replacement
     result = replaceWord(result, "churches", "assemblies");
     result = replaceWord(result, "church", "assembly");
+  } else {
+    result = replaceWord(result, "assemblies", "churches");
+    result = replaceWord(result, "assembly", "church");
   }
 
+  // ── Only Begotten: only begotten ↔ one and only ──
   if (toggles.onlyBegotten) {
     // Multi-word phrase replacement (case-preserving on first letter).
     // The KJV 1611 uses "onely begotten" (archaic spelling) in most
     // occurrences — handle both spellings.
     result = replacePhrase(result, "onely begotten", "one and only");
     result = replacePhrase(result, "only begotten", "one and only");
+  } else {
+    result = replacePhrase(result, "one and only", "only begotten");
   }
 
   return result;
