@@ -9,6 +9,9 @@ export default defineConfig({
   // check auth state before sending HTML to the browser.
   output: "server",
 
+  // Fixed port so multiple Astro projects can run concurrently.
+  // OEB: 4321, Ministry Suite: 4322, ESDF: 4323
+  server: { port: 4321 },
 
   // Vercel handles hosting and serverless functions for SSR pages.
   adapter: vercel(),
