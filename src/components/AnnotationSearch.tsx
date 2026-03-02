@@ -16,6 +16,7 @@ import { searchAnnotations, batchSoftDeleteAnnotations, hasDeletedAnnotations } 
 import type { Annotation } from "../types/annotation";
 import type { AuthState } from "../types/auth";
 import { BOOK_BY_ID } from "../lib/constants";
+import { ExportButton } from "./ExportButton";
 import type { BookId } from "../types/bible";
 
 interface AnnotationSearchProps {
@@ -216,6 +217,9 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
                 />
                 Select all
               </label>
+              {auth.userId && (
+                <ExportButton userId={auth.userId} variant="secondary" />
+              )}
               {hasDeleted && (
                 <a
                   href="/app/recycle-bin"
