@@ -302,7 +302,7 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
       <Section title="Your Data">
         <SettingRow
           label="Download your notes"
-          description="Export all your annotations as Markdown files in a zip"
+          description="Export your notes as a zip with an HTML file and Markdown files, including verse text"
         >
           <ExportButton userId={auth.userId ?? undefined} />
         </SettingRow>

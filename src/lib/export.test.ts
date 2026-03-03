@@ -16,6 +16,7 @@ function makeAnnotation(overrides: Partial<Annotation> = {}): Annotation {
     contentMd: "For God so loved the world.",
     isPublic: false,
     crossReferences: [],
+    verseText: null,
     createdAt: "2026-02-14T12:00:00Z",
     updatedAt: "2026-02-14T12:00:00Z",
     deletedAt: null,
@@ -25,16 +26,15 @@ function makeAnnotation(overrides: Partial<Annotation> = {}): Annotation {
 
 describe("annotationToMarkdown", () => {
   it("generates valid YAML frontmatter with single verse", () => {
-    const md = annotationToMarkdown(makeAnnotation());
+    const md = annotationToMarkdown(
+      makeAnnotation(),
+      null,
+      "Open English Bible (US)",
+    );
 
     expect(md).toContain("---");
     expect(md).toContain('verse: "John 3:16"');
-    expect(md).toContain('verse_ref: "oeb-us:jhn:3:16"');
-    expect(md).toContain('translation: "oeb-us"');
-    expect(md).toContain('book: "jhn"');
-    expect(md).toContain("chapter: 3");
-    expect(md).toContain("verse_start: 16");
-    expect(md).toContain("verse_end: 16");
+    expect(md).toContain('translation: "Open English Bible (US)"');
     expect(md).toContain("For God so loved the world.");
   });
 
@@ -43,10 +43,11 @@ describe("annotationToMarkdown", () => {
       makeAnnotation({
         anchor: { book: "jhn", chapter: 3, verseStart: 16, verseEnd: 18 },
       }),
+      null,
+      "Open English Bible (US)",
     );
 
     expect(md).toContain('verse: "John 3:16-18"');
-    expect(md).toContain('verse_ref: "oeb-us:jhn:3:16-18"');
   });
 
   it("includes cross-references", () => {
@@ -71,6 +72,8 @@ describe("annotationToMarkdown", () => {
           },
         ],
       }),
+      null,
+      "Open English Bible (US)",
     );
 
     expect(md).toContain("cross_references:");
@@ -78,15 +81,57 @@ describe("annotationToMarkdown", () => {
     expect(md).toContain('  - "1 John 4:9-10"');
   });
 
-  it("includes timestamps", () => {
-    const md = annotationToMarkdown(makeAnnotation());
+  it("includes human-readable timestamps", () => {
+    const md = annotationToMarkdown(
+      makeAnnotation(),
+      null,
+      "Open English Bible (US)",
+    );
 
-    expect(md).toContain('created: "2026-02-14T12:00:00Z"');
-    expect(md).toContain('updated: "2026-02-14T12:00:00Z"');
+    // Should be formatted as "February 14, 2026" not ISO
+    expect(md).toContain('created: "February 14, 2026"');
+    expect(md).toContain('updated: "February 14, 2026"');
+  });
+
+  it("includes verse text as blockquote when provided", () => {
+    const md = annotationToMarkdown(
+      makeAnnotation(),
+      "For God so loved the world that he gave his one and only Son.",
+      "Open English Bible (US)",
+    );
+
+    expect(md).toContain(
+      "> For God so loved the world that he gave his one and only Son.",
+    );
+  });
+
+  it("omits blockquote when verse text is null", () => {
+    const md = annotationToMarkdown(
+      makeAnnotation(),
+      null,
+      "Open English Bible (US)",
+    );
+
+    expect(md).not.toContain("> ");
+  });
+
+  it("uses full translation name instead of ID", () => {
+    const md = annotationToMarkdown(
+      makeAnnotation(),
+      null,
+      "World English Bible",
+    );
+
+    expect(md).toContain('translation: "World English Bible"');
+    expect(md).not.toContain("oeb-us");
   });
 
   it("ends with a newline", () => {
-    const md = annotationToMarkdown(makeAnnotation());
+    const md = annotationToMarkdown(
+      makeAnnotation(),
+      null,
+      "Open English Bible (US)",
+    );
     expect(md.endsWith("\n")).toBe(true);
   });
 });

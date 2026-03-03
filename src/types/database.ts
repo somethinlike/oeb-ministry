@@ -21,6 +21,7 @@ export interface Database {
           verse_end: number;
           content_md: string;
           is_public: boolean;
+          verse_text: string | null;
           created_at: string;
           updated_at: string;
           deleted_at: string | null;
@@ -36,6 +37,7 @@ export interface Database {
           verse_end: number;
           content_md?: string;
           is_public?: boolean;
+          verse_text?: string | null;
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
@@ -50,6 +52,7 @@ export interface Database {
           verse_end?: number;
           content_md?: string;
           is_public?: boolean;
+          verse_text?: string | null;
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;

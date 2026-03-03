@@ -1,67 +1,108 @@
 /**
- * Annotation export — converts annotations to Markdown files
- * with YAML frontmatter for portability.
+ * Annotation export — dual-format (HTML + Markdown) with verse text.
  *
- * Export format is designed to be consumable by:
- * - Note-taking apps (Obsidian, Logseq)
- * - AI agents (structured frontmatter)
- * - Any text editor (it's just Markdown)
+ * Export produces a single zip containing:
+ * - My Notes.html — self-contained, beautiful, works in any browser
+ * - notes/*.md — structured Markdown files for Obsidian/Logseq
  *
  * Data ownership principle: users can always take their data with them.
  */
 
 import type { Annotation } from "../types/annotation";
-import { BOOK_BY_ID } from "./constants";
+import type { TranslationToggles } from "./translation-toggles";
+import { applyTranslationToggles } from "./translation-toggles";
+import { BOOK_BY_ID, BIBLE_BASE_PATH } from "./constants";
 import type { BookId } from "../types/bible";
+import type { ChapterData } from "../types/bible";
+import { extractVerseText } from "./verse-text";
+import { generateNotesHtml } from "./export-html";
+
+/** Everything the export engine needs to produce a zip. */
+export interface ExportContext {
+  annotations: Annotation[];
+  translationId: string;
+  translationName: string;
+  toggles: TranslationToggles;
+}
 
 /**
- * Converts a single annotation to a Markdown string with YAML frontmatter.
+ * Resolves the verse text for an annotation, applying translation toggles.
  *
- * Output format:
- * ```
- * ---
- * verse: "John 3:16"
- * verse_ref: "oeb-us:jhn:3:16"
- * translation: "oeb-us"
- * book: "jhn"
- * chapter: 3
- * verse_start: 16
- * verse_end: 16
- * cross_references:
- *   - "Romans 5:8"
- * created: "2026-02-14T12:00:00Z"
- * updated: "2026-02-14T12:00:00Z"
- * ---
+ * Priority:
+ * 1. If annotation has stored verseText AND same translation → use it
+ * 2. Otherwise → fetch from static JSON and extract
+ * 3. Returns null if all attempts fail
  *
- * Annotation content here...
- * ```
+ * Caches fetched chapters in the provided Map to avoid duplicate fetches.
  */
-export function annotationToMarkdown(annotation: Annotation): string {
+export async function resolveVerseText(
+  annotation: Annotation,
+  translationId: string,
+  toggles: TranslationToggles,
+  chapterCache: Map<string, ChapterData | null>,
+): Promise<string | null> {
+  // If annotation has stored verse text and matches the export translation, use it
+  if (annotation.verseText && annotation.translation === translationId) {
+    return applyTranslationToggles(annotation.verseText, toggles);
+  }
+
+  // Otherwise fetch from static JSON
+  const cacheKey = `${translationId}:${annotation.anchor.book}:${annotation.anchor.chapter}`;
+
+  if (!chapterCache.has(cacheKey)) {
+    try {
+      const url = `${BIBLE_BASE_PATH}/${translationId}/${annotation.anchor.book}/${annotation.anchor.chapter}.json`;
+      const response = await fetch(url);
+      if (response.ok) {
+        chapterCache.set(cacheKey, (await response.json()) as ChapterData);
+      } else {
+        chapterCache.set(cacheKey, null);
+      }
+    } catch {
+      chapterCache.set(cacheKey, null);
+    }
+  }
+
+  const chapterData = chapterCache.get(cacheKey);
+  if (!chapterData) return null;
+
+  const raw = extractVerseText(
+    chapterData,
+    annotation.anchor.verseStart,
+    annotation.anchor.verseEnd,
+  );
+  if (!raw) return null;
+
+  return applyTranslationToggles(raw, toggles);
+}
+
+/**
+ * Converts a single annotation to Markdown with YAML frontmatter.
+ *
+ * New format: human-readable frontmatter, verse text as blockquote.
+ */
+export function annotationToMarkdown(
+  annotation: Annotation,
+  verseText: string | null,
+  translationName: string,
+): string {
   const bookInfo = BOOK_BY_ID.get(annotation.anchor.book as BookId);
   const bookName = bookInfo?.name ?? annotation.anchor.book;
 
-  // Build the human-readable verse reference
   const verseDisplay =
     annotation.anchor.verseStart === annotation.anchor.verseEnd
       ? `${bookName} ${annotation.anchor.chapter}:${annotation.anchor.verseStart}`
       : `${bookName} ${annotation.anchor.chapter}:${annotation.anchor.verseStart}-${annotation.anchor.verseEnd}`;
 
-  // Build the canonical verse reference
-  const verseRef =
-    annotation.anchor.verseStart === annotation.anchor.verseEnd
-      ? `${annotation.translation}:${annotation.anchor.book}:${annotation.anchor.chapter}:${annotation.anchor.verseStart}`
-      : `${annotation.translation}:${annotation.anchor.book}:${annotation.anchor.chapter}:${annotation.anchor.verseStart}-${annotation.anchor.verseEnd}`;
+  // Human-readable dates
+  const created = formatDate(annotation.createdAt);
+  const updated = formatDate(annotation.updatedAt);
 
-  // YAML frontmatter lines
+  // YAML frontmatter — clean, human-readable
   const frontmatter: string[] = [
     "---",
     `verse: "${verseDisplay}"`,
-    `verse_ref: "${verseRef}"`,
-    `translation: "${annotation.translation}"`,
-    `book: "${annotation.anchor.book}"`,
-    `chapter: ${annotation.anchor.chapter}`,
-    `verse_start: ${annotation.anchor.verseStart}`,
-    `verse_end: ${annotation.anchor.verseEnd}`,
+    `translation: "${translationName}"`,
   ];
 
   // Add cross-references if any
@@ -78,11 +119,20 @@ export function annotationToMarkdown(annotation: Annotation): string {
     }
   }
 
-  frontmatter.push(`created: "${annotation.createdAt}"`);
-  frontmatter.push(`updated: "${annotation.updatedAt}"`);
+  frontmatter.push(`created: "${created}"`);
+  frontmatter.push(`updated: "${updated}"`);
   frontmatter.push("---");
 
-  return frontmatter.join("\n") + "\n\n" + annotation.contentMd + "\n";
+  // Body: verse text as blockquote, then user's note
+  const parts: string[] = [frontmatter.join("\n"), ""];
+
+  if (verseText) {
+    parts.push(`> ${verseText}`, "");
+  }
+
+  parts.push(annotation.contentMd, "");
+
+  return parts.join("\n");
 }
 
 /**
@@ -105,23 +155,37 @@ export function annotationFilename(annotation: Annotation): string {
 }
 
 /**
- * Creates a ZIP file containing all annotations as Markdown files.
+ * Creates a dual-format ZIP: My Notes.html + notes/*.md files.
  * Returns a Blob that can be downloaded.
  */
 export async function exportAnnotationsAsZip(
-  annotations: Annotation[],
+  context: ExportContext,
 ): Promise<Blob> {
+  const { annotations, translationId, translationName, toggles } = context;
+
   // Dynamic import — only load JSZip when the user actually exports
   const JSZip = (await import("jszip")).default;
   const zip = new JSZip();
 
-  // Track filenames to avoid collisions (append -2, -3, etc.)
+  // Resolve verse text for all annotations (with chapter caching)
+  const chapterCache = new Map<string, ChapterData | null>();
+  const verseTexts = await Promise.all(
+    annotations.map((a) => resolveVerseText(a, translationId, toggles, chapterCache)),
+  );
+
+  // Generate HTML file
+  const html = generateNotesHtml(annotations, verseTexts, translationName);
+  zip.file("My Notes.html", html);
+
+  // Generate Markdown files in notes/ folder
+  const notesFolder = zip.folder("notes")!;
   const usedNames = new Map<string, number>();
 
-  for (const annotation of annotations) {
+  for (let i = 0; i < annotations.length; i++) {
+    const annotation = annotations[i];
     let filename = annotationFilename(annotation);
 
-    // Handle duplicate filenames (multiple annotations on same verse)
+    // Handle duplicate filenames
     const count = usedNames.get(filename) ?? 0;
     if (count > 0) {
       const base = filename.replace(".md", "");
@@ -129,8 +193,24 @@ export async function exportAnnotationsAsZip(
     }
     usedNames.set(annotationFilename(annotation), count + 1);
 
-    zip.file(filename, annotationToMarkdown(annotation));
+    notesFolder.file(
+      filename,
+      annotationToMarkdown(annotation, verseTexts[i], translationName),
+    );
   }
 
   return zip.generateAsync({ type: "blob" });
+}
+
+/** Format an ISO date string to a human-readable date. */
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return iso;
+  }
 }

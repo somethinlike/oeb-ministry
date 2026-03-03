@@ -46,6 +46,8 @@ export interface Annotation {
   isPublic: boolean;
   /** Related verses that this annotation references */
   crossReferences: CrossReference[];
+  /** The Bible verse text at the time the annotation was saved */
+  verseText: string | null;
   createdAt: string;
   updatedAt: string;
   /** When set, this annotation is in the recycle bin (soft-deleted) */
@@ -61,4 +63,6 @@ export interface AnnotationFormData {
   anchor: VerseAnchor;
   contentMd: string;
   crossReferences: Omit<CrossReference, "id" | "annotationId">[];
+  /** The Bible verse text to store with this annotation */
+  verseText?: string;
 }

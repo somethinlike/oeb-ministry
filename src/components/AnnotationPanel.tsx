@@ -33,6 +33,8 @@ import {
 import type { Annotation, AnnotationFormData } from "../types/annotation";
 import type { BookId } from "../types/bible";
 import { BOOK_BY_ID } from "../lib/constants";
+import { loadChapter } from "../lib/bible-loader";
+import { extractVerseText } from "../lib/verse-text";
 
 interface AnnotationPanelProps {
   /** The user's ID (from auth) */
@@ -102,6 +104,17 @@ export function AnnotationPanel({
     setError(null);
 
     try {
+      // Capture the verse text — non-fatal if it fails
+      let verseText: string | undefined;
+      try {
+        const chapterData = await loadChapter(translation, book as BookId, chapter);
+        if (chapterData) {
+          verseText = extractVerseText(chapterData, verseStart, verseEnd) ?? undefined;
+        }
+      } catch {
+        // Verse text capture is best-effort — don't block the save
+      }
+
       const formData: AnnotationFormData = {
         translation,
         anchor: {
@@ -112,6 +125,7 @@ export function AnnotationPanel({
         },
         contentMd: content,
         crossReferences: crossRefs,
+        verseText,
       };
 
       let savedAnnotation: Annotation;
@@ -172,6 +186,7 @@ export function AnnotationPanel({
         verseStart: ref.verseStart,
         verseEnd: ref.verseEnd,
       })),
+      verseText: formData.verseText ?? null,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       deletedAt: null,
@@ -210,6 +225,7 @@ export function AnnotationPanel({
         verseStart: ref.verseStart,
         verseEnd: ref.verseEnd,
       })),
+      verseText: formData.verseText ?? null,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       deletedAt: null,
@@ -250,6 +266,7 @@ export function AnnotationPanel({
             verseStart: ref.verseStart,
             verseEnd: ref.verseEnd,
           })),
+          verseText: existing.verseText ?? null,
           createdAt: existing.createdAt,
           updatedAt: existing.updatedAt,
           deletedAt: now,

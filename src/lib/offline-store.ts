@@ -32,6 +32,8 @@ export interface OfflineAnnotation {
   isPublic: boolean;
   /** Cross-references stored with the annotation for offline support */
   crossReferences: OfflineCrossReference[];
+  /** The Bible verse text at the time the annotation was saved */
+  verseText: string | null;
   createdAt: string;
   updatedAt: string;
   /** When set, this annotation is soft-deleted (in recycle bin) */
@@ -107,6 +109,7 @@ export async function getLocalAnnotationsForChapter(
     ...r,
     crossReferences: r.crossReferences ?? [],
     deletedAt: r.deletedAt ?? null,
+    verseText: r.verseText ?? null,
   }));
 }
 

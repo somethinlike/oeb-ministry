@@ -11,11 +11,13 @@
  * - Simple filter/search bar at the top
  * - No jargon — Deuterocanon is labeled "Deuterocanon & Apocrypha"
  *   with a brief explanation available
+ * - "Save offline" button on each book tile
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BOOKS } from "../lib/constants";
 import type { BookInfo } from "../types/bible";
+import { cacheBookOffline, isBookCached } from "../lib/offline-books";
 
 interface BookPickerProps {
   translation: string;
@@ -115,21 +117,91 @@ function BookGrid({
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
       {books.map((book) => (
-        <a
-          key={book.id}
-          href={`/app/read/${translation}/${book.id}`}
-          className="rounded-lg border border-gray-200 bg-white px-4 py-3
-                     text-center font-medium text-gray-700
-                     hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700
-                     focus:outline-none focus:ring-2 focus:ring-blue-500
-                     transition-colors duration-150"
-        >
-          {book.name}
-          <span className="block text-xs text-gray-400 mt-0.5">
-            {book.chapters} {book.chapters === 1 ? "chapter" : "chapters"}
-          </span>
-        </a>
+        <BookTile key={book.id} book={book} translation={translation} />
       ))}
+    </div>
+  );
+}
+
+/** Single book tile with navigation link and offline save button. */
+function BookTile({
+  book,
+  translation,
+}: {
+  book: BookInfo;
+  translation: string;
+}) {
+  const [cached, setCached] = useState<boolean | null>(null);
+  const [caching, setCaching] = useState(false);
+
+  // Check cache state on mount
+  useEffect(() => {
+    if (typeof caches === "undefined") return;
+    isBookCached(translation, book.id, book.chapters).then(setCached);
+  }, [translation, book.id, book.chapters]);
+
+  async function handleSaveOffline(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (caching || cached) return;
+
+    setCaching(true);
+    try {
+      await cacheBookOffline(translation, book.id, book.chapters);
+      setCached(true);
+    } catch {
+      // Silently fail — user can retry
+    } finally {
+      setCaching(false);
+    }
+  }
+
+  return (
+    <div className="relative">
+      <a
+        href={`/app/read/${translation}/${book.id}`}
+        className="block rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10
+                   text-center font-medium text-gray-700
+                   hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700
+                   focus:outline-none focus:ring-2 focus:ring-blue-500
+                   transition-colors duration-150"
+      >
+        {book.name}
+        <span className="block text-xs text-gray-400 mt-0.5">
+          {book.chapters} {book.chapters === 1 ? "chapter" : "chapters"}
+        </span>
+      </a>
+      {/* Save offline button — top-right corner */}
+      {typeof caches !== "undefined" && (
+        <button
+          type="button"
+          onClick={handleSaveOffline}
+          disabled={caching || cached === true}
+          className="absolute top-1.5 right-1.5 p-1 rounded text-gray-400 hover:text-blue-600
+                     focus:outline-none focus:ring-2 focus:ring-blue-500
+                     disabled:cursor-default"
+          aria-label={cached ? `${book.name} saved offline` : `Save ${book.name} for offline reading`}
+          title={cached ? "Saved offline" : "Save for offline reading"}
+        >
+          {caching ? (
+            /* Spinner */
+            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" className="opacity-25" />
+              <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-75" />
+            </svg>
+          ) : cached ? (
+            /* Checkmark — cached */
+            <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ) : (
+            /* Download icon — not cached */
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+            </svg>
+          )}
+        </button>
+      )}
     </div>
   );
 }

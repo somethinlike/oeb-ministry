@@ -85,6 +85,7 @@ async function processItem(item: SyncQueueItem): Promise<void> {
         verse_end: item.data.verseEnd,
         content_md: item.data.contentMd,
         is_public: item.data.isPublic,
+        verse_text: item.data.verseText ?? null,
       });
 
       if (error) throw new Error(error.message);
@@ -130,6 +131,7 @@ async function processItem(item: SyncQueueItem): Promise<void> {
           verse_start: item.data.verseStart,
           verse_end: item.data.verseEnd,
           content_md: item.data.contentMd,
+          verse_text: item.data.verseText ?? null,
         })
         .eq("id", item.annotationId);
 

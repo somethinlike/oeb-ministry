@@ -42,6 +42,7 @@ function rowToAnnotation(
       verseStart: ref.verse_start,
       verseEnd: ref.verse_end,
     })),
+    verseText: row.verse_text ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -137,6 +138,7 @@ export async function createAnnotation(
       verse_start: formData.anchor.verseStart,
       verse_end: formData.anchor.verseEnd,
       content_md: formData.contentMd,
+      verse_text: formData.verseText ?? null,
     })
     .select()
     .single();
@@ -182,6 +184,7 @@ export async function updateAnnotation(
   // Build the update object — only include fields that were provided
   const updateData: Database["public"]["Tables"]["annotations"]["Update"] = {};
   if (formData.contentMd !== undefined) updateData.content_md = formData.contentMd;
+  if (formData.verseText !== undefined) updateData.verse_text = formData.verseText;
   if (formData.anchor) {
     updateData.book = formData.anchor.book;
     updateData.chapter = formData.anchor.chapter;

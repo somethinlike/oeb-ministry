@@ -10,6 +10,7 @@
  * Grandmother Principle: clear breadcrumbs, familiar layout.
  */
 
+import { useState, useEffect } from "react";
 import { useWorkspace } from "./WorkspaceProvider";
 import { TranslationPicker } from "./TranslationPicker";
 import { SUPPORTED_TRANSLATIONS, BOOK_BY_ID } from "../../lib/constants";
@@ -18,6 +19,7 @@ import type { ReaderLayout, ReaderFont, AnnotationDotStyle } from "../../lib/wor
 import { TranslationToggleMenu } from "./TranslationToggleMenu";
 import { FontPicker } from "./FontPicker";
 import type { TranslationToggles } from "../../lib/translation-toggles";
+import { cacheBookOffline, isBookCached } from "../../lib/offline-books";
 
 interface WorkspaceToolbarProps {
   /** Whether the panes are currently swapped */
@@ -73,6 +75,29 @@ export function WorkspaceToolbar({
   );
   const bookInfo = BOOK_BY_ID.get(book as BookId);
 
+  // Offline cache state for current book
+  const [bookOffline, setBookOffline] = useState<boolean | null>(null);
+  const [cachingBook, setCachingBook] = useState(false);
+
+  useEffect(() => {
+    if (typeof caches === "undefined" || !bookInfo) return;
+    setBookOffline(null);
+    isBookCached(translation, book, bookInfo.chapters).then(setBookOffline);
+  }, [translation, book, bookInfo?.chapters]);
+
+  async function handleCacheBook() {
+    if (cachingBook || bookOffline || !bookInfo) return;
+    setCachingBook(true);
+    try {
+      await cacheBookOffline(translation, book, bookInfo.chapters);
+      setBookOffline(true);
+    } catch {
+      // Silently fail
+    } finally {
+      setCachingBook(false);
+    }
+  }
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-gray-50 px-4 py-2 rounded-t-lg">
       {/* Breadcrumb navigation */}
@@ -115,6 +140,39 @@ export function WorkspaceToolbar({
 
       {/* Right-side actions */}
       <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
+        {/* Offline cache indicator for current book */}
+        {typeof caches !== "undefined" && bookInfo && (
+          <button
+            type="button"
+            onClick={handleCacheBook}
+            disabled={cachingBook || bookOffline === true}
+            className="flex items-center gap-1.5 rounded-md border border-gray-300
+                       bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
+                       hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500
+                       disabled:cursor-default"
+            aria-label={bookOffline ? `${bookInfo.name} saved offline` : `Save ${bookInfo.name} for offline reading`}
+            title={bookOffline ? "Book saved offline" : "Save book for offline reading"}
+          >
+            {cachingBook ? (
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" className="opacity-25" />
+                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-75" />
+              </svg>
+            ) : bookOffline ? (
+              <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+              </svg>
+            )}
+            <span className="hidden sm:inline">
+              {cachingBook ? "Saving..." : bookOffline ? "Offline" : "Save offline"}
+            </span>
+          </button>
+        )}
+
         {/* Clean view — hide toolbar and show only a cog in the nav bar */}
         <button
           type="button"
