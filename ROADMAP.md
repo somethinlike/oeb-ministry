@@ -49,22 +49,22 @@ The "make it yours" release: lock your notes, share your notes, make the app fee
 
 ### CC0 Publishing Pipeline
 
-- [ ] "Make Public" action on annotations
-- [ ] CC0 intercession page — first-publish education flow ("Those Who Gave Freely")
-  - [ ] Carousel: Fra Angelico, Rublev, Fanny Crosby, Gaudi, Ephrem, Tolstoy, Hopkins
-  - [ ] Links to full Open Source Theology page
-  - [ ] Shows once per user, then a small "Why CC0?" reminder link
-- [ ] AI screening pass (profanity filter + theological alignment check)
-- [ ] Human moderator review queue
-- [ ] Moderator role in Supabase Auth (approve/reject/flag/remove)
-- [ ] Moderation action logging for accountability
-- [ ] Published annotations become CC0 and visible to all users
+- [x] "Share with everyone" action on annotations (Tier 1 language)
+- [x] CC0 intercession modal — first-publish education flow ("Those Who Gave Freely")
+  - [x] Carousel: Fra Angelico, Rublev, Fanny Crosby, Gaudí, Ephrem, Tolstoy, Hopkins
+  - [x] Links to full Open Source Theology page
+  - [x] Shows once per user, then a small "Why is sharing free?" reminder link
+- [ ] AI screening pass (profanity filter + theological alignment check) — deferred to v3
+- [x] Human moderator review queue (`/app/moderation`)
+- [x] Moderator role in Supabase Auth (approve/reject/flag/remove)
+- [x] Moderation action logging for accountability (`moderation_log` table)
+- [x] Published annotations become CC0 and visible to all users
 
 ### Public Annotation Feed
 
-- [ ] Browse public annotations by book/chapter/verse
-- [ ] Full-text search across public annotations (Postgres `tsvector`)
-- [ ] Attribution display (author name, date published)
+- [x] Browse public annotations by book/chapter/verse (`/app/community`)
+- [x] Full-text search across public annotations
+- [x] Attribution display (author name, date published)
 
 ### User Settings Page (`/app/settings`)
 
@@ -72,7 +72,7 @@ The "make it yours" release: lock your notes, share your notes, make the app fee
 - [x] Translation toggle preferences (migrate from toolbar-only localStorage)
 - [x] Reader font preference
 - [x] Default Bible translation
-- [ ] Offline Bible downloads — pick translations to pre-cache with storage estimate
+- [x] Offline Bible downloads — pick translations to pre-cache with storage estimate
 - [x] Account info (email, connected OAuth providers)
 - [x] Export all data button
 - [x] `user_preferences` Supabase table with RLS (syncs across devices)
@@ -91,15 +91,15 @@ The "make it yours" release: lock your notes, share your notes, make the app fee
 
 ### Command Palette & Keyboard Navigation
 
-- [ ] Command palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) — fuzzy search over all actions
-- [ ] Command registry (all actions are command IDs, decoupled from keybindings)
-- [ ] Three keybinding presets: Default, VSCode, Vim
-- [ ] Vim mode state machine (normal / insert / command) with mode indicator
-- [ ] Bible reader keyboard navigation (next/prev verse, next/prev chapter, go-to-verse, search)
-- [ ] Intelligent keybind detection — passive input pattern recognition (`j`/`k` outside input, `:wq`, `Ctrl+Shift+P`)
-- [ ] Non-intrusive toast prompt on detection ("Looks like you use keyboard shortcuts!")
-- [ ] Detection state in localStorage (prompt once, don't nag)
-- [ ] Per-user keybinding preset stored in `user_preferences`
+- [x] Command palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) — fuzzy search over all actions
+- [x] Command registry (28 commands across 5 categories, decoupled from keybindings)
+- [x] Three keybinding presets: Default, VSCode, Vim
+- [x] Vim mode state machine (normal / insert) with mode indicator
+- [x] Bible reader keyboard navigation (next/prev verse, next/prev chapter, clear selection)
+- [x] Intelligent keybind detection — passive input pattern recognition (`j`/`k` outside input, `:`, `Ctrl+P`)
+- [x] Non-intrusive toast prompt on detection ("You can customize keyboard shortcuts in Settings.")
+- [x] Detection state in localStorage (prompt once, don't nag)
+- [x] Per-user keybinding preset stored in `user_preferences` (syncs across devices)
 
 ### Denomination Presets (Word Choices)
 

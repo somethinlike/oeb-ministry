@@ -161,25 +161,80 @@
 
 ---
 
-## 8. Published Notes
+## 8. Sharing Notes (CC0 Publishing)
 
-- Go to `/app/published`
-- Shows notes marked as public (is_public = true)
-- Currently read-only listing
+> **Prerequisite:** Must be signed in and have at least one saved annotation.
+
+### First Time Sharing
+
+1. Open a saved annotation in the editor
+2. Click **"Share with everyone"** button (below the note content)
+3. The **CC0 Intercession modal** should appear:
+   - Carousel of 7 historical figures (Fra Angelico, Rublev, Fanny Crosby, Gaudí, Ephrem, Tolstoy, Hopkins)
+   - Navigate with prev/next arrows and dot indicators
+   - Link to the Open Source Theology page
+   - **"Share my note"** and **"Not now"** buttons
+4. Click "Share my note" → status changes to "Waiting for review"
+5. Close and reopen the intercession modal → should NOT appear again (localStorage flag)
+6. Instead, a small **"Why is sharing free?"** link appears
+
+### Publishing Status States
+
+- **Not shared:** Shows "Share with everyone" button
+- **Pending review:** Shows "Waiting for review" badge + "Cancel" button
+  - Click Cancel → reverts to unshared state
+- **Approved (Shared):** Shows "Shared with everyone" badge + "Make private" button
+  - Click "Make private" → reverts to unshared
+- **Rejected:** Shows rejection reason from moderator + "Try again" button
+  - Click "Try again" → resubmits for review
 
 ---
 
-## 9. Settings
+## 9. Community Notes
+
+- Go to `/app/community` (or click "Community" in NavBar)
+- Shows all approved CC0 annotations as cards
+- **Search bar:** Full-text search across public notes
+- **Book filter dropdown:** Filter by book (e.g., "John", "Romans")
+- Each card shows: verse reference, verse text blockquote, note content, author name, date
+- Cross-references displayed if present
+- Empty state when no public notes exist yet
+
+---
+
+## 10. Moderation Queue
+
+> **Prerequisite:** User must have the `moderator` or `admin` role in the `user_roles` table.
+
+- Go to `/app/moderation` (link appears in NavBar only for moderators)
+- Shows all pending (submitted for review) annotations
+- Each card has:
+  - **Approve** button — publishes the note as CC0
+  - **Reject** button — expands a textarea for written feedback
+    - Must enter a reason before confirming rejection
+- After approving/rejecting, card disappears from queue
+- Empty state: "All caught up!" when no pending submissions
+
+---
+
+## 11. Settings
 
 - Go to `/app/settings`
 
 ### Account
 - Shows avatar (or initial), display name, email, OAuth provider badges
 
+### Appearance
+- **Color mode:** System / Light / Dark toggle
+- **Theme:** Default, Lutheran, Catholic, Orthodox
+
 ### Reading
 - **Reader font:** Dropdown changes font in the reader (persists across sessions)
 - **Annotation dots:** Blue / Subtle / Hidden
 - **Reader layout:** Centered column / Multi-column
+- **Keyboard shortcuts:** Default / VSCode / Vim
+  - Changing preset persists to localStorage and syncs via Supabase
+  - Reloading the reader → keyboard shortcuts should use the chosen preset
 
 ### Word Choices
 - **Denomination preset:** Choose a tradition → toggles auto-apply
@@ -191,13 +246,21 @@
 - Dropdown of all supported translations
 - Changes which translation opens by default
 
+### Offline Reading
+- Shows each supported translation (OEB, WEB, KJV, DRA) with:
+  - Name, license, estimated size
+  - **"Save offline"** button → progress bar → "Saved" badge
+  - **"Remove"** button (when already saved)
+  - Partial state shows "X/Y books"
+- **"How does offline reading work?"** expandable details section
+
 ### Your Data
 - Export controls: translation dropdown + "Download all notes" button
 - Description: "Export your notes as a zip with an HTML file and Markdown files, including verse text"
 
 ---
 
-## 10. Offline / PWA
+## 12. Offline / PWA
 
 ### Install as App
 - In Chrome: address bar → install icon (or menu → "Install Open Bible Ministry")
@@ -225,7 +288,7 @@
 
 ---
 
-## 11. Responsive Design
+## 13. Responsive Design
 
 ### Mobile (< 640px)
 - Annotation sidebar opens as a bottom sheet (swipe to dismiss)
@@ -245,7 +308,7 @@
 
 ---
 
-## 12. Note Locking (Encryption)
+## 14. Note Locking (Encryption)
 
 > **Prerequisite:** Must be signed in. The Supabase `user_encryption` table migration must be applied.
 
@@ -329,7 +392,47 @@
 
 ---
 
-## 13. Edge Cases
+## 15. Command Palette & Keyboard Shortcuts
+
+### Command Palette
+
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) anywhere in the app
+2. A modal should appear with a search input
+3. Type "next" → should filter to "Next Chapter" and "Next Verse"
+4. Arrow keys navigate the list, Enter executes, Escape closes
+5. Commands grouped by category (Navigation, Reader, Notes, Translation, System)
+6. Keyboard shortcut badges shown next to each command
+
+### Keybinding Presets
+
+**Default preset:**
+- Arrow right/left → next/prev chapter
+- Arrow down/up → next/prev verse
+- Escape → clear selection
+
+**VSCode preset:**
+- Alt+Arrow right/left → next/prev chapter
+- Arrow down/up → next/prev verse
+- Ctrl+Shift+L → toggle layout
+- Ctrl+Shift+M → focus mode
+
+**Vim preset:**
+- j/k → next/prev verse (normal mode only)
+- Shift+J/K → next/prev chapter (normal mode only)
+- i → new annotation (enters insert mode)
+- Escape → return to normal mode
+- Mode indicator at bottom-left shows "NORMAL" or "INSERT"
+
+### Keybind Detection
+
+1. With "Default" preset active, press j or k outside of any input field
+2. After 2-3 presses, a toast should appear: "Keyboard shortcuts available"
+3. Toast links to Settings page
+4. Refresh → toast should NOT appear again (localStorage flag)
+
+---
+
+## 16. Edge Cases
 
 - **Empty state:** New user with no notes → My Notes shows "Start reading" prompt
 - **Long note content:** Write a very long note → should scroll, not break layout
