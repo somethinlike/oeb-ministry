@@ -6,6 +6,15 @@
  * 2. Passphrase — enter + confirm, with autocomplete for credential managers
  * 3. Recovery code — shown once, must acknowledge before finishing
  *
+ * Credential manager integration:
+ * - Both forms include a read-only email field (`autocomplete="username"`)
+ *   so managers can index the passphrase against the user's identity.
+ * - Setup form uses `autocomplete="new-password"` (triggers "save password" prompt).
+ * - Unlock form uses `autocomplete="current-password"` (triggers autofill).
+ * - Field `name` attributes use standard values ("username", "password")
+ *   for maximum compatibility across Chrome, Firefox, Safari/iOS Keychain,
+ *   Android autofill, Bitwarden, 1Password, and LastPass.
+ *
  * Also includes an UnlockPrompt for returning users who need to
  * enter their passphrase to read/write locked notes.
  */
@@ -23,7 +32,7 @@ interface EncryptionSetupProps {
 }
 
 export function EncryptionSetup({ onComplete, onCancel }: EncryptionSetupProps) {
-  const { setupEncryption } = useEncryption();
+  const { setupEncryption, userEmail } = useEncryption();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [passphrase, setPassphrase] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -31,6 +40,7 @@ export function EncryptionSetup({ onComplete, onCancel }: EncryptionSetupProps) 
   const [acknowledged, setAcknowledged] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const passphraseValid = passphrase.length >= 12;
   const passphrasesMatch = passphrase === confirm;
@@ -53,10 +63,39 @@ export function EncryptionSetup({ onComplete, onCancel }: EncryptionSetupProps) 
   }, [passphrase, setupEncryption]);
 
   const handleCopyCode = useCallback(() => {
-    navigator.clipboard.writeText(recoveryCode).catch(() => {
-      // Clipboard API may not be available — user can manually copy
-    });
+    navigator.clipboard.writeText(recoveryCode)
+      .then(() => setCopied(true))
+      .catch(() => {
+        // Clipboard API may not be available — user can manually copy
+      });
   }, [recoveryCode]);
+
+  /** Download the recovery code as a plain text file */
+  const handleDownloadCode = useCallback(() => {
+    const content = [
+      "OEB Ministry — Recovery Code",
+      "=============================",
+      "",
+      `Account: ${userEmail ?? "Unknown"}`,
+      `Date: ${new Date().toLocaleDateString()}`,
+      "",
+      `Recovery Code: ${recoveryCode}`,
+      "",
+      "Keep this file somewhere safe. If you forget your",
+      "passphrase, this code is the only way to recover",
+      "your locked notes.",
+    ].join("\n");
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "oeb-ministry-recovery-code.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [recoveryCode, userEmail]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay/60 p-4">
@@ -103,7 +142,12 @@ export function EncryptionSetup({ onComplete, onCancel }: EncryptionSetupProps) 
           </div>
         )}
 
-        {/* Step 2: Passphrase */}
+        {/* Step 2: Passphrase
+            The form structure is designed for maximum credential manager compatibility:
+            - Read-only email field (autocomplete="username") gives managers an identity to index
+            - Password field (autocomplete="new-password") triggers "save password" prompts
+            - Standard name attributes ("username", "new-password") for heuristic-based managers
+            - Form submit event fires even with preventDefault — browsers hook before the handler */}
         {step === 2 && (
           <form
             className="space-y-4"
@@ -119,13 +163,34 @@ export function EncryptionSetup({ onComplete, onCancel }: EncryptionSetupProps) 
               At least 12 characters. Your browser will offer to save this for you.
             </p>
 
+            {/* Email field — read-only, gives credential managers an identity to index.
+                Uses autocomplete="username" so managers pair it with the password below.
+                Visually styled as informational text, not an editable input. */}
+            {userEmail && (
+              <div>
+                <label htmlFor="oeb-encryption-email" className="block text-xs text-muted mb-1">
+                  Account
+                </label>
+                <input
+                  id="oeb-encryption-email"
+                  name="username"
+                  type="email"
+                  autoComplete="username"
+                  value={userEmail}
+                  readOnly
+                  tabIndex={-1}
+                  className="w-full rounded-lg border border-edge bg-surface-alt px-3 py-2 text-sm text-muted cursor-default focus:outline-none"
+                />
+              </div>
+            )}
+
             <div>
               <label htmlFor="oeb-encryption-passphrase" className="block text-sm font-medium text-heading mb-1">
                 Passphrase
               </label>
               <input
                 id="oeb-encryption-passphrase"
-                name="encryption-passphrase"
+                name="new-password"
                 type="password"
                 autoComplete="new-password"
                 value={passphrase}
@@ -146,7 +211,7 @@ export function EncryptionSetup({ onComplete, onCancel }: EncryptionSetupProps) 
               </label>
               <input
                 id="oeb-encryption-confirm"
-                name="encryption-passphrase-confirm"
+                name="new-password-confirm"
                 type="password"
                 autoComplete="new-password"
                 value={confirm}
@@ -201,13 +266,25 @@ export function EncryptionSetup({ onComplete, onCancel }: EncryptionSetupProps) 
               </code>
             </div>
 
-            <button
-              type="button"
-              onClick={handleCopyCode}
-              className="w-full rounded-lg border border-input-border bg-panel px-4 py-2 text-sm font-medium text-heading hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              Copy to clipboard
-            </button>
+            {/* Two save options: clipboard + download file.
+                The download gives a belt-and-suspenders fallback for users
+                who don't have a password manager or want a local backup. */}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                className="flex-1 rounded-lg border border-input-border bg-panel px-4 py-2 text-sm font-medium text-heading hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {copied ? "Copied!" : "Copy to clipboard"}
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadCode}
+                className="flex-1 rounded-lg border border-input-border bg-panel px-4 py-2 text-sm font-medium text-heading hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                Download as file
+              </button>
+            </div>
 
             <p className="text-xs text-danger leading-relaxed">
               If you lose both your passphrase and this code, your locked notes
@@ -251,7 +328,7 @@ interface UnlockPromptProps {
 }
 
 export function UnlockPrompt({ onUnlocked, onCancel }: UnlockPromptProps) {
-  const { unlock } = useEncryption();
+  const { unlock, userEmail } = useEncryption();
   const [passphrase, setPassphrase] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -285,6 +362,9 @@ export function UnlockPrompt({ onUnlocked, onCancel }: UnlockPromptProps) {
         aria-modal="true"
         aria-label="Unlock your notes"
       >
+        {/* Form with email + password fields for credential manager autofill.
+            autocomplete="current-password" tells managers this is a login/unlock form
+            (vs "new-password" which means registration). */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <h2 className="text-xl font-semibold text-heading">
             Unlock your notes
@@ -293,13 +373,28 @@ export function UnlockPrompt({ onUnlocked, onCancel }: UnlockPromptProps) {
             Enter your passphrase to read and edit locked notes.
           </p>
 
+          {/* Email field — read-only, enables credential manager autofill.
+              Without this, Chrome/Safari/iOS won't know which saved credential to offer. */}
+          {userEmail && (
+            <input
+              name="username"
+              type="email"
+              autoComplete="username"
+              value={userEmail}
+              readOnly
+              tabIndex={-1}
+              aria-hidden="true"
+              className="sr-only"
+            />
+          )}
+
           <div>
             <label htmlFor="oeb-unlock-passphrase" className="sr-only">
               Passphrase
             </label>
             <input
               id="oeb-unlock-passphrase"
-              name="encryption-passphrase"
+              name="password"
               type="password"
               autoComplete="current-password"
               autoFocus

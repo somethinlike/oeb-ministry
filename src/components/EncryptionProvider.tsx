@@ -64,6 +64,8 @@ export interface EncryptionContextValue {
    * Returns null if setup failed.
    */
   setupEncryption: (passphrase: string) => Promise<string | null>;
+  /** User's email — passed to credential manager forms so they index the passphrase correctly */
+  userEmail: string | null;
 }
 
 const EncryptionContext = createContext<EncryptionContextValue>({
@@ -74,6 +76,7 @@ const EncryptionContext = createContext<EncryptionContextValue>({
   unlock: async () => false,
   lock: () => {},
   setupEncryption: async () => null,
+  userEmail: null,
 });
 
 /** Hook to access encryption state from any component inside the provider. */
@@ -85,10 +88,12 @@ export function useEncryption(): EncryptionContextValue {
 
 interface EncryptionProviderProps {
   userId: string | null;
+  /** User's email for credential manager integration */
+  userEmail?: string | null;
   children: ReactNode;
 }
 
-export function EncryptionProvider({ userId, children }: EncryptionProviderProps) {
+export function EncryptionProvider({ userId, userEmail = null, children }: EncryptionProviderProps) {
   const [encryptionRow, setEncryptionRow] = useState<EncryptionRow | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [cryptoKey, setCryptoKey] = useState<CryptoKey | null>(null);
@@ -226,6 +231,7 @@ export function EncryptionProvider({ userId, children }: EncryptionProviderProps
     unlock,
     lock,
     setupEncryption,
+    userEmail,
   };
 
   return (

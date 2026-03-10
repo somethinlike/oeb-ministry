@@ -40,6 +40,8 @@ interface WorkspaceProps {
   book: string;
   chapter: number;
   userId: string | null;
+  /** User's email — used by credential managers when saving the encryption passphrase */
+  userEmail: string | null;
 }
 
 export function Workspace({
@@ -47,6 +49,7 @@ export function Workspace({
   book,
   chapter,
   userId,
+  userEmail,
 }: WorkspaceProps) {
   // Load persisted preferences (split ratio + swapped sides + undocked)
   const [prefs] = useState(() => loadWorkspacePrefs());
@@ -163,7 +166,7 @@ export function Workspace({
   const rightPane = swapped ? readerPane : <AnnotationSidebar />;
 
   return (
-    <EncryptionProvider userId={userId}>
+    <EncryptionProvider userId={userId} userEmail={userEmail}>
     <WorkspaceProvider
       translation={translation}
       book={book}

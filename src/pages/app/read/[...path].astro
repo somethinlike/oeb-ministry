@@ -141,6 +141,7 @@ const user = Astro.locals.user;
       book={book}
       chapter={chapter}
       userId={user?.id ?? null}
+      userEmail={user?.email ?? null}
       client:load
     />
   )}
