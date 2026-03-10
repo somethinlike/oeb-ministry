@@ -26,6 +26,8 @@ import {
   createAnnotation,
   updateAnnotation,
   softDeleteAnnotation,
+  submitForPublishing,
+  retractFromPublishing,
 } from "../lib/annotations";
 import {
   saveAnnotationLocally,
@@ -45,6 +47,7 @@ import {
   uint8ToBase64,
   base64ToUint8,
 } from "../lib/crypto";
+import { Cc0Intercession, Cc0Reminder } from "./Cc0Intercession";
 
 interface AnnotationPanelProps {
   /** The user's ID (from auth) */
@@ -111,6 +114,14 @@ export function AnnotationPanel({
     cryptoKey,
   } = useEncryption();
 
+  // ── Publishing state ──
+  const [publishStatus, setPublishStatus] = useState<string | null>(
+    existing?.publishStatus ?? null,
+  );
+  const [showCc0Intercession, setShowCc0Intercession] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [retracting, setRetracting] = useState(false);
+
   // Whether the user wants this note locked (encrypted on save)
   const [locked, setLocked] = useState(isEncryptedNote);
   // Whether the editor content is ready to display (false while decrypting)
@@ -151,6 +162,57 @@ export function AnnotationPanel({
     }
     setLocked(true);
   }, [locked, isUnlocked]);
+
+  /** Initiates the publishing flow. Shows CC0 intercession if first time. */
+  const handleShareClick = useCallback(() => {
+    // Check if user has seen the CC0 intercession before
+    const hasSeenCc0 = localStorage.getItem("oeb-has-seen-cc0-intercession") === "true";
+    if (hasSeenCc0) {
+      handlePublish();
+    } else {
+      setShowCc0Intercession(true);
+    }
+  }, []);
+
+  /** Submits the annotation for CC0 publishing. */
+  const handlePublish = useCallback(async () => {
+    if (!existing) return;
+    setPublishing(true);
+    setError(null);
+    try {
+      // Get display name from auth metadata
+      const { data: { user } } = await supabase.auth.getUser();
+      const displayName = user?.user_metadata?.full_name
+        ?? user?.user_metadata?.name
+        ?? user?.email?.split("@")[0]
+        ?? "Anonymous";
+
+      await submitForPublishing(supabase, existing.id, displayName);
+      setPublishStatus("pending");
+      // Track that user has seen the CC0 intercession
+      localStorage.setItem("oeb-has-seen-cc0-intercession", "true");
+    } catch {
+      setError("Couldn't submit your note for sharing. Please try again.");
+    } finally {
+      setPublishing(false);
+      setShowCc0Intercession(false);
+    }
+  }, [existing]);
+
+  /** Retracts a published or pending annotation back to private. */
+  const handleRetract = useCallback(async () => {
+    if (!existing) return;
+    setRetracting(true);
+    setError(null);
+    try {
+      await retractFromPublishing(supabase, existing.id);
+      setPublishStatus(null);
+    } catch {
+      setError("Couldn't retract your note. Please try again.");
+    } finally {
+      setRetracting(false);
+    }
+  }, [existing]);
 
   const bookInfo = BOOK_BY_ID.get(book as BookId);
   const verseLabel =
@@ -308,6 +370,10 @@ export function AnnotationPanel({
         verseEnd: ref.verseEnd,
       })),
       verseText: formData.verseText ?? null,
+      publishStatus: null,
+      publishedAt: null,
+      rejectionReason: null,
+      authorDisplayName: null,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       deletedAt: null,
@@ -530,6 +596,116 @@ export function AnnotationPanel({
               </div>
             )}
 
+            {/* Publishing controls — shown for saved, non-encrypted notes.
+                Can't share encrypted notes (content is ciphertext).
+                Can't share a brand-new unsaved note.
+                Grandmother Principle: "Share with everyone" not "Publish as CC0". */}
+            {existing && !justDeleted && !locked && !isEncryptedNote && (
+              <div className="rounded-lg border border-edge bg-surface-alt p-3">
+                {/* Not yet shared */}
+                {!publishStatus && (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-heading">Share with everyone</p>
+                      <p className="text-xs text-muted">
+                        Your note will be reviewed, then shared freely (CC0).
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleShareClick}
+                      disabled={publishing}
+                      className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent
+                                 hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed
+                                 focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      {publishing ? "Submitting..." : "Share"}
+                    </button>
+                  </div>
+                )}
+
+                {/* Pending review */}
+                {publishStatus === "pending" && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-full bg-amber-400" aria-hidden="true" />
+                      <p className="text-sm text-heading">Waiting for review</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRetract}
+                      disabled={retracting}
+                      className="rounded-lg border border-input-border px-3 py-1.5 text-xs text-muted
+                                 hover:bg-surface-hover disabled:opacity-50
+                                 focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      {retracting ? "Cancelling..." : "Cancel"}
+                    </button>
+                  </div>
+                )}
+
+                {/* Approved / Published */}
+                {publishStatus === "approved" && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <p className="text-sm text-heading">Shared with everyone</p>
+                      <Cc0Reminder />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRetract}
+                      disabled={retracting}
+                      className="rounded-lg border border-input-border px-3 py-1.5 text-xs text-muted
+                                 hover:bg-surface-hover disabled:opacity-50
+                                 focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      {retracting ? "Retracting..." : "Make private"}
+                    </button>
+                  </div>
+                )}
+
+                {/* Rejected */}
+                {publishStatus === "rejected" && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-full bg-red-400" aria-hidden="true" />
+                      <p className="text-sm text-heading">Not approved</p>
+                    </div>
+                    {existing.rejectionReason && (
+                      <p className="text-xs text-muted italic">
+                        Feedback: {existing.rejectionReason}
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleShareClick}
+                        disabled={publishing}
+                        className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-on-accent
+                                   hover:bg-accent-hover disabled:opacity-50
+                                   focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        Resubmit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRetract}
+                        disabled={retracting}
+                        className="rounded-lg border border-input-border px-3 py-1.5 text-xs text-muted
+                                   hover:bg-surface-hover disabled:opacity-50
+                                   focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Action buttons */}
             <div className="flex items-center gap-3">
               <button
@@ -614,6 +790,14 @@ export function AnnotationPanel({
             }
           }}
           onCancel={() => setShowUnlockPrompt(false)}
+        />
+      )}
+
+      {/* CC0 Intercession — first-publish education flow */}
+      {showCc0Intercession && (
+        <Cc0Intercession
+          onAccept={handlePublish}
+          onCancel={() => setShowCc0Intercession(false)}
         />
       )}
     </>

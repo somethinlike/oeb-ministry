@@ -1,0 +1,31 @@
+---
+/**
+ * Moderation Queue page — moderators review pending CC0 submissions.
+ *
+ * Access: restricted to users with 'moderator' or 'admin' role.
+ * Non-moderators see a "not authorized" message.
+ */
+import AppLayout from "../../layouts/AppLayout.astro";
+import { ModerationQueue } from "../../components/ModerationQueue";
+import type { AuthState } from "../../types/auth";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const authState: AuthState = {
+  isAuthenticated: true,
+  displayName: user.user_metadata?.full_name ?? user.email ?? "User",
+  email: user.email ?? null,
+  avatarUrl: user.user_metadata?.avatar_url ?? null,
+  userId: user.id,
+};
+---
+
+<AppLayout title="Moderation Queue">
+  <div class="mx-auto max-w-3xl">
+    <ModerationQueue auth={authState} client:load />
+  </div>
+</AppLayout>

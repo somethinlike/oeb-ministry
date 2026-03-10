@@ -1,0 +1,29 @@
+---
+/**
+ * Community Notes page — browse published CC0 annotations from all users.
+ *
+ * Grandmother Principle:
+ * - "Community Notes" not "Public Annotation Feed"
+ * - Accessible to all authenticated users
+ * - Search + filter by Bible book
+ */
+import AppLayout from "../../layouts/AppLayout.astro";
+import { PublicFeed } from "../../components/PublicFeed";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname)}`);
+}
+---
+
+<AppLayout title="Community Notes">
+  <div class="mx-auto max-w-3xl">
+    <h2 class="text-2xl font-bold text-heading mb-2">Community Notes</h2>
+    <p class="text-sm text-muted mb-6">
+      Notes shared freely by the community. Everything here is CC0 &mdash; read,
+      share, and build on it however you like.
+    </p>
+    <PublicFeed client:load />
+  </div>
+</AppLayout>

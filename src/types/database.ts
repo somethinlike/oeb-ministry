@@ -29,6 +29,10 @@ export interface Database {
           updated_at: string;
           deleted_at: string | null;
           search_vector: string | null;
+          publish_status: string | null;
+          published_at: string | null;
+          rejection_reason: string | null;
+          author_display_name: string | null;
         };
         Insert: {
           id?: string;
@@ -47,6 +51,10 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
+          publish_status?: string | null;
+          published_at?: string | null;
+          rejection_reason?: string | null;
+          author_display_name?: string | null;
         };
         Update: {
           id?: string;
@@ -65,6 +73,10 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           deleted_at?: string | null;
+          publish_status?: string | null;
+          published_at?: string | null;
+          rejection_reason?: string | null;
+          author_display_name?: string | null;
         };
         Relationships: [
           {
@@ -110,6 +122,77 @@ export interface Database {
             columns: ["annotation_id"];
             isOneToOne: false;
             referencedRelation: "annotations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      user_roles: {
+        Row: {
+          id: string;
+          user_id: string;
+          role: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          role: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          role?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      moderation_log: {
+        Row: {
+          id: string;
+          annotation_id: string;
+          moderator_id: string;
+          action: string;
+          reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          annotation_id: string;
+          moderator_id: string;
+          action: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          annotation_id?: string;
+          moderator_id?: string;
+          action?: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "moderation_log_annotation_id_fkey";
+            columns: ["annotation_id"];
+            isOneToOne: false;
+            referencedRelation: "annotations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "moderation_log_moderator_id_fkey";
+            columns: ["moderator_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
             referencedColumns: ["id"];
           },
         ];

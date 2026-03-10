@@ -36,6 +36,10 @@ function rowToAnnotation(
     isPublic: row.is_public,
     isEncrypted: row.is_encrypted,
     encryptionIv: row.encryption_iv ?? null,
+    publishStatus: row.publish_status ?? null,
+    publishedAt: row.published_at ?? null,
+    rejectionReason: row.rejection_reason ?? null,
+    authorDisplayName: row.author_display_name ?? null,
     crossReferences: crossRefs.map((ref) => ({
       id: ref.id,
       annotationId: ref.annotation_id,
@@ -415,6 +419,237 @@ export async function searchAnnotations(
   if (error) throw new Error(`Search failed: ${error.message}`);
 
   return (annotations ?? []).map((row) => rowToAnnotation(row));
+}
+
+// ---------------------------------------------------------------------------
+// Publishing pipeline
+// ---------------------------------------------------------------------------
+
+/**
+ * Submits an annotation for CC0 publishing review.
+ * Sets publish_status to 'pending' — a moderator will approve or reject.
+ * Encrypted annotations cannot be published (content would be ciphertext).
+ */
+export async function submitForPublishing(
+  client: DbClient,
+  annotationId: string,
+  authorDisplayName: string,
+): Promise<void> {
+  const { error } = await client
+    .from("annotations")
+    .update({
+      publish_status: "pending",
+      author_display_name: authorDisplayName,
+    })
+    .eq("id", annotationId);
+
+  if (error) throw new Error(`Failed to submit for publishing: ${error.message}`);
+}
+
+/**
+ * Retracts a published or pending annotation back to private.
+ * Clears all publishing state.
+ */
+export async function retractFromPublishing(
+  client: DbClient,
+  annotationId: string,
+): Promise<void> {
+  const { error } = await client
+    .from("annotations")
+    .update({
+      is_public: false,
+      publish_status: null,
+      published_at: null,
+      rejection_reason: null,
+    })
+    .eq("id", annotationId);
+
+  if (error) throw new Error(`Failed to retract annotation: ${error.message}`);
+}
+
+/**
+ * Fetches annotations pending moderation review.
+ * Only accessible to users with the 'moderator' or 'admin' role (enforced by RLS).
+ */
+export async function getPendingAnnotations(
+  client: DbClient,
+): Promise<Annotation[]> {
+  const { data, error } = await client
+    .from("annotations")
+    .select("*")
+    .eq("publish_status", "pending")
+    .is("deleted_at", null)
+    .order("updated_at", { ascending: true })
+    .limit(50);
+
+  if (error) throw new Error(`Failed to load pending annotations: ${error.message}`);
+  return (data ?? []).map((row) => rowToAnnotation(row));
+}
+
+/**
+ * Approves an annotation for CC0 publishing.
+ * Sets is_public = true and publish_status = 'approved'.
+ * Also creates a moderation log entry.
+ */
+export async function approveAnnotation(
+  client: DbClient,
+  annotationId: string,
+  moderatorId: string,
+  reason?: string,
+): Promise<void> {
+  const { error: updateError } = await client
+    .from("annotations")
+    .update({
+      is_public: true,
+      publish_status: "approved",
+      published_at: new Date().toISOString(),
+      rejection_reason: null,
+    })
+    .eq("id", annotationId);
+
+  if (updateError) throw new Error(`Failed to approve annotation: ${updateError.message}`);
+
+  // Log the moderation action
+  await client.from("moderation_log").insert({
+    annotation_id: annotationId,
+    moderator_id: moderatorId,
+    action: "approved",
+    reason: reason ?? null,
+  });
+}
+
+/**
+ * Rejects an annotation with feedback.
+ * The author can see the reason and revise their note.
+ */
+export async function rejectAnnotation(
+  client: DbClient,
+  annotationId: string,
+  moderatorId: string,
+  reason: string,
+): Promise<void> {
+  const { error: updateError } = await client
+    .from("annotations")
+    .update({
+      is_public: false,
+      publish_status: "rejected",
+      rejection_reason: reason,
+    })
+    .eq("id", annotationId);
+
+  if (updateError) throw new Error(`Failed to reject annotation: ${updateError.message}`);
+
+  await client.from("moderation_log").insert({
+    annotation_id: annotationId,
+    moderator_id: moderatorId,
+    action: "rejected",
+    reason,
+  });
+}
+
+/**
+ * Removes a published annotation (moderator action).
+ * Reverts to private and logs the removal.
+ */
+export async function removePublishedAnnotation(
+  client: DbClient,
+  annotationId: string,
+  moderatorId: string,
+  reason: string,
+): Promise<void> {
+  const { error } = await client
+    .from("annotations")
+    .update({
+      is_public: false,
+      publish_status: "rejected",
+      rejection_reason: reason,
+    })
+    .eq("id", annotationId);
+
+  if (error) throw new Error(`Failed to remove annotation: ${error.message}`);
+
+  await client.from("moderation_log").insert({
+    annotation_id: annotationId,
+    moderator_id: moderatorId,
+    action: "removed",
+    reason,
+  });
+}
+
+/**
+ * Fetches all published CC0 annotations for the public feed.
+ * No userId filter — returns all approved public annotations.
+ */
+export async function getPublicFeedAnnotations(
+  client: DbClient,
+  options?: { book?: string; chapter?: number; limit?: number; offset?: number },
+): Promise<Annotation[]> {
+  let query = client
+    .from("annotations")
+    .select("*")
+    .eq("is_public", true)
+    .eq("publish_status", "approved")
+    .is("deleted_at", null)
+    .order("published_at", { ascending: false });
+
+  if (options?.book) query = query.eq("book", options.book);
+  if (options?.chapter) query = query.eq("chapter", options.chapter);
+
+  const limit = options?.limit ?? 50;
+  const offset = options?.offset ?? 0;
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, error } = await query;
+  if (error) throw new Error(`Failed to load public feed: ${error.message}`);
+  return (data ?? []).map((row) => rowToAnnotation(row));
+}
+
+/**
+ * Full-text search across all public CC0 annotations.
+ */
+export async function searchPublicAnnotations(
+  client: DbClient,
+  query: string,
+): Promise<Annotation[]> {
+  const tsQuery = query
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .join(" & ");
+
+  if (!tsQuery) return [];
+
+  const { data, error } = await client
+    .from("annotations")
+    .select("*")
+    .eq("is_public", true)
+    .eq("publish_status", "approved")
+    .is("deleted_at", null)
+    .eq("is_encrypted", false)
+    .textSearch("search_vector", tsQuery)
+    .order("published_at", { ascending: false })
+    .limit(50);
+
+  if (error) throw new Error(`Public search failed: ${error.message}`);
+  return (data ?? []).map((row) => rowToAnnotation(row));
+}
+
+/**
+ * Checks if the user has the moderator or admin role.
+ */
+export async function checkIsModerator(
+  client: DbClient,
+  userId: string,
+): Promise<boolean> {
+  const { count, error } = await client
+    .from("user_roles")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .in("role", ["moderator", "admin"])
+    .limit(1);
+
+  if (error) return false;
+  return (count ?? 0) > 0;
 }
 
 // ---------------------------------------------------------------------------

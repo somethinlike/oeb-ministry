@@ -52,6 +52,14 @@ export interface Annotation {
   isEncrypted: boolean;
   /** AES-GCM initialization vector (base64). Present when isEncrypted is true. */
   encryptionIv: string | null;
+  /** Publishing workflow status: null (private), 'pending', 'approved', 'rejected' */
+  publishStatus: string | null;
+  /** When the annotation was approved for public display */
+  publishedAt: string | null;
+  /** Moderator's reason for rejecting (shown to the author) */
+  rejectionReason: string | null;
+  /** Display name of the author (for public feed attribution) */
+  authorDisplayName: string | null;
   /** Related verses that this annotation references */
   crossReferences: CrossReference[];
   /** The Bible verse text at the time the annotation was saved */

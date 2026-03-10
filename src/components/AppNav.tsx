@@ -15,6 +15,7 @@ import { supabase } from "../lib/supabase";
 import {
   hasDeletedAnnotations,
   hasPublishedAnnotations,
+  checkIsModerator,
 } from "../lib/annotations";
 import type { AuthState } from "../types/auth";
 
@@ -28,6 +29,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
   const [notesMenuOpen, setNotesMenuOpen] = useState(false);
   const [hasDeleted, setHasDeleted] = useState(false);
   const [hasPublished, setHasPublished] = useState(false);
+  const [isModerator, setIsModerator] = useState(false);
 
   useEffect(() => {
     // If server already provided full auth data, no need to re-fetch
@@ -78,6 +80,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
 
     hasDeletedAnnotations(supabase, auth.userId).then(setHasDeleted).catch(() => {});
     hasPublishedAnnotations(supabase, auth.userId).then(setHasPublished).catch(() => {});
+    checkIsModerator(supabase, auth.userId).then(setIsModerator).catch(() => {});
   }, [auth.isAuthenticated, auth.userId]);
 
   const needsNotesMenu = hasDeleted || hasPublished;
@@ -113,10 +116,14 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
               ) : (
                 <NavLink href="/app/search" label="My Notes" />
               )}
+              <NavLink href="/app/community" label="Community" />
               <NavLink href="/translations" label="Translations" />
               <NavLink href="/open-source-theology" label="Our Ethics" />
               {auth.isAuthenticated && (
                 <NavLink href="/app/settings" label="Settings" />
+              )}
+              {isModerator && (
+                <NavLink href="/app/moderation" label="Moderation" />
               )}
             </div>
           </div>
@@ -196,10 +203,14 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             {hasPublished && (
               <MobileNavLink href="/app/published" label="My Published Notes" indent />
             )}
+            <MobileNavLink href="/app/community" label="Community Notes" />
             <MobileNavLink href="/translations" label="Translations" />
             <MobileNavLink href="/open-source-theology" label="Our Ethics" />
             {auth.isAuthenticated && (
               <MobileNavLink href="/app/settings" label="Settings" />
+            )}
+            {isModerator && (
+              <MobileNavLink href="/app/moderation" label="Moderation Queue" />
             )}
             <hr className="my-2 border-edge" />
             {auth.isAuthenticated ? (
