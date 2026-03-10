@@ -66,15 +66,15 @@ The "make it yours" release: lock your notes, share your notes, make the app fee
 
 ### User Settings Page (`/app/settings`)
 
-- [ ] Central settings page for all user preferences
-- [ ] Translation toggle preferences (migrate from toolbar-only localStorage)
-- [ ] Reader font preference
-- [ ] Default Bible translation
+- [x] Central settings page for all user preferences
+- [x] Translation toggle preferences (migrate from toolbar-only localStorage)
+- [x] Reader font preference
+- [x] Default Bible translation
 - [ ] Offline Bible downloads — pick translations to pre-cache with storage estimate
-- [ ] Account info (email, connected OAuth providers)
-- [ ] Export all data button
-- [ ] `user_preferences` Supabase table with RLS (syncs across devices)
-- [ ] localStorage fallback for unauthenticated / offline users
+- [x] Account info (email, connected OAuth providers)
+- [x] Export all data button
+- [x] `user_preferences` Supabase table with RLS (syncs across devices)
+- [x] localStorage fallback for unauthenticated / offline users
 
 ### Dark Mode + Denomination Themes
 
@@ -83,7 +83,7 @@ The "make it yours" release: lock your notes, share your notes, make the app fee
 - [x] Default theme (current blue accent, light/dark)
 - [x] Lutheran theme (warm white/charcoal, deep red + gold accents — Luther's rose seal)
 - [x] Catholic theme (ivory/deep navy, royal purple + gold — liturgical/Gothic)
-- [x] Orthodox theme (parchment/dark olive, crimson + forest green — Byzantine/ikon)
+- [x] Orthodox theme (parchment/warm brown, crimson + gold — Byzantine mosaics)
 - [x] WCAG AAA contrast verified for every theme + mode combination
 - [x] Theme selector in settings (persisted via `user_preferences`)
 
@@ -101,9 +101,9 @@ The "make it yours" release: lock your notes, share your notes, make the app fee
 
 ### Denomination Presets (Word Choices)
 
-- [ ] Wire up denomination presets to UI (already defined in `denomination-presets.ts`)
-- [ ] Preset selector in settings: Catholic, Orthodox, Baptist, ELCA, Academic/Literal, Custom
-- [ ] Preset auto-sets translation toggles (user can still override individual toggles)
+- [x] Wire up denomination presets to UI (already defined in `denomination-presets.ts`)
+- [x] Preset selector in settings: Catholic, Orthodox, Baptist, ELCA, Academic/Literal, Custom
+- [x] Preset auto-sets translation toggles (user can still override individual toggles)
 
 ---
 
