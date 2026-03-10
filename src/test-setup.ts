@@ -1,15 +1,18 @@
-// This file runs before every test. It adds custom matchers from
-// @testing-library/jest-dom, like .toBeInTheDocument() and .toHaveTextContent().
-// Without this, you'd need to import these matchers in every test file.
+/**
+ * Vitest global test setup.
+ *
+ * Runs before every test file. Sets up:
+ * - jest-dom matchers (toBeInTheDocument, toHaveTextContent, etc.)
+ * - Web Crypto API polyfill for Node.js/jsdom environment
+ */
+
 import "@testing-library/jest-dom/vitest";
 
-// jsdom doesn't implement Pointer Events API methods. Our drag-based
-// components (BottomSheet, FloatingPanel, SplitPaneDivider) call
-// setPointerCapture/releasePointerCapture on pointer down. Without
-// these stubs, pointer events from userEvent.click() throw errors.
-if (typeof HTMLElement.prototype.setPointerCapture === "undefined") {
-  HTMLElement.prototype.setPointerCapture = () => {};
-}
-if (typeof HTMLElement.prototype.releasePointerCapture === "undefined") {
-  HTMLElement.prototype.releasePointerCapture = () => {};
+// Node.js exposes Web Crypto at `globalThis.crypto` since v19+, but
+// older Node / some jsdom setups may not have `crypto.subtle`. Ensure
+// the full Web Crypto API is available for tests that use it.
+import { webcrypto } from "node:crypto";
+
+if (!globalThis.crypto?.subtle) {
+  globalThis.crypto = webcrypto as unknown as Crypto;
 }
