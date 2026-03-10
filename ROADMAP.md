@@ -38,12 +38,14 @@ The "make it yours" release: lock your notes, share your notes, make the app fee
 
 ### Encryption (Private Annotations)
 
-- [ ] Client-side AES-256-GCM encryption via Web Crypto API
-- [ ] PBKDF2 key derivation (600k+ iterations) from user passphrase
-- [ ] Browser credential manager integration (`autocomplete` attributes for passphrase save prompts)
-- [ ] One-time recovery code generation at encryption setup
-- [ ] "Lock this note" / "Unlock" UI (Tier 1 language — no crypto jargon in UI)
-- [ ] Encrypt/decrypt roundtrip tests + wrong-key rejection tests
+- [x] Client-side AES-256-GCM encryption via Web Crypto API
+- [x] PBKDF2 key derivation (600k+ iterations) from user passphrase
+- [x] Browser credential manager integration (`autocomplete` attributes for passphrase save prompts)
+- [x] One-time recovery code generation at encryption setup
+- [x] "Lock this note" / "Unlock" UI (Tier 1 language — no crypto jargon in UI)
+- [x] Encrypt/decrypt roundtrip tests + wrong-key rejection tests
+- [x] Lock icons + "Locked note" preview in annotation lists
+- [x] Encrypted annotations excluded from search + export (with user warning)
 
 ### CC0 Publishing Pipeline
 
