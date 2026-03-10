@@ -78,14 +78,14 @@ The "make it yours" release: lock your notes, share your notes, make the app fee
 
 ### Dark Mode + Denomination Themes
 
-- [ ] Light/dark mode toggle (`prefers-color-scheme` auto-detect + manual override)
-- [ ] CSS custom properties for all theme colors
-- [ ] Default theme (current blue accent, light/dark)
-- [ ] Lutheran theme (warm white/charcoal, deep red + gold accents — Luther's rose seal)
-- [ ] Catholic theme (ivory/deep navy, royal purple + gold — liturgical/Gothic)
-- [ ] Orthodox theme (parchment/dark olive, crimson + forest green — Byzantine/ikon)
-- [ ] WCAG AAA contrast verified for every theme + mode combination
-- [ ] Theme selector in settings (persisted via `user_preferences`)
+- [x] Light/dark mode toggle (`prefers-color-scheme` auto-detect + manual override)
+- [x] CSS custom properties for all theme colors
+- [x] Default theme (current blue accent, light/dark)
+- [x] Lutheran theme (warm white/charcoal, deep red + gold accents — Luther's rose seal)
+- [x] Catholic theme (ivory/deep navy, royal purple + gold — liturgical/Gothic)
+- [x] Orthodox theme (parchment/dark olive, crimson + forest green — Byzantine/ikon)
+- [x] WCAG AAA contrast verified for every theme + mode combination
+- [x] Theme selector in settings (persisted via `user_preferences`)
 
 ### Command Palette & Keyboard Navigation
 
@@ -146,6 +146,55 @@ The "build something bigger" release: curate, remix, and share full devotional B
 - [ ] Public profile page (`/profile/{username}`)
 - [ ] Display published annotations and devotional Bibles
 - [ ] Content and design TBD (Ryan will outline later)
+
+---
+
+## v4 — Audio Bible Carousel
+
+The "hear the Word" release: embed YouTube audio Bibles, sync annotations to the spoken verse, and navigate scripture through a living carousel.
+
+### Audio Bible Management
+
+- [ ] Users can add YouTube audio Bible links to their personal library (private by default)
+- [ ] "Publish" an audio Bible — submits to moderation pipeline (same flow as CC0 annotation publishing)
+- [ ] AI screening pass + human moderator review before public listing
+- [ ] Published audio Bibles visible to all users; private ones visible only to the uploader
+- [ ] `audio_bibles` table: YouTube URL, title, uploader, status (private/pending/published), verse coverage map
+- [ ] Admin/moderator tools for reviewing submitted audio Bibles
+
+### Transcription & Verse-Mapping Pipeline
+
+- [ ] Pull transcript from YouTube (captions API or whisper-based fallback for uncaptioned videos)
+- [ ] Verse detection engine — parse transcript text against canonical verse database to identify which verses appear
+- [ ] Timestamp-to-verse mapping — associate each detected verse with its start/end timestamps in the video
+- [ ] Handle non-sequential content (sermon clips, topical compilations, random verse collections — not just Genesis-to-Revelation)
+- [ ] `audio_bible_verses` table: audio_bible_id, book, chapter, verse_start, verse_end, timestamp_start_ms, timestamp_end_ms
+- [ ] Re-run pipeline on demand (if transcript improves or verse detection is updated)
+
+### Annotation Carousel
+
+- [ ] Carousel UI synced to video playback — current verse's annotation displayed as the active card
+- [ ] Mobile: swipeable single-card carousel (touch-native, no faded neighbors)
+- [ ] Desktop/tablet: active card centered with faded previous/next cards visible on left and right
+- [ ] Tapping/clicking an annotation card seeks the video to that verse's timestamp (annotations = bookmarks)
+- [ ] Audio Bible agnostic — same annotations render on any video that covers the same verses
+- [ ] Dynamic carousel generation: given a video's verse map + user's annotations, build the carousel on demand
+- [ ] Smooth transitions as video playback crosses verse boundaries
+- [ ] Empty states — graceful handling when a verse has no annotation (skip or show placeholder card)
+
+### Video Categorization & Discovery
+
+- [ ] Categorize audio Bibles by type: full book, chapter, topical compilation, sermon excerpt, custom selection
+- [ ] Browse/search published audio Bibles by book, chapter, verse coverage, or category
+- [ ] "Find audio Bibles for this passage" — from the reader, discover videos that cover the current chapter/verse
+- [ ] Verse coverage visualization — show which verses a video covers (useful for partial/topical recordings)
+
+### Integration with Existing Systems
+
+- [ ] Annotations from v1 work seamlessly — no migration needed, carousel reads existing verse anchors
+- [ ] Devotional Bible collections (v3) can be played as carousel sequences over matching audio Bibles
+- [ ] Published CC0 annotations (v2) available in the carousel alongside personal annotations
+- [ ] Offline: cache video metadata and verse maps in IndexedDB (video itself streams from YouTube)
 
 ---
 
