@@ -40,6 +40,8 @@ import {
   applyTheme,
 } from "../lib/theme";
 import { ExportButton } from "./ExportButton";
+import { EncryptionProvider, useEncryption } from "./EncryptionProvider";
+import { EncryptionSetup } from "./EncryptionSetup";
 import type { AuthState } from "../types/auth";
 
 interface SettingsPageProps {
@@ -356,6 +358,15 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
           <ExportButton userId={auth.userId ?? undefined} />
         </SettingRow>
       </Section>
+
+      {/* ── Security (Advanced) ──
+          Wrapped in its own EncryptionProvider since settings lives outside the workspace.
+          Grandmother Principle: this section lives at the bottom — most users never scroll here. */}
+      {auth.userId && (
+        <EncryptionProvider userId={auth.userId} userEmail={auth.email}>
+          <SecuritySection />
+        </EncryptionProvider>
+      )}
     </div>
   );
 }
@@ -370,6 +381,105 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {children}
       </div>
     </section>
+  );
+}
+
+/**
+ * SecuritySection — encryption setup, lives at the bottom of settings.
+ * Must be rendered inside an EncryptionProvider.
+ *
+ * Two states:
+ * 1. Not set up → "Set up note locking" button → opens EncryptionSetup wizard
+ * 2. Already set up → shows status + lock toggle info
+ */
+function SecuritySection() {
+  const { hasEncryption, isLoaded, isUnlocked, lock } = useEncryption();
+  const [showSetup, setShowSetup] = useState(false);
+
+  // Don't render until we know the encryption state
+  if (!isLoaded) return null;
+
+  return (
+    <>
+      <Section title="Security">
+        {hasEncryption ? (
+          // Already set up — show status
+          <div className="space-y-4">
+            <SettingRow
+              label="Note locking"
+              description="Your notes can be locked with your passphrase"
+            >
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                <svg
+                  className="h-3 w-3"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Enabled
+              </span>
+            </SettingRow>
+            <p className="text-xs text-muted leading-relaxed">
+              Use the &ldquo;Lock this note&rdquo; button when writing a note to
+              scramble it so only you can read it. Locked notes show a padlock
+              icon in your notes list.
+            </p>
+            {isUnlocked && (
+              <button
+                type="button"
+                onClick={lock}
+                className="rounded-lg border border-input-border bg-panel px-4 py-2 text-sm font-medium text-muted hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                Lock now (clear passphrase from memory)
+              </button>
+            )}
+          </div>
+        ) : (
+          // Not set up — offer to enable
+          <div className="space-y-3">
+            <p className="text-sm text-body leading-relaxed">
+              Lock individual notes so only you can read them — not even we can
+              see what you write. You&apos;ll create a passphrase that your browser
+              can save for you.
+            </p>
+            <details className="text-xs text-muted">
+              <summary className="cursor-pointer hover:text-heading">
+                How does it work?
+              </summary>
+              <p className="mt-2 leading-relaxed">
+                Your notes are scrambled on your device before they leave. The
+                passphrase creates a unique key stored only in your browser&apos;s
+                memory. Without the passphrase, the scrambled text is unreadable —
+                even by us.
+              </p>
+            </details>
+            <button
+              type="button"
+              onClick={() => setShowSetup(true)}
+              className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-on-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              Set up note locking
+            </button>
+          </div>
+        )}
+      </Section>
+
+      {/* Setup wizard modal */}
+      {showSetup && (
+        <EncryptionSetup
+          onComplete={() => setShowSetup(false)}
+          onCancel={() => setShowSetup(false)}
+        />
+      )}
+    </>
   );
 }
 

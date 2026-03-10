@@ -38,7 +38,7 @@ import { BOOK_BY_ID } from "../lib/constants";
 import { loadChapter } from "../lib/bible-loader";
 import { extractVerseText } from "../lib/verse-text";
 import { useEncryption } from "./EncryptionProvider";
-import { EncryptionSetup, UnlockPrompt } from "./EncryptionSetup";
+import { UnlockPrompt } from "./EncryptionSetup";
 import {
   encryptContent,
   decryptContent,
@@ -107,7 +107,6 @@ export function AnnotationPanel({
   // ── Encryption state ──
   const {
     hasEncryption,
-    isLoaded: encryptionLoaded,
     isUnlocked,
     cryptoKey,
   } = useEncryption();
@@ -117,7 +116,6 @@ export function AnnotationPanel({
   // Whether the editor content is ready to display (false while decrypting)
   const [contentReady, setContentReady] = useState(!isEncryptedNote);
   // Modal visibility
-  const [showSetupWizard, setShowSetupWizard] = useState(false);
   const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
 
   // Auto-decrypt encrypted notes when the CryptoKey becomes available.
@@ -139,16 +137,11 @@ export function AnnotationPanel({
       });
   }, [isEncryptedNote, contentReady, cryptoKey, existing?.contentMd, existing?.encryptionIv]);
 
-  /** Toggle the lock state. Triggers setup or unlock prompts as needed. */
+  /** Toggle the lock state. Only reachable when hasEncryption is true. */
   const handleToggleLock = useCallback(() => {
     if (locked) {
       // Turning lock off — content stays as plaintext
       setLocked(false);
-      return;
-    }
-    // Turning lock on — need encryption set up first
-    if (!hasEncryption) {
-      setShowSetupWizard(true);
       return;
     }
     // Need key in memory to encrypt on save
@@ -157,7 +150,7 @@ export function AnnotationPanel({
       return;
     }
     setLocked(true);
-  }, [locked, hasEncryption, isUnlocked]);
+  }, [locked, isUnlocked]);
 
   const bookInfo = BOOK_BY_ID.get(book as BookId);
   const verseLabel =
@@ -476,9 +469,9 @@ export function AnnotationPanel({
               anchorVerseEnd={verseEnd}
             />
 
-            {/* Lock toggle — only shown when encryption system is loaded.
-                Tier 1 language: "Lock this note" not "Encrypt". */}
-            {encryptionLoaded && (
+            {/* Lock toggle — only shown when user has set up encryption in Settings.
+                Grandma never sees this. Tier 1 language: "Lock this note" not "Encrypt". */}
+            {hasEncryption && (
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -607,19 +600,8 @@ export function AnnotationPanel({
         )}
       </div>
 
-      {/* Encryption modals — rendered outside the main panel div since they
-          use fixed positioning for full-screen overlay. */}
-      {showSetupWizard && (
-        <EncryptionSetup
-          onComplete={() => {
-            setShowSetupWizard(false);
-            // Setup succeeded — encryption is ready and key is in memory.
-            // Turn on lock for this note.
-            setLocked(true);
-          }}
-          onCancel={() => setShowSetupWizard(false)}
-        />
-      )}
+      {/* Unlock prompt — rendered outside the main panel div since it
+          uses fixed positioning for full-screen overlay. */}
       {showUnlockPrompt && (
         <UnlockPrompt
           onUnlocked={() => {
