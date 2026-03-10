@@ -40,10 +40,18 @@ export interface Annotation {
   translation: string;
   /** Which verse(s) this annotation is anchored to */
   anchor: VerseAnchor;
-  /** The annotation content in Markdown format */
+  /**
+   * The annotation content in Markdown format.
+   * When `isEncrypted` is true, this contains base64-encoded AES-256-GCM
+   * ciphertext instead of plaintext Markdown.
+   */
   contentMd: string;
   /** Whether this annotation is publicly visible (CC0 licensed) */
   isPublic: boolean;
+  /** Whether contentMd is encrypted (client-side AES-256-GCM) */
+  isEncrypted: boolean;
+  /** AES-GCM initialization vector (base64). Present when isEncrypted is true. */
+  encryptionIv: string | null;
   /** Related verses that this annotation references */
   crossReferences: CrossReference[];
   /** The Bible verse text at the time the annotation was saved */
@@ -65,4 +73,8 @@ export interface AnnotationFormData {
   crossReferences: Omit<CrossReference, "id" | "annotationId">[];
   /** The Bible verse text to store with this annotation */
   verseText?: string;
+  /** When true, contentMd contains encrypted ciphertext (base64) */
+  isEncrypted?: boolean;
+  /** AES-GCM IV for this annotation (base64). Required when isEncrypted is true. */
+  encryptionIv?: string | null;
 }

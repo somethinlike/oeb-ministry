@@ -180,6 +180,8 @@ export function AnnotationPanel({
       verseEnd: formData.anchor.verseEnd,
       contentMd: formData.contentMd,
       isPublic: false,
+      isEncrypted: false,
+      encryptionIv: null,
       crossReferences: formData.crossReferences.map((ref) => ({
         book: ref.book,
         chapter: ref.chapter,
@@ -216,6 +218,8 @@ export function AnnotationPanel({
       anchor: formData.anchor,
       contentMd: formData.contentMd,
       isPublic: false,
+      isEncrypted: false,
+      encryptionIv: null,
       crossReferences: formData.crossReferences.map((ref, index) => ({
         // Temporary IDs for UI rendering — real IDs created on sync
         id: `offline-${id}-xref-${index}`,
@@ -260,6 +264,8 @@ export function AnnotationPanel({
           verseEnd: existing.anchor.verseEnd,
           contentMd: existing.contentMd,
           isPublic: existing.isPublic,
+          isEncrypted: existing.isEncrypted,
+          encryptionIv: existing.encryptionIv,
           crossReferences: existing.crossReferences.map((ref) => ({
             book: ref.book,
             chapter: ref.chapter,

@@ -65,7 +65,7 @@ export async function deriveKey(
   return crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt,
+      salt: salt as BufferSource,
       iterations,
       hash: "SHA-256",
     },
@@ -97,7 +97,7 @@ export async function deriveWrappingKey(
   return crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt,
+      salt: salt as BufferSource,
       iterations,
       hash: "SHA-256",
     },
@@ -128,7 +128,7 @@ export async function encryptContent(
   const encoded = new TextEncoder().encode(plaintext);
 
   const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
+    { name: "AES-GCM", iv: iv as BufferSource },
     key,
     encoded,
   );
@@ -152,9 +152,9 @@ export async function decryptContent(
   iv: Uint8Array,
 ): Promise<string> {
   const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
+    { name: "AES-GCM", iv: iv as BufferSource },
     key,
-    ciphertext,
+    ciphertext as BufferSource,
   );
 
   return new TextDecoder().decode(decrypted);
@@ -201,7 +201,7 @@ export async function unwrapKey(
 ): Promise<CryptoKey> {
   return crypto.subtle.unwrapKey(
     "raw",
-    wrappedKey,
+    wrappedKey as BufferSource,
     unwrappingKey,
     "AES-KW",
     { name: "AES-GCM", length: 256 },
@@ -231,7 +231,7 @@ export async function deriveExtractableKey(
   return crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt,
+      salt: salt as BufferSource,
       iterations,
       hash: "SHA-256",
     },

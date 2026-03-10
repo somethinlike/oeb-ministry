@@ -21,6 +21,9 @@ export interface Database {
           verse_end: number;
           content_md: string;
           is_public: boolean;
+          is_encrypted: boolean;
+          encryption_iv: string | null;
+          encryption_salt: string | null;
           verse_text: string | null;
           created_at: string;
           updated_at: string;
@@ -37,6 +40,9 @@ export interface Database {
           verse_end: number;
           content_md?: string;
           is_public?: boolean;
+          is_encrypted?: boolean;
+          encryption_iv?: string | null;
+          encryption_salt?: string | null;
           verse_text?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -52,6 +58,9 @@ export interface Database {
           verse_end?: number;
           content_md?: string;
           is_public?: boolean;
+          is_encrypted?: boolean;
+          encryption_iv?: string | null;
+          encryption_salt?: string | null;
           verse_text?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -101,6 +110,56 @@ export interface Database {
             columns: ["annotation_id"];
             isOneToOne: false;
             referencedRelation: "annotations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      user_encryption: {
+        Row: {
+          id: string;
+          user_id: string;
+          key_salt: string;
+          iterations: number;
+          recovery_code_hash: string;
+          recovery_wrapped_key: string;
+          recovery_key_salt: string;
+          verification_ciphertext: string;
+          verification_iv: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          key_salt: string;
+          iterations?: number;
+          recovery_code_hash: string;
+          recovery_wrapped_key: string;
+          recovery_key_salt: string;
+          verification_ciphertext: string;
+          verification_iv: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          key_salt?: string;
+          iterations?: number;
+          recovery_code_hash?: string;
+          recovery_wrapped_key?: string;
+          recovery_key_salt?: string;
+          verification_ciphertext?: string;
+          verification_iv?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_encryption_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
             referencedColumns: ["id"];
           },
         ];

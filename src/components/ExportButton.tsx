@@ -99,6 +99,8 @@ export function ExportButton({
         },
         contentMd: row.content_md,
         isPublic: row.is_public,
+        isEncrypted: row.is_encrypted ?? false,
+        encryptionIv: row.encryption_iv ?? null,
         crossReferences: [],
         verseText: row.verse_text ?? null,
         createdAt: row.created_at,

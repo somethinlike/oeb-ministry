@@ -85,6 +85,8 @@ async function processItem(item: SyncQueueItem): Promise<void> {
         verse_end: item.data.verseEnd,
         content_md: item.data.contentMd,
         is_public: item.data.isPublic,
+        is_encrypted: item.data.isEncrypted,
+        encryption_iv: item.data.encryptionIv ?? null,
         verse_text: item.data.verseText ?? null,
       });
 
@@ -131,6 +133,8 @@ async function processItem(item: SyncQueueItem): Promise<void> {
           verse_start: item.data.verseStart,
           verse_end: item.data.verseEnd,
           content_md: item.data.contentMd,
+          is_encrypted: item.data.isEncrypted,
+          encryption_iv: item.data.encryptionIv ?? null,
           verse_text: item.data.verseText ?? null,
         })
         .eq("id", item.annotationId);

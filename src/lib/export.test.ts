@@ -15,6 +15,8 @@ function makeAnnotation(overrides: Partial<Annotation> = {}): Annotation {
     },
     contentMd: "For God so loved the world.",
     isPublic: false,
+    isEncrypted: false,
+    encryptionIv: null,
     crossReferences: [],
     verseText: null,
     createdAt: "2026-02-14T12:00:00Z",

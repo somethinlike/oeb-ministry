@@ -30,6 +30,10 @@ export interface OfflineAnnotation {
   verseEnd: number;
   contentMd: string;
   isPublic: boolean;
+  /** Whether contentMd is encrypted (client-side AES-256-GCM) */
+  isEncrypted: boolean;
+  /** AES-GCM IV for this annotation (base64). Present when isEncrypted is true. */
+  encryptionIv: string | null;
   /** Cross-references stored with the annotation for offline support */
   crossReferences: OfflineCrossReference[];
   /** The Bible verse text at the time the annotation was saved */
@@ -54,7 +58,7 @@ export interface SyncQueueItem {
 }
 
 const DB_NAME = "oeb-ministry";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
@@ -70,12 +74,9 @@ function getDb(): Promise<IDBPDatabase> {
           store.createIndex("by-sync-status", "syncStatus");
           db.createObjectStore("sync-queue", { keyPath: "id" });
         }
-        // v2: OfflineAnnotation now includes crossReferences field.
-        // No structural change — existing records get crossReferences: []
-        // via the ?? [] default in getLocalAnnotationsForChapter().
-        // v3: OfflineAnnotation now includes deletedAt field.
-        // No structural change — existing records get deletedAt: null
-        // via the ?? null default in getLocalAnnotationsForChapter().
+        // v2: crossReferences field added. Defaults to [] via normalize.
+        // v3: deletedAt field added. Defaults to null via normalize.
+        // v4: isEncrypted + encryptionIv fields added. Defaults via normalize.
       },
     });
   }
@@ -110,6 +111,8 @@ export async function getLocalAnnotationsForChapter(
     crossReferences: r.crossReferences ?? [],
     deletedAt: r.deletedAt ?? null,
     verseText: r.verseText ?? null,
+    isEncrypted: r.isEncrypted ?? false,
+    encryptionIv: r.encryptionIv ?? null,
   }));
 }
 

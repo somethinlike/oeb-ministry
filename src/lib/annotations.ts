@@ -34,6 +34,8 @@ function rowToAnnotation(
     },
     contentMd: row.content_md,
     isPublic: row.is_public,
+    isEncrypted: row.is_encrypted,
+    encryptionIv: row.encryption_iv ?? null,
     crossReferences: crossRefs.map((ref) => ({
       id: ref.id,
       annotationId: ref.annotation_id,
@@ -139,6 +141,8 @@ export async function createAnnotation(
       verse_end: formData.anchor.verseEnd,
       content_md: formData.contentMd,
       verse_text: formData.verseText ?? null,
+      is_encrypted: formData.isEncrypted ?? false,
+      encryption_iv: formData.encryptionIv ?? null,
     })
     .select()
     .single();
@@ -185,6 +189,8 @@ export async function updateAnnotation(
   const updateData: Database["public"]["Tables"]["annotations"]["Update"] = {};
   if (formData.contentMd !== undefined) updateData.content_md = formData.contentMd;
   if (formData.verseText !== undefined) updateData.verse_text = formData.verseText;
+  if (formData.isEncrypted !== undefined) updateData.is_encrypted = formData.isEncrypted;
+  if (formData.encryptionIv !== undefined) updateData.encryption_iv = formData.encryptionIv;
   if (formData.anchor) {
     updateData.book = formData.anchor.book;
     updateData.chapter = formData.anchor.chapter;
