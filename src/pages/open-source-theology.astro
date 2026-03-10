@@ -7,7 +7,7 @@
  *
  * 1. Inspirational theology — why we give freely (Tier 1)
  * 2. Historical examples — Carver, Bach, and others (Tier 1–2)
- * 3. The ethics of this project — CC0, Christ's ethics (Tier 2)
+ * 3. The ethics of this project — CC0, Christ's ethics, note locking (Tier 2)
  * 4. Open source philosophy — connection to the broader movement (Tier 2)
  * 5. How it's built — tech stack, AI-assisted development, auditability (Tier 3)
  */
@@ -318,15 +318,69 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </h3>
         <div class="space-y-3 text-body leading-relaxed">
           <p>
-            Every note you write can be downloaded at any time. If this site
-            disappears tomorrow, you leave with everything. Your notes export
-            as simple text files that work in any note-taking app.
+            Every note you write can be downloaded at any time — as a
+            printable HTML page and as simple text files that work in any
+            note-taking app. If this site disappears tomorrow, you leave with
+            everything you wrote.
           </p>
           <p>
-            Private notes are locked on your device before they ever reach our
-            servers. We couldn't read them even if we wanted to. That's not a
-            policy — it's math.
+            Your notes are always protected by database-level access controls.
+            Nobody can query your data except you. And if you want an even
+            stronger guarantee, note locking takes it a step further.
           </p>
+        </div>
+      </div>
+
+      <!-- Note Locking -->
+      <div class="mt-6 rounded-lg border border-edge bg-surface-alt p-6">
+        <h3 class="text-lg font-semibold text-heading mb-3">
+          Note Locking
+        </h3>
+        <div class="space-y-3 text-body leading-relaxed">
+          <p>
+            For users who want maximum privacy, note locking scrambles your
+            notes on your device before they ever leave your browser. Once
+            locked, not even we can read what you wrote. That's not a policy
+            — it's math.
+          </p>
+          <p>
+            You choose a passphrase (your browser will offer to save it for
+            you), and from then on you can lock any note individually. Locked
+            notes are unreadable without your passphrase — on our servers,
+            they're just scrambled text.
+          </p>
+          <p>
+            This feature is completely optional. Most people will never need
+            it. But for those who want the peace of mind that comes with
+            true end-to-end privacy, it's there — in Settings, whenever
+            you're ready.
+          </p>
+          <details class="text-sm text-muted">
+            <summary class="cursor-pointer hover:text-heading">
+              How does it work?
+            </summary>
+            <div class="mt-2 space-y-2 leading-relaxed">
+              <p>
+                When you set up note locking, your passphrase is used to create
+                a unique encryption key that only exists in your browser's
+                memory. When you lock a note, it's scrambled with that key
+                before being saved. When you open the note later, your browser
+                uses the same passphrase to unscramble it.
+              </p>
+              <p>
+                During setup, you also receive a one-time recovery code. If
+                you ever forget your passphrase, this code is the only way to
+                get back in. We recommend saving it in a password manager or
+                printing it and storing it somewhere safe.
+              </p>
+              <p>
+                If you lose both your passphrase and your recovery code, your
+                locked notes are gone forever. We cannot recover them for you.
+                This is by design — it means nobody else can access them
+                either.
+              </p>
+            </div>
+          </details>
         </div>
       </div>
     </section>
