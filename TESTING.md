@@ -249,10 +249,10 @@
 
 > **Prerequisite:** Must be signed in. The Supabase `user_encryption` table migration must be applied.
 
-### First-Time Setup
+### First-Time Setup (in Settings)
 
-1. Open a note (create or edit) in the workspace
-2. Click **"Lock this note"** button (below cross-references, above Save)
+1. Go to **Settings** (`/app/settings`) and scroll to the **Security** section at the bottom
+2. Click **"Set up note locking"**
 3. A 3-step wizard should appear:
    - **Step 1 — Introduction:** Explains locking in plain language. Click "Continue".
    - **Step 2 — Passphrase:** Enter a passphrase (12+ characters minimum).
@@ -262,10 +262,13 @@
    - **Step 3 — Recovery Code:** Shows a `XXXX-XXXX-XXXX-XXXX-XXXX-XXXX` code.
      - "Copy to clipboard" button should work
      - Must check "I have saved my recovery code" before "Finish setup" enables
-4. After finishing, the lock toggle should show **"Locked"** with a closed padlock icon
+4. After finishing, the Security section should show **"Enabled"** with a padlock icon
 5. Check Supabase → `user_encryption` table should have a new row for your user
+6. The "Download as file" button should save `oeb-ministry-recovery-code.txt`
 
 ### Locking a Note
+
+> **Prerequisite:** Encryption must be set up in Settings first. The lock toggle only appears after setup.
 
 1. Write a note and toggle "Lock this note" on → padlock icon + "Locked" label
 2. "Only you can read this note" appears next to the toggle
@@ -319,8 +322,9 @@
 
 - **Wrong passphrase:** Enter wrong passphrase in UnlockPrompt → "That passphrase didn't work" error
 - **Cancel prompts:** Cancel the setup wizard or unlock prompt → returns to previous state cleanly
-- **Lock toggle without setup:** First toggle triggers the full setup wizard
+- **Lock toggle hidden without setup:** The "Lock this note" toggle should NOT appear unless encryption is set up in Settings
 - **Lock toggle after reload:** Toggle triggers unlock prompt (key cleared from memory)
+- **Credential manager:** Bitwarden/Chrome/iOS should offer to save the passphrase during setup and autofill during unlock
 - **Very long note + encryption:** Write a 5000+ character note, lock it, save, reload, unlock, verify full content
 
 ---
