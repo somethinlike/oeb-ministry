@@ -1043,3 +1043,42 @@ Ryan clarified the intent: the constraint is on the **export format**, not the d
 **Status:** Distant future. Significant UX and technical design work needed to make the recording experience smooth and the storage/playback system robust. Logged for when the time comes.
 
 ---
+
+## 2026-03-10 — v2 Complete: Encryption, Publishing, & Personalization
+
+**What shipped:**
+
+All remaining v2 features completed in a single sprint:
+
+1. **CC0 Publishing Pipeline:**
+   - DB migration: `publish_status`, `published_at`, `rejection_reason`, `author_display_name` columns on annotations; `user_roles` and `moderation_log` tables with full RLS
+   - Service module: 8 new functions (submit, retract, getPending, approve, reject, remove, getPublicFeed, searchPublic, checkIsModerator)
+   - CC0 Intercession modal: carousel of 7 historical figures who gave freely, shown once per user
+   - AnnotationPanel: publish/retract/resubmit UI with contextual status badges
+   - Moderator queue (`/app/moderation`): approve with one click, reject with required written feedback
+   - Public feed (`/app/community`): browse all CC0 annotations, search, filter by book
+   - Nav updates: Community link for all users, Moderation link for moderators
+
+2. **Command Palette & Keyboard Navigation:**
+   - Command registry: 28 commands across 5 categories (navigation, reader, annotation, translation, system)
+   - Three keybinding presets: Default (arrow keys), VSCode (Ctrl+G, Alt+arrows), Vim (j/k with normal/insert mode)
+   - Command palette (Ctrl+Shift+P): fuzzy search, grouped by category, keyboard shortcut badges
+   - Vim mode state machine with bottom-left mode indicator
+   - Passive keybind detection (j/k/: patterns) → one-time toast suggesting Settings
+   - 36 tests for the commands module
+   - Keybinding preset selector in Settings (syncs across devices)
+
+3. **Offline Bible Downloads:**
+   - Settings UI: download entire translations with progress bars and storage estimates
+   - Remove button for cached translations
+   - Leverages existing `offline-books.ts` module + Cache API
+
+**Architecture decisions:**
+- AI screening for CC0 pipeline deferred to v3 (human moderation is sufficient for launch scale)
+- Keybinding preset stored in `oeb-user-prefs` localStorage key (same as other user prefs) and synced via `user_preferences` Supabase table
+- Command handler uses absolute chapter numbers (matching `navigateChapter` API), not deltas
+- VerseSelection uses `{start, end}` (not `{verseStart, verseEnd}`) — caught and fixed during type checking
+
+**Test counts:** 27 test files, 397 tests passing (up from 361 pre-sprint).
+
+**What's next:** v3 (Devotional Bible Assembly) — collections, batch operations, advanced editor.
