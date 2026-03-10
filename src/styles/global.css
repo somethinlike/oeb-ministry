@@ -172,25 +172,25 @@
 }
 
 /* ════════════════════════════════════════════════════════
-   CATHOLIC THEME — Royal purple accent, ivory tones
+   CATHOLIC THEME — Royal purple accent, gold-ivory tones
    Liturgical/Gothic: purple = penance & royalty, gold = glory
    ════════════════════════════════════════════════════════ */
 
 /* ── Catholic Light ── */
 :root[data-theme="catholic"] {
-  --t-surface: #faf8f5;
-  --t-surface-alt: #f3f0eb;
-  --t-surface-hover: #eae5de;
-  --t-panel: #faf8f5;
-  --t-overlay: #faf8f5;
+  --t-surface: #faf8f2;
+  --t-surface-alt: #f3efe5;
+  --t-surface-hover: #ebe5d8;
+  --t-panel: #faf8f2;
+  --t-overlay: #faf8f2;
 
-  --t-heading: #1e1b2e;
-  --t-body: #2e2844;
-  --t-muted: #5b5470;
-  --t-faint: #9f98b3;
+  --t-heading: #1a1820;
+  --t-body: #2c2830;
+  --t-muted: #544e58;
+  --t-faint: #8a8490;
 
-  --t-edge: #d4d0e0;
-  --t-edge-soft: #e8e5f0;
+  --t-edge: #d4cdc0;
+  --t-edge-soft: #e6e0d4;
 
   --t-accent: #6b21a8;
   --t-accent-hover: #581c87;
@@ -199,8 +199,8 @@
   --t-ring: #a855f7;
 
   --t-input-bg: #ffffff;
-  --t-input-border: #d4d0e0;
-  --t-switch-off: #d4d0e0;
+  --t-input-border: #d4cdc0;
+  --t-switch-off: #d4cdc0;
 
   --t-success: #16a34a;
   --t-danger: #dc2626;
@@ -208,37 +208,37 @@
 
 /* ── Catholic Dark ── */
 :root.dark[data-theme="catholic"] {
-  --t-surface: #1a1525;
-  --t-surface-alt: #261f38;
-  --t-surface-hover: #352d4a;
-  --t-panel: #261f38;
-  --t-overlay: #261f38;
+  --t-surface: #18141e;
+  --t-surface-alt: #221c30;
+  --t-surface-hover: #322a42;
+  --t-panel: #221c30;
+  --t-overlay: #221c30;
 
-  --t-heading: #f3e8ff;
-  --t-body: #e9d5ff;
-  --t-muted: #d8b4fe;
-  --t-faint: #a78bfa;
+  --t-heading: #f5f3f0;
+  --t-body: #e5e2de;
+  --t-muted: #c0bbb5;
+  --t-faint: #8a8580;
 
-  --t-edge: #352d4a;
-  --t-edge-soft: #261f38;
+  --t-edge: #322a42;
+  --t-edge-soft: #221c30;
 
   --t-accent: #d8b4fe;
   --t-accent-hover: #e9d5ff;
   --t-accent-soft: #3b0764;
-  --t-on-accent: #1a1525;
+  --t-on-accent: #18141e;
   --t-ring: #c084fc;
 
-  --t-input-bg: #261f38;
-  --t-input-border: #5b5470;
-  --t-switch-off: #5b5470;
+  --t-input-bg: #221c30;
+  --t-input-border: #544e58;
+  --t-switch-off: #544e58;
 
   --t-success: #4ade80;
   --t-danger: #f87171;
 }
 
 /* ════════════════════════════════════════════════════════
-   ORTHODOX THEME — Forest green accent, parchment tones
-   Byzantine/ikon: green = life & hope, gold = divine light
+   ORTHODOX THEME — Crimson accent, warm gold parchment
+   Byzantine mosaics: crimson = Christ's garments, gold = divine light
    ════════════════════════════════════════════════════════ */
 
 /* ── Orthodox Light ── */
@@ -249,23 +249,23 @@
   --t-panel: #fdf8f0;
   --t-overlay: #fdf8f0;
 
-  --t-heading: #14180e;
-  --t-body: #1a2e12;
-  --t-muted: #3d5235;
-  --t-faint: #8a9a80;
+  --t-heading: #1c1408;
+  --t-body: #302618;
+  --t-muted: #5f5040;
+  --t-faint: #8a7c6c;
 
-  --t-edge: #c8d4be;
-  --t-edge-soft: #e0e8d8;
+  --t-edge: #d4c5ae;
+  --t-edge-soft: #e8dcc8;
 
-  --t-accent: #166534;
-  --t-accent-hover: #14532d;
-  --t-accent-soft: #dcfce7;
+  --t-accent: #9b1b30;
+  --t-accent-hover: #801525;
+  --t-accent-soft: #fde8ec;
   --t-on-accent: #ffffff;
-  --t-ring: #22c55e;
+  --t-ring: #c0392b;
 
   --t-input-bg: #ffffff;
-  --t-input-border: #c8d4be;
-  --t-switch-off: #c8d4be;
+  --t-input-border: #d4c5ae;
+  --t-switch-off: #d4c5ae;
 
   --t-success: #16a34a;
   --t-danger: #dc2626;
@@ -273,29 +273,29 @@
 
 /* ── Orthodox Dark ── */
 :root.dark[data-theme="orthodox"] {
-  --t-surface: #111a0e;
-  --t-surface-alt: #1a2916;
-  --t-surface-hover: #2d3d28;
-  --t-panel: #1a2916;
-  --t-overlay: #1a2916;
+  --t-surface: #1a1209;
+  --t-surface-alt: #2a2012;
+  --t-surface-hover: #3d3020;
+  --t-panel: #2a2012;
+  --t-overlay: #2a2012;
 
-  --t-heading: #ecfdf5;
-  --t-body: #d1fae5;
-  --t-muted: #a7f3d0;
-  --t-faint: #6ee7b7;
+  --t-heading: #faf5ed;
+  --t-body: #ede5d8;
+  --t-muted: #c4b9a8;
+  --t-faint: #8f8270;
 
-  --t-edge: #2d3d28;
-  --t-edge-soft: #1a2916;
+  --t-edge: #3d3020;
+  --t-edge-soft: #2a2012;
 
-  --t-accent: #86efac;
-  --t-accent-hover: #bbf7d0;
-  --t-accent-soft: #052e16;
-  --t-on-accent: #111a0e;
-  --t-ring: #4ade80;
+  --t-accent: #f08890;
+  --t-accent-hover: #f4a8ae;
+  --t-accent-soft: #3d1018;
+  --t-on-accent: #1a1209;
+  --t-ring: #e06878;
 
-  --t-input-bg: #1a2916;
-  --t-input-border: #3d5235;
-  --t-switch-off: #3d5235;
+  --t-input-bg: #2a2012;
+  --t-input-border: #5f5040;
+  --t-switch-off: #5f5040;
 
   --t-success: #4ade80;
   --t-danger: #f87171;

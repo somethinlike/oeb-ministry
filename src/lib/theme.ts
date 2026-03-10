@@ -3,7 +3,7 @@
  *
  * Two independent axes:
  * - **Color mode**: "system" (auto-detect), "light", or "dark"
- * - **Color theme**: "default" (blue), "lutheran" (red), "catholic" (purple), "orthodox" (green)
+ * - **Color theme**: "default" (blue), "lutheran" (red), "catholic" (purple/gold), "orthodox" (crimson/gold)
  *
  * The anti-flash script in BaseLayout.astro reads these from localStorage
  * and applies the right CSS classes before first paint. This module provides
@@ -34,8 +34,8 @@ export const COLOR_MODES: { value: ColorMode; label: string }[] = [
 export const COLOR_THEMES: { value: ColorTheme; label: string; description: string }[] = [
   { value: "default", label: "Default", description: "Blue accent, neutral tones" },
   { value: "lutheran", label: "Lutheran", description: "Deep red accent, warm tones — Luther's rose" },
-  { value: "catholic", label: "Catholic", description: "Royal purple accent, ivory tones — liturgical" },
-  { value: "orthodox", label: "Orthodox", description: "Forest green accent, parchment tones — Byzantine" },
+  { value: "catholic", label: "Catholic", description: "Purple & gold accent, ivory tones — liturgical" },
+  { value: "orthodox", label: "Orthodox", description: "Crimson & gold accent, parchment tones — Byzantine" },
 ];
 
 // ── Read from localStorage ──
