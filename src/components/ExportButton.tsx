@@ -113,13 +113,32 @@ export function ExportButton({
         return;
       }
 
+      // Skip encrypted annotations — they can't be exported without the key.
+      // The user would need to unlock and export individually (future feature).
+      const exportable = annotations.filter((a) => !a.isEncrypted);
+      const lockedCount = annotations.length - exportable.length;
+
+      if (exportable.length === 0) {
+        alert("All your notes are locked. Unlock them first to download.");
+        return;
+      }
+
       const toggles = loadTranslationToggles();
       const context: ExportContext = {
-        annotations,
+        annotations: exportable,
         translationId: selectedTranslation,
         translationName: translationInfo?.name ?? selectedTranslation,
         toggles,
       };
+
+      if (lockedCount > 0) {
+        // Let the user know some notes were skipped
+        const proceed = confirm(
+          `${lockedCount} locked note${lockedCount !== 1 ? "s" : ""} will be skipped. ` +
+          `Download the remaining ${exportable.length} note${exportable.length !== 1 ? "s" : ""}?`,
+        );
+        if (!proceed) return;
+      }
 
       const blob = await exportAnnotationsAsZip(context);
       downloadBlob(blob, "oeb-ministry-notes.zip");

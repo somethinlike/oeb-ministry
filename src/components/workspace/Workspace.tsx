@@ -14,6 +14,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { WorkspaceProvider, useWorkspace } from "./WorkspaceProvider";
+import { EncryptionProvider } from "../EncryptionProvider";
 import { WorkspaceToolbar } from "./WorkspaceToolbar";
 import { ReaderPane } from "./ReaderPane";
 import { AnnotationSidebar } from "./AnnotationSidebar";
@@ -162,6 +163,7 @@ export function Workspace({
   const rightPane = swapped ? readerPane : <AnnotationSidebar />;
 
   return (
+    <EncryptionProvider userId={userId}>
     <WorkspaceProvider
       translation={translation}
       book={book}
@@ -238,6 +240,7 @@ export function Workspace({
         </div>
       )}
     </WorkspaceProvider>
+    </EncryptionProvider>
   );
 }
 

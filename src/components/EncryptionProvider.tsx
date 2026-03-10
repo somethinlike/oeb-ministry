@@ -100,11 +100,14 @@ export function EncryptionProvider({ userId, children }: EncryptionProviderProps
       return;
     }
 
-    supabase
-      .from("user_encryption")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle()
+    // Wrap in Promise.resolve() because Supabase returns PromiseLike (no .catch)
+    Promise.resolve(
+      supabase
+        .from("user_encryption")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle(),
+    )
       .then(({ data }) => {
         setEncryptionRow(data ?? null);
         setIsLoaded(true);

@@ -400,11 +400,14 @@ export async function searchAnnotations(
 
   if (!tsQuery) return [];
 
+  // Exclude encrypted annotations — their content is ciphertext,
+  // so full-text search against them would return meaningless matches.
   const { data: annotations, error } = await client
     .from("annotations")
     .select("*")
     .eq("user_id", userId)
     .is("deleted_at", null)
+    .eq("is_encrypted", false)
     .textSearch("search_vector", tsQuery)
     .order("updated_at", { ascending: false })
     .limit(50);

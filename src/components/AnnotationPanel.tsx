@@ -4,15 +4,17 @@
  * This is the main "write a note" interface. It combines:
  * - Markdown editor (for content)
  * - Cross-reference picker (for related verses)
+ * - Lock toggle (client-side encryption)
  * - Save/delete buttons
  *
  * Grandmother Principle:
  * - "Save your note" not "Persist annotation"
+ * - "Lock this note" not "Encrypt annotation"
  * - Confirmation before delete
  * - Clear error messages if something goes wrong
  */
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MarkdownEditor } from "./MarkdownEditor";
 import {
   CrossReferencePicker,
@@ -35,6 +37,14 @@ import type { BookId } from "../types/bible";
 import { BOOK_BY_ID } from "../lib/constants";
 import { loadChapter } from "../lib/bible-loader";
 import { extractVerseText } from "../lib/verse-text";
+import { useEncryption } from "./EncryptionProvider";
+import { EncryptionSetup, UnlockPrompt } from "./EncryptionSetup";
+import {
+  encryptContent,
+  decryptContent,
+  uint8ToBase64,
+  base64ToUint8,
+} from "../lib/crypto";
 
 interface AnnotationPanelProps {
   /** The user's ID (from auth) */
@@ -71,7 +81,13 @@ export function AnnotationPanel({
   onSaved,
   onDeleted,
 }: AnnotationPanelProps) {
-  const [content, setContent] = useState(existing?.contentMd ?? "");
+  const isEncryptedNote = existing?.isEncrypted ?? false;
+
+  // For encrypted notes, content starts empty — filled by the decryption effect.
+  // For plaintext notes, content starts with the existing value.
+  const [content, setContent] = useState(
+    isEncryptedNote ? "" : (existing?.contentMd ?? ""),
+  );
   const [crossRefs, setCrossRefs] = useState<CrossRefEntry[]>(
     existing?.crossReferences.map((ref) => ({
       book: ref.book,
@@ -87,6 +103,61 @@ export function AnnotationPanel({
   // After a successful delete, we stay on the panel so the user can
   // re-save the content if they change their mind (undo-like behavior).
   const [justDeleted, setJustDeleted] = useState(false);
+
+  // ── Encryption state ──
+  const {
+    hasEncryption,
+    isLoaded: encryptionLoaded,
+    isUnlocked,
+    cryptoKey,
+  } = useEncryption();
+
+  // Whether the user wants this note locked (encrypted on save)
+  const [locked, setLocked] = useState(isEncryptedNote);
+  // Whether the editor content is ready to display (false while decrypting)
+  const [contentReady, setContentReady] = useState(!isEncryptedNote);
+  // Modal visibility
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
+  const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
+
+  // Auto-decrypt encrypted notes when the CryptoKey becomes available.
+  // This fires after the user enters their passphrase in the UnlockPrompt.
+  useEffect(() => {
+    if (!isEncryptedNote || contentReady || !cryptoKey || !existing?.encryptionIv) return;
+
+    decryptContent(
+      base64ToUint8(existing.contentMd),
+      cryptoKey,
+      base64ToUint8(existing.encryptionIv),
+    )
+      .then((plaintext) => {
+        setContent(plaintext);
+        setContentReady(true);
+      })
+      .catch(() => {
+        setError("Couldn't unlock this note. The passphrase may be wrong.");
+      });
+  }, [isEncryptedNote, contentReady, cryptoKey, existing?.contentMd, existing?.encryptionIv]);
+
+  /** Toggle the lock state. Triggers setup or unlock prompts as needed. */
+  const handleToggleLock = useCallback(() => {
+    if (locked) {
+      // Turning lock off — content stays as plaintext
+      setLocked(false);
+      return;
+    }
+    // Turning lock on — need encryption set up first
+    if (!hasEncryption) {
+      setShowSetupWizard(true);
+      return;
+    }
+    // Need key in memory to encrypt on save
+    if (!isUnlocked) {
+      setShowUnlockPrompt(true);
+      return;
+    }
+    setLocked(true);
+  }, [locked, hasEncryption, isUnlocked]);
 
   const bookInfo = BOOK_BY_ID.get(book as BookId);
   const verseLabel =
@@ -115,6 +186,18 @@ export function AnnotationPanel({
         // Verse text capture is best-effort — don't block the save
       }
 
+      // Encrypt content if the note is locked and the key is in memory
+      let contentToSave = content;
+      let isEncrypted = false;
+      let encryptionIv: string | null = null;
+
+      if (locked && cryptoKey) {
+        const encrypted = await encryptContent(content, cryptoKey);
+        contentToSave = uint8ToBase64(encrypted.ciphertext);
+        isEncrypted = true;
+        encryptionIv = uint8ToBase64(encrypted.iv);
+      }
+
       const formData: AnnotationFormData = {
         translation,
         anchor: {
@@ -123,9 +206,11 @@ export function AnnotationPanel({
           verseStart,
           verseEnd,
         },
-        contentMd: content,
+        contentMd: contentToSave,
         crossReferences: crossRefs,
         verseText,
+        isEncrypted,
+        encryptionIv,
       };
 
       let savedAnnotation: Annotation;
@@ -180,8 +265,8 @@ export function AnnotationPanel({
       verseEnd: formData.anchor.verseEnd,
       contentMd: formData.contentMd,
       isPublic: false,
-      isEncrypted: false,
-      encryptionIv: null,
+      isEncrypted: formData.isEncrypted ?? false,
+      encryptionIv: formData.encryptionIv ?? null,
       crossReferences: formData.crossReferences.map((ref) => ({
         book: ref.book,
         chapter: ref.chapter,
@@ -218,8 +303,8 @@ export function AnnotationPanel({
       anchor: formData.anchor,
       contentMd: formData.contentMd,
       isPublic: false,
-      isEncrypted: false,
-      encryptionIv: null,
+      isEncrypted: formData.isEncrypted ?? false,
+      encryptionIv: formData.encryptionIv ?? null,
       crossReferences: formData.crossReferences.map((ref, index) => ({
         // Temporary IDs for UI rendering — real IDs created on sync
         id: `offline-${id}-xref-${index}`,
@@ -301,123 +386,254 @@ export function AnnotationPanel({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header — shows which verse(s) this note is for */}
-      <div>
-        <h3 className="text-lg font-semibold text-heading">
-          {justDeleted
-            ? "Moved to Recycle Bin"
-            : existing
-              ? "Edit your note"
-              : "Write a note"}
-        </h3>
-        <p className="text-sm text-muted mt-1">{verseLabel}</p>
-      </div>
-
-      {/* Error message */}
-      {error && (
-        <div
-          className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-          role="alert"
-        >
-          {error}
+    <>
+      <div className="space-y-6">
+        {/* Header — shows which verse(s) this note is for */}
+        <div>
+          <h3 className="text-lg font-semibold text-heading">
+            {justDeleted
+              ? "Moved to Recycle Bin"
+              : existing
+                ? "Edit your note"
+                : "Write a note"}
+          </h3>
+          <p className="text-sm text-muted mt-1">{verseLabel}</p>
         </div>
-      )}
 
-      {/* Markdown editor — with Cite button wired to VerseCitePicker */}
-      <MarkdownEditor
-        initialContent={existing?.contentMd ?? ""}
-        onChange={setContent}
-        placeholder="Write your thoughts about this verse..."
-        extraToolbarSlot={({ insertText }) => (
-          <VerseCitePicker
-            anchorBook={book as BookId}
-            anchorChapter={chapter}
-            anchorVerseStart={verseStart}
-            anchorVerseEnd={verseEnd}
-            crossReferences={crossRefs}
-            translation={translation}
-            onCite={insertText}
-          />
-        )}
-      />
-
-      {/* Cross-references */}
-      <CrossReferencePicker
-        references={crossRefs}
-        onChange={setCrossRefs}
-        anchorBook={book as BookId}
-        anchorChapter={chapter}
-        anchorVerseStart={verseStart}
-        anchorVerseEnd={verseEnd}
-      />
-
-      {/* Action buttons */}
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="rounded-lg bg-accent px-6 py-2.5 font-medium text-on-accent
-                     hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed
-                     focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          {saving
-            ? "Saving..."
-            : justDeleted
-              ? "Save Recently Deleted Note"
-              : "Save your note"}
-        </button>
-
-        {/* Post-delete state: link back to My Notes instead of delete controls.
-            Uses <a> so middle-click (open in new tab) works as expected. */}
-        {justDeleted && (
-          <a
-            href="/app/search"
-            className="rounded-lg px-4 py-2.5 text-sm text-muted
-                       hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
+        {/* Error message */}
+        {error && (
+          <div
+            className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+            role="alert"
           >
-            Return to My Notes
-          </a>
+            {error}
+          </div>
         )}
 
-        {/* Normal state: delete button and confirmation */}
-        {existing && !justDeleted && !showDeleteConfirm && (
-          <button
-            type="button"
-            onClick={() => setShowDeleteConfirm(true)}
-            className="rounded-lg px-4 py-2.5 text-sm text-red-600
-                       hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
-          >
-            Delete
-          </button>
-        )}
-
-        {/* Delete confirmation — Grandmother Principle: confirm before action */}
-        {showDeleteConfirm && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-red-600">Move to Recycle Bin?</span>
+        {/* Locked note — enter passphrase to read.
+            Shown when opening an encrypted note without the key in memory. */}
+        {isEncryptedNote && !contentReady && (
+          <div className="rounded-lg border border-edge bg-surface-alt p-6 text-center space-y-3">
+            <svg
+              className="mx-auto h-8 w-8 text-muted"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <p className="text-sm text-heading font-medium">
+              This note is locked
+            </p>
+            <p className="text-xs text-muted">
+              Enter your passphrase to read and edit it.
+            </p>
             <button
               type="button"
-              onClick={handleDelete}
-              disabled={deleting}
-              className="rounded bg-red-600 px-3 py-1.5 text-sm font-medium text-white
-                         hover:bg-red-700 disabled:opacity-50
-                         focus:outline-none focus:ring-2 focus:ring-red-500"
+              onClick={() => setShowUnlockPrompt(true)}
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent
+                         hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              {deleting ? "Moving..." : "Yes, move it"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowDeleteConfirm(false)}
-              className="rounded px-3 py-1.5 text-sm text-muted
-                         hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              Cancel
+              Unlock
             </button>
           </div>
         )}
+
+        {/* Editor + controls — shown when content is ready (always for plaintext, after decrypt for locked) */}
+        {contentReady && (
+          <>
+            {/* Markdown editor — with Cite button wired to VerseCitePicker */}
+            <MarkdownEditor
+              initialContent={content}
+              onChange={setContent}
+              placeholder="Write your thoughts about this verse..."
+              extraToolbarSlot={({ insertText }) => (
+                <VerseCitePicker
+                  anchorBook={book as BookId}
+                  anchorChapter={chapter}
+                  anchorVerseStart={verseStart}
+                  anchorVerseEnd={verseEnd}
+                  crossReferences={crossRefs}
+                  translation={translation}
+                  onCite={insertText}
+                />
+              )}
+            />
+
+            {/* Cross-references */}
+            <CrossReferencePicker
+              references={crossRefs}
+              onChange={setCrossRefs}
+              anchorBook={book as BookId}
+              anchorChapter={chapter}
+              anchorVerseStart={verseStart}
+              anchorVerseEnd={verseEnd}
+            />
+
+            {/* Lock toggle — only shown when encryption system is loaded.
+                Tier 1 language: "Lock this note" not "Encrypt". */}
+            {encryptionLoaded && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleLock}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium
+                              transition-colors focus:outline-none focus:ring-2 focus:ring-ring
+                              ${locked
+                                ? "bg-surface-alt border border-edge text-heading"
+                                : "text-muted hover:bg-surface-hover border border-transparent"
+                              }`}
+                  aria-pressed={locked}
+                >
+                  {locked ? (
+                    <>
+                      {/* Closed padlock icon */}
+                      <svg
+                        className="h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      Locked
+                    </>
+                  ) : (
+                    <>
+                      {/* Open padlock icon */}
+                      <svg
+                        className="h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                      </svg>
+                      Lock this note
+                    </>
+                  )}
+                </button>
+                {locked && (
+                  <span className="text-xs text-muted">Only you can read this note</span>
+                )}
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="rounded-lg bg-accent px-6 py-2.5 font-medium text-on-accent
+                           hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed
+                           focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {saving
+                  ? "Saving..."
+                  : justDeleted
+                    ? "Save Recently Deleted Note"
+                    : "Save your note"}
+              </button>
+
+              {/* Post-delete state: link back to My Notes instead of delete controls.
+                  Uses <a> so middle-click (open in new tab) works as expected. */}
+              {justDeleted && (
+                <a
+                  href="/app/search"
+                  className="rounded-lg px-4 py-2.5 text-sm text-muted
+                             hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  Return to My Notes
+                </a>
+              )}
+
+              {/* Normal state: delete button and confirmation */}
+              {existing && !justDeleted && !showDeleteConfirm && (
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="rounded-lg px-4 py-2.5 text-sm text-red-600
+                             hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  Delete
+                </button>
+              )}
+
+              {/* Delete confirmation — Grandmother Principle: confirm before action */}
+              {showDeleteConfirm && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-red-600">Move to Recycle Bin?</span>
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="rounded bg-red-600 px-3 py-1.5 text-sm font-medium text-white
+                               hover:bg-red-700 disabled:opacity-50
+                               focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    {deleting ? "Moving..." : "Yes, move it"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="rounded px-3 py-1.5 text-sm text-muted
+                               hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
-    </div>
+
+      {/* Encryption modals — rendered outside the main panel div since they
+          use fixed positioning for full-screen overlay. */}
+      {showSetupWizard && (
+        <EncryptionSetup
+          onComplete={() => {
+            setShowSetupWizard(false);
+            // Setup succeeded — encryption is ready and key is in memory.
+            // Turn on lock for this note.
+            setLocked(true);
+          }}
+          onCancel={() => setShowSetupWizard(false)}
+        />
+      )}
+      {showUnlockPrompt && (
+        <UnlockPrompt
+          onUnlocked={() => {
+            setShowUnlockPrompt(false);
+            // If unlocking to turn on the lock toggle (not to decrypt an existing note),
+            // set locked = true. For existing encrypted notes, the decryption useEffect
+            // fires automatically once the key is in memory.
+            if (!isEncryptedNote || contentReady) {
+              setLocked(true);
+            }
+          }}
+          onCancel={() => setShowUnlockPrompt(false)}
+        />
+      )}
+    </>
   );
 }
