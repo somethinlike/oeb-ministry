@@ -2,18 +2,316 @@
    Unlike v3, there's no @tailwind base/components/utilities split. */
 @import "tailwindcss";
 
+/* ── Theme Tokens ──
+   Maps CSS custom properties to Tailwind utility classes.
+   Components use semantic names: bg-surface, text-heading, border-edge, etc.
+   The actual color values are set by the theme selectors below. */
+
+@theme {
+  /* Backgrounds */
+  --color-surface: var(--t-surface);
+  --color-surface-alt: var(--t-surface-alt);
+  --color-surface-hover: var(--t-surface-hover);
+  --color-panel: var(--t-panel);
+  --color-overlay: var(--t-overlay);
+
+  /* Text */
+  --color-heading: var(--t-heading);
+  --color-body: var(--t-body);
+  --color-muted: var(--t-muted);
+  --color-faint: var(--t-faint);
+
+  /* Borders */
+  --color-edge: var(--t-edge);
+  --color-edge-soft: var(--t-edge-soft);
+
+  /* Accent (primary interactive) */
+  --color-accent: var(--t-accent);
+  --color-accent-hover: var(--t-accent-hover);
+  --color-accent-soft: var(--t-accent-soft);
+  --color-on-accent: var(--t-on-accent);
+  --color-ring: var(--t-ring);
+
+  /* Form controls */
+  --color-input-bg: var(--t-input-bg);
+  --color-input-border: var(--t-input-border);
+  --color-switch-off: var(--t-switch-off);
+
+  /* Status */
+  --color-success: var(--t-success);
+  --color-danger: var(--t-danger);
+}
+
+/* ════════════════════════════════════════════════════════
+   DEFAULT THEME — Blue accent, neutral slate tones
+   ════════════════════════════════════════════════════════ */
+
+/* ── Default Light ── */
+:root {
+  --t-surface: #ffffff;
+  --t-surface-alt: #f8fafc;
+  --t-surface-hover: #f1f5f9;
+  --t-panel: #ffffff;
+  --t-overlay: #ffffff;
+
+  --t-heading: #0f172a;
+  --t-body: #1e293b;
+  --t-muted: #475569;
+  --t-faint: #94a3b8;
+
+  --t-edge: #e2e8f0;
+  --t-edge-soft: #f1f5f9;
+
+  --t-accent: #1d4ed8;
+  --t-accent-hover: #1e40af;
+  --t-accent-soft: #dbeafe;
+  --t-on-accent: #ffffff;
+  --t-ring: #3b82f6;
+
+  --t-input-bg: #ffffff;
+  --t-input-border: #cbd5e1;
+  --t-switch-off: #cbd5e1;
+
+  --t-success: #16a34a;
+  --t-danger: #dc2626;
+}
+
+/* ── Default Dark ── */
+:root.dark {
+  --t-surface: #0f172a;
+  --t-surface-alt: #1e293b;
+  --t-surface-hover: #334155;
+  --t-panel: #1e293b;
+  --t-overlay: #1e293b;
+
+  --t-heading: #f1f5f9;
+  --t-body: #e2e8f0;
+  --t-muted: #cbd5e1;
+  --t-faint: #94a3b8;
+
+  --t-edge: #334155;
+  --t-edge-soft: #1e293b;
+
+  --t-accent: #93c5fd;
+  --t-accent-hover: #bfdbfe;
+  --t-accent-soft: #172554;
+  --t-on-accent: #0f172a;
+  --t-ring: #60a5fa;
+
+  --t-input-bg: #1e293b;
+  --t-input-border: #475569;
+  --t-switch-off: #475569;
+
+  --t-success: #4ade80;
+  --t-danger: #f87171;
+}
+
+/* ════════════════════════════════════════════════════════
+   LUTHERAN THEME — Deep red accent, warm stone tones
+   Luther's rose seal: red = love, gold = joy of heaven
+   ════════════════════════════════════════════════════════ */
+
+/* ── Lutheran Light ── */
+:root[data-theme="lutheran"] {
+  --t-surface: #faf7f2;
+  --t-surface-alt: #f5f0e8;
+  --t-surface-hover: #ede6da;
+  --t-panel: #faf7f2;
+  --t-overlay: #faf7f2;
+
+  --t-heading: #1c1917;
+  --t-body: #292524;
+  --t-muted: #57534e;
+  --t-faint: #a8a29e;
+
+  --t-edge: #d6d3d1;
+  --t-edge-soft: #e7e5e4;
+
+  --t-accent: #991b1b;
+  --t-accent-hover: #7f1d1d;
+  --t-accent-soft: #fee2e2;
+  --t-on-accent: #ffffff;
+  --t-ring: #ef4444;
+
+  --t-input-bg: #ffffff;
+  --t-input-border: #d6d3d1;
+  --t-switch-off: #d6d3d1;
+
+  --t-success: #16a34a;
+  --t-danger: #dc2626;
+}
+
+/* ── Lutheran Dark ── */
+:root.dark[data-theme="lutheran"] {
+  --t-surface: #1c1917;
+  --t-surface-alt: #292524;
+  --t-surface-hover: #44403c;
+  --t-panel: #292524;
+  --t-overlay: #292524;
+
+  --t-heading: #fafaf9;
+  --t-body: #e7e5e4;
+  --t-muted: #d6d3d1;
+  --t-faint: #a8a29e;
+
+  --t-edge: #44403c;
+  --t-edge-soft: #292524;
+
+  --t-accent: #fca5a5;
+  --t-accent-hover: #fecaca;
+  --t-accent-soft: #450a0a;
+  --t-on-accent: #1c1917;
+  --t-ring: #f87171;
+
+  --t-input-bg: #292524;
+  --t-input-border: #57534e;
+  --t-switch-off: #57534e;
+
+  --t-success: #4ade80;
+  --t-danger: #f87171;
+}
+
+/* ════════════════════════════════════════════════════════
+   CATHOLIC THEME — Royal purple accent, ivory tones
+   Liturgical/Gothic: purple = penance & royalty, gold = glory
+   ════════════════════════════════════════════════════════ */
+
+/* ── Catholic Light ── */
+:root[data-theme="catholic"] {
+  --t-surface: #faf8f5;
+  --t-surface-alt: #f3f0eb;
+  --t-surface-hover: #eae5de;
+  --t-panel: #faf8f5;
+  --t-overlay: #faf8f5;
+
+  --t-heading: #1e1b2e;
+  --t-body: #2e2844;
+  --t-muted: #5b5470;
+  --t-faint: #9f98b3;
+
+  --t-edge: #d4d0e0;
+  --t-edge-soft: #e8e5f0;
+
+  --t-accent: #6b21a8;
+  --t-accent-hover: #581c87;
+  --t-accent-soft: #f3e8ff;
+  --t-on-accent: #ffffff;
+  --t-ring: #a855f7;
+
+  --t-input-bg: #ffffff;
+  --t-input-border: #d4d0e0;
+  --t-switch-off: #d4d0e0;
+
+  --t-success: #16a34a;
+  --t-danger: #dc2626;
+}
+
+/* ── Catholic Dark ── */
+:root.dark[data-theme="catholic"] {
+  --t-surface: #1a1525;
+  --t-surface-alt: #261f38;
+  --t-surface-hover: #352d4a;
+  --t-panel: #261f38;
+  --t-overlay: #261f38;
+
+  --t-heading: #f3e8ff;
+  --t-body: #e9d5ff;
+  --t-muted: #d8b4fe;
+  --t-faint: #a78bfa;
+
+  --t-edge: #352d4a;
+  --t-edge-soft: #261f38;
+
+  --t-accent: #d8b4fe;
+  --t-accent-hover: #e9d5ff;
+  --t-accent-soft: #3b0764;
+  --t-on-accent: #1a1525;
+  --t-ring: #c084fc;
+
+  --t-input-bg: #261f38;
+  --t-input-border: #5b5470;
+  --t-switch-off: #5b5470;
+
+  --t-success: #4ade80;
+  --t-danger: #f87171;
+}
+
+/* ════════════════════════════════════════════════════════
+   ORTHODOX THEME — Forest green accent, parchment tones
+   Byzantine/ikon: green = life & hope, gold = divine light
+   ════════════════════════════════════════════════════════ */
+
+/* ── Orthodox Light ── */
+:root[data-theme="orthodox"] {
+  --t-surface: #fdf8f0;
+  --t-surface-alt: #f7f0e3;
+  --t-surface-hover: #efe6d5;
+  --t-panel: #fdf8f0;
+  --t-overlay: #fdf8f0;
+
+  --t-heading: #14180e;
+  --t-body: #1a2e12;
+  --t-muted: #3d5235;
+  --t-faint: #8a9a80;
+
+  --t-edge: #c8d4be;
+  --t-edge-soft: #e0e8d8;
+
+  --t-accent: #166534;
+  --t-accent-hover: #14532d;
+  --t-accent-soft: #dcfce7;
+  --t-on-accent: #ffffff;
+  --t-ring: #22c55e;
+
+  --t-input-bg: #ffffff;
+  --t-input-border: #c8d4be;
+  --t-switch-off: #c8d4be;
+
+  --t-success: #16a34a;
+  --t-danger: #dc2626;
+}
+
+/* ── Orthodox Dark ── */
+:root.dark[data-theme="orthodox"] {
+  --t-surface: #111a0e;
+  --t-surface-alt: #1a2916;
+  --t-surface-hover: #2d3d28;
+  --t-panel: #1a2916;
+  --t-overlay: #1a2916;
+
+  --t-heading: #ecfdf5;
+  --t-body: #d1fae5;
+  --t-muted: #a7f3d0;
+  --t-faint: #6ee7b7;
+
+  --t-edge: #2d3d28;
+  --t-edge-soft: #1a2916;
+
+  --t-accent: #86efac;
+  --t-accent-hover: #bbf7d0;
+  --t-accent-soft: #052e16;
+  --t-on-accent: #111a0e;
+  --t-ring: #4ade80;
+
+  --t-input-bg: #1a2916;
+  --t-input-border: #3d5235;
+  --t-switch-off: #3d5235;
+
+  --t-success: #4ade80;
+  --t-danger: #f87171;
+}
+
 /* ── Verse citation blockquotes ──
    Styled for the MarkdownEditor preview (.prose container).
-   Applies to all blockquotes — both manual ">" quotes and
-   VerseCitePicker citations get the same treatment. */
+   Uses theme tokens so blockquotes adapt to dark mode and denomination themes. */
 
 .prose blockquote {
-  border-left: 3px solid #3b82f6;    /* blue-500 */
-  background-color: #eff6ff;          /* blue-50 */
+  border-left: 3px solid var(--t-accent);
+  background-color: var(--t-accent-soft);
   padding: 0.75rem 1rem;
   margin: 1rem 0;
   border-radius: 0 0.375rem 0.375rem 0;
-  color: #1e3a5f;
+  color: var(--t-body);
 }
 
 .prose blockquote p {
@@ -21,5 +319,5 @@
 }
 
 .prose blockquote strong {
-  color: #1d4ed8;                     /* blue-700 */
+  color: var(--t-heading);
 }

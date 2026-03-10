@@ -59,7 +59,7 @@ export function AuthGuard({ serverAuth, children }: AuthGuardProps) {
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-lg text-gray-500">Loading...</p>
+        <p className="text-lg text-muted">Loading...</p>
       </div>
     );
   }

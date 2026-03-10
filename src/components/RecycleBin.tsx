@@ -154,9 +154,9 @@ export function RecycleBin({ auth }: RecycleBinProps) {
       {loading && (
         <div className="space-y-3" role="status">
           {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="animate-pulse rounded-lg border border-gray-200 p-4">
-              <div className="h-4 w-32 rounded bg-gray-200 mb-2" />
-              <div className="h-3 w-full rounded bg-gray-200" />
+            <div key={i} className="animate-pulse rounded-lg border border-edge p-4">
+              <div className="h-4 w-32 rounded bg-edge mb-2" />
+              <div className="h-3 w-full rounded bg-edge" />
             </div>
           ))}
           <span className="sr-only">Loading deleted notes...</span>
@@ -168,20 +168,20 @@ export function RecycleBin({ auth }: RecycleBinProps) {
         <>
           {/* Select All */}
           <div className="flex items-center justify-between mb-3">
-            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
               <input
                 type="checkbox"
                 checked={selectedIds.size === annotations.length}
                 onChange={() =>
                   selectedIds.size === annotations.length ? deselectAll() : selectAll()
                 }
-                className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                className="h-4 w-4 rounded border-input-border accent-accent"
                 aria-label="Select all deleted notes"
               />
               Select all
             </label>
             {selectedIds.size > 0 && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-muted">
                 {selectedIds.size} selected
               </span>
             )}
@@ -194,30 +194,30 @@ export function RecycleBin({ auth }: RecycleBinProps) {
                 className={`flex items-start gap-3 rounded-lg border p-4
                            transition-colors duration-150
                            ${selectedIds.has(annotation.id)
-                             ? "border-blue-300 bg-blue-50"
-                             : "border-gray-200"}`}
+                             ? "border-accent bg-accent-soft"
+                             : "border-edge"}`}
               >
                 <label className="flex items-center pt-0.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={selectedIds.has(annotation.id)}
                     onChange={() => toggleSelection(annotation.id)}
-                    className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                    className="h-4 w-4 rounded border-input-border accent-accent"
                     aria-label={`Select ${formatVerseRef(annotation)}`}
                   />
                 </label>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-heading">
                       {formatVerseRef(annotation)}
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-faint">
                       Deleted {annotation.deletedAt
                         ? new Date(annotation.deletedAt).toLocaleDateString()
                         : ""}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                  <p className="text-sm text-muted line-clamp-2 mb-3">
                     {annotation.contentMd}
                   </p>
 
@@ -227,9 +227,9 @@ export function RecycleBin({ auth }: RecycleBinProps) {
                       type="button"
                       onClick={() => handleRestore(annotation.id)}
                       disabled={actionInProgress === annotation.id}
-                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-blue-600
-                                 hover:bg-blue-50 disabled:opacity-50
-                                 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-accent
+                                 hover:bg-accent-soft disabled:opacity-50
+                                 focus:outline-none focus:ring-2 focus:ring-ring"
                     >
                       {actionInProgress === annotation.id ? "Restoring..." : "Restore"}
                     </button>
@@ -250,8 +250,8 @@ export function RecycleBin({ auth }: RecycleBinProps) {
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteId(null)}
-                          className="rounded px-3 py-1.5 text-sm text-gray-600
-                                     hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                          className="rounded px-3 py-1.5 text-sm text-muted
+                                     hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
                         >
                           Cancel
                         </button>
@@ -279,13 +279,13 @@ export function RecycleBin({ auth }: RecycleBinProps) {
       {/* Empty state */}
       {!loading && annotations.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-lg text-gray-500">
+          <p className="text-lg text-muted">
             Your recycle bin is empty.
           </p>
           <a
             href="/app/search"
-            className="mt-4 inline-block rounded-lg bg-blue-600 px-6 py-3 font-medium text-white
-                       hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-4 inline-block rounded-lg bg-accent px-6 py-3 font-medium text-on-accent
+                       hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
           >
             Back to My Notes
           </a>
@@ -295,21 +295,21 @@ export function RecycleBin({ auth }: RecycleBinProps) {
       {/* Bulk action bar */}
       {selectedIds.size > 0 && (
         <div
-          className="sticky bottom-0 z-10 mt-4 -mx-4 border-t border-gray-200
-                     bg-white/95 backdrop-blur px-4 py-3"
+          className="sticky bottom-0 z-10 mt-4 -mx-4 border-t border-edge
+                     bg-panel/95 backdrop-blur px-4 py-3"
           role="toolbar"
           aria-label="Bulk actions"
         >
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-body">
               {selectedIds.size} note{selectedIds.size !== 1 ? "s" : ""} selected
             </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={deselectAll}
-                className="rounded-lg px-3 py-1.5 text-sm text-gray-600
-                           hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="rounded-lg px-3 py-1.5 text-sm text-muted
+                           hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 Cancel
               </button>
@@ -317,9 +317,9 @@ export function RecycleBin({ auth }: RecycleBinProps) {
                 type="button"
                 onClick={handleBulkRestore}
                 disabled={bulkActionInProgress}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-blue-600
-                           hover:bg-blue-50 disabled:opacity-50
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-accent
+                           hover:bg-accent-soft disabled:opacity-50
+                           focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {bulkActionInProgress ? "Restoring..." : `Restore (${selectedIds.size})`}
               </button>
@@ -342,8 +342,8 @@ export function RecycleBin({ auth }: RecycleBinProps) {
                   <button
                     type="button"
                     onClick={() => setConfirmBulkDelete(false)}
-                    className="rounded px-3 py-1.5 text-sm text-gray-600
-                               hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                    className="rounded px-3 py-1.5 text-sm text-muted
+                               hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     Cancel
                   </button>

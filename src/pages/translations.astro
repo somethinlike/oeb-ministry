@@ -25,12 +25,12 @@ const translations = getTranslationInfoChronological();
   description="Learn the history behind each Bible translation available on Open Bible Ministry — from the 1582 Douay-Rheims to the modern Open English Bible."
 >
   <!-- Top navigation for this public page (same pattern as open-source-theology.astro) -->
-  <nav class="border-b border-gray-200 bg-white" aria-label="Page navigation">
+  <nav class="border-b border-edge bg-panel" aria-label="Page navigation">
     <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
       <div class="flex h-14 items-center justify-between">
         <a
           href="/"
-          class="text-lg font-bold text-gray-900"
+          class="text-lg font-bold text-heading"
           aria-label="Open Bible Ministry home"
         >
           Open Bible Ministry
@@ -38,13 +38,13 @@ const translations = getTranslationInfoChronological();
         <div class="flex items-center gap-4">
           <a
             href="/app/read"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-hover hover:text-heading focus:outline-none focus:ring-2 focus:ring-ring"
           >
             Read the Bible
           </a>
           <a
             href="/auth/signin"
-            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
           >
             Sign in
           </a>
@@ -60,12 +60,12 @@ const translations = getTranslationInfoChronological();
 
     <header class="text-center mb-16">
       <h1
-        class="text-4xl font-bold text-gray-900 sm:text-5xl leading-tight"
+        class="text-4xl font-bold text-heading sm:text-5xl leading-tight"
       >
         About Our Bible Translations
       </h1>
       <p
-        class="mt-6 text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto"
+        class="mt-6 text-xl text-muted leading-relaxed max-w-2xl mx-auto"
       >
         Every Bible translation carries a story — who made it, why, and what it
         meant for the people of its time. Here are the translations available on
@@ -90,7 +90,7 @@ const translations = getTranslationInfoChronological();
       >
         {/* Horizontal connecting line — desktop only */}
         <li
-          class="hidden sm:block absolute top-5 left-0 right-0 h-0.5 bg-gray-300"
+          class="hidden sm:block absolute top-5 left-0 right-0 h-0.5 bg-input-border"
           aria-hidden="true"
           style="z-index: 0;"
         ></li>
@@ -99,7 +99,7 @@ const translations = getTranslationInfoChronological();
           <li class="relative flex items-start gap-4 sm:flex-col sm:items-center sm:flex-1">
             {/* Vertical line segment — mobile only */}
             <div
-              class="sm:hidden absolute left-[15px] top-8 bottom-0 w-0.5 bg-gray-300"
+              class="sm:hidden absolute left-[15px] top-8 bottom-0 w-0.5 bg-input-border"
               aria-hidden="true"
             />
 
@@ -107,8 +107,8 @@ const translations = getTranslationInfoChronological();
             <a
               href={`#${t.id}`}
               class={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${t.timelineColor} text-white text-xs font-bold
-                       ring-4 ring-white
-                       focus:outline-none focus:ring-4 focus:ring-blue-300
+                       ring-4 ring-surface
+                       focus:outline-none focus:ring-4 focus:ring-ring
                        transition-transform hover:scale-110`}
               aria-label={`Jump to ${t.name} details`}
             >
@@ -123,9 +123,9 @@ const translations = getTranslationInfoChronological();
             {/* Card */}
             <a
               href={`#${t.id}`}
-              class="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm
-                     hover:shadow-md hover:border-gray-300
-                     focus:outline-none focus:ring-2 focus:ring-blue-500
+              class="block rounded-lg border border-edge bg-panel p-4 shadow-sm
+                     hover:shadow-md hover:border-input-border
+                     focus:outline-none focus:ring-2 focus:ring-ring
                      transition-shadow sm:mt-4 sm:text-center sm:w-full"
             >
               {/* Tradition badge */}
@@ -135,7 +135,7 @@ const translations = getTranslationInfoChronological();
                 {t.tradition}
               </span>
 
-              <p class="text-sm font-bold text-gray-900">
+              <p class="text-sm font-bold text-heading">
                 {t.yearEdition
                   ? `${t.yearPublished} / ${t.yearEdition} ed.`
                   : t.yearPublished < 2100
@@ -143,11 +143,11 @@ const translations = getTranslationInfoChronological();
                     : String(t.yearPublished)}
               </p>
 
-              <p class="text-sm font-semibold text-gray-800 mt-1">
+              <p class="text-sm font-semibold text-heading mt-1">
                 {t.name}
               </p>
 
-              <p class="text-xs text-gray-500 mt-1 leading-snug">
+              <p class="text-xs text-muted mt-1 leading-snug">
                 {t.summary}
               </p>
             </a>
@@ -169,7 +169,7 @@ const translations = getTranslationInfoChronological();
         <div class="flex flex-wrap items-center gap-3 mb-6">
           <h2
             id={`${t.id}-heading`}
-            class="text-2xl font-bold text-gray-900"
+            class="text-2xl font-bold text-heading"
           >
             {t.name}
           </h2>
@@ -181,32 +181,32 @@ const translations = getTranslationInfoChronological();
         </div>
 
         {/* Quick facts card */}
-        <div class="rounded-lg border border-gray-200 bg-gray-50 p-5 mb-6">
+        <div class="rounded-lg border border-edge bg-surface-alt p-5 mb-6">
           <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm">
             <div>
-              <dt class="font-semibold text-gray-600">First Published</dt>
-              <dd class="text-gray-900">
+              <dt class="font-semibold text-muted">First Published</dt>
+              <dd class="text-heading">
                 {t.yearPublished}
                 {t.yearEdition ? ` (this edition: ${t.yearEdition})` : ""}
               </dd>
             </div>
             <div>
-              <dt class="font-semibold text-gray-600">Canon</dt>
-              <dd class="text-gray-900">{t.canonBookCount}</dd>
+              <dt class="font-semibold text-muted">Canon</dt>
+              <dd class="text-heading">{t.canonBookCount}</dd>
             </div>
             <div>
-              <dt class="font-semibold text-gray-600">Translated From</dt>
-              <dd class="text-gray-900">{t.sourceLanguages.join(", ")}</dd>
+              <dt class="font-semibold text-muted">Translated From</dt>
+              <dd class="text-heading">{t.sourceLanguages.join(", ")}</dd>
             </div>
             <div>
-              <dt class="font-semibold text-gray-600">Tradition</dt>
-              <dd class="text-gray-900">{t.tradition}</dd>
+              <dt class="font-semibold text-muted">Tradition</dt>
+              <dd class="text-heading">{t.tradition}</dd>
             </div>
           </dl>
         </div>
 
         {/* Description paragraphs */}
-        <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+        <div class="space-y-4 text-lg text-body leading-relaxed">
           {t.description.map((paragraph: string) => (
             <p>{paragraph}</p>
           ))}
@@ -214,10 +214,10 @@ const translations = getTranslationInfoChronological();
 
         {/* Significance bullets */}
         <div class="mt-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-3">
+          <h3 class="text-lg font-semibold text-heading mb-3">
             Why It Matters
           </h3>
-          <ul class="list-disc pl-6 space-y-2 text-gray-700 leading-relaxed">
+          <ul class="list-disc pl-6 space-y-2 text-body leading-relaxed">
             {t.significance.map((point: string) => (
               <li>{point}</li>
             ))}
@@ -230,16 +230,16 @@ const translations = getTranslationInfoChronological();
     <!-- CTA — Start Reading                                         -->
     <!-- ════════════════════════════════════════════════════════════ -->
 
-    <section class="text-center py-12 border-t border-gray-200">
-      <p class="text-xl text-gray-700 leading-relaxed max-w-xl mx-auto mb-8">
+    <section class="text-center py-12 border-t border-edge">
+      <p class="text-xl text-body leading-relaxed max-w-xl mx-auto mb-8">
         Ready to explore these translations for yourself? Pick any translation
         and start reading — your notes and highlights are saved automatically.
       </p>
       <a
         href="/app/read"
-        class="inline-block rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white
-               shadow-sm hover:bg-blue-700
-               focus:outline-none focus:ring-4 focus:ring-blue-300
+        class="inline-block rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-on-accent
+               shadow-sm hover:bg-accent-hover
+               focus:outline-none focus:ring-4 focus:ring-ring
                transition-colors duration-150"
       >
         Start reading

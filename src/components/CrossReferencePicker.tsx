@@ -183,7 +183,7 @@ export function CrossReferencePicker({
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-body mb-2">
         Related verses (optional)
       </label>
 
@@ -199,15 +199,15 @@ export function CrossReferencePicker({
           {references.map((ref, index) => (
             <span
               key={`active-${ref.book}-${ref.chapter}-${ref.verseStart}`}
-              className="inline-flex items-center gap-1 rounded-full bg-blue-100
-                         px-3 py-1 text-sm text-blue-800"
+              className="inline-flex items-center gap-1 rounded-full bg-accent-soft
+                         px-3 py-1 text-sm text-accent"
             >
               {formatRef(ref)}
               <button
                 type="button"
                 onClick={() => handleRemove(index)}
-                className="ml-1 rounded-full p-0.5 hover:bg-blue-200
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="ml-1 rounded-full p-0.5 hover:bg-accent-soft
+                           focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-label={`Remove ${formatRef(ref)}`}
               >
                 <svg
@@ -276,13 +276,13 @@ export function CrossReferencePicker({
 
       {/* Add button / picker */}
       {showPicker ? (
-        <div className="space-y-3 rounded-lg border border-gray-200 p-3 bg-gray-50">
+        <div className="space-y-3 rounded-lg border border-edge p-3 bg-surface-alt">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {/* Book selector */}
             <div>
               <label
                 htmlFor="xref-book"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted mb-1"
               >
                 Book
               </label>
@@ -296,8 +296,8 @@ export function CrossReferencePicker({
                   setSelectedVerseEnd(1);
                   setAnchorWarning(null);
                 }}
-                className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm
-                           focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded border border-input-border px-2 py-1.5 text-sm
+                           focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               >
                 {BOOKS.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -311,7 +311,7 @@ export function CrossReferencePicker({
             <div>
               <label
                 htmlFor="xref-chapter"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted mb-1"
               >
                 Chapter
               </label>
@@ -324,8 +324,8 @@ export function CrossReferencePicker({
                   setSelectedVerseEnd(1);
                   setAnchorWarning(null);
                 }}
-                className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm
-                           focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded border border-input-border px-2 py-1.5 text-sm
+                           focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               >
                 {chapters.map((ch) => (
                   <option key={ch} value={ch}>
@@ -339,7 +339,7 @@ export function CrossReferencePicker({
             <div>
               <label
                 htmlFor="xref-verse-start"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted mb-1"
               >
                 From verse
               </label>
@@ -354,8 +354,8 @@ export function CrossReferencePicker({
                   if (v > selectedVerseEnd) setSelectedVerseEnd(v);
                   setAnchorWarning(null);
                 }}
-                className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm
-                           focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded border border-input-border px-2 py-1.5 text-sm
+                           focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
 
@@ -363,7 +363,7 @@ export function CrossReferencePicker({
             <div>
               <label
                 htmlFor="xref-verse-end"
-                className="block text-xs text-gray-500 mb-1"
+                className="block text-xs text-muted mb-1"
               >
                 To verse
               </label>
@@ -376,8 +376,8 @@ export function CrossReferencePicker({
                   setSelectedVerseEnd(Number(e.target.value));
                   setAnchorWarning(null);
                 }}
-                className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm
-                           focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded border border-input-border px-2 py-1.5 text-sm
+                           focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
           </div>
@@ -386,8 +386,8 @@ export function CrossReferencePicker({
             <button
               type="button"
               onClick={handleAdd}
-              className="rounded bg-blue-600 px-4 py-1.5 text-sm font-medium text-white
-                         hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded bg-accent px-4 py-1.5 text-sm font-medium text-on-accent
+                         hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
             >
               Add
             </button>
@@ -397,8 +397,8 @@ export function CrossReferencePicker({
                 setShowPicker(false);
                 setAnchorWarning(null);
               }}
-              className="rounded px-4 py-1.5 text-sm text-gray-600
-                         hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded px-4 py-1.5 text-sm text-muted
+                         hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
             >
               Cancel
             </button>
@@ -408,9 +408,9 @@ export function CrossReferencePicker({
         <button
           type="button"
           onClick={() => setShowPicker(true)}
-          className="rounded border border-dashed border-gray-300 px-4 py-2
-                     text-sm text-gray-500 hover:border-blue-300 hover:text-blue-600
-                     focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded border border-dashed border-input-border px-4 py-2
+                     text-sm text-muted hover:border-accent hover:text-accent
+                     focus:outline-none focus:ring-2 focus:ring-ring"
         >
           + Add a related verse
         </button>

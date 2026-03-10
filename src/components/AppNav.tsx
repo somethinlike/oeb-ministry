@@ -84,7 +84,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
 
   return (
     <nav
-      className="border-b border-gray-200 bg-white"
+      className="border-b border-edge bg-surface"
       aria-label="Main navigation"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -93,7 +93,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
           <div className="flex items-center gap-8">
             <a
               href="/app/read"
-              className="text-xl font-bold text-gray-900"
+              className="text-xl font-bold text-heading"
               aria-label="Open Bible Ministry home"
             >
               Open Bible Ministry
@@ -127,13 +127,13 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
               <>
                 <div className="flex items-center gap-2">
                   <UserAvatar avatarUrl={auth.avatarUrl} displayName={auth.displayName} />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-body">
                     {auth.displayName}
                   </span>
                 </div>
                 <a
                   href="/auth/signout"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-hover hover:text-heading focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   Sign out
                 </a>
@@ -141,7 +141,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             ) : (
               <a
                 href="/auth/signin"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 Sign in
               </a>
@@ -151,7 +151,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
           {/* Mobile hamburger button */}
           <button
             type="button"
-            className="sm:hidden rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="sm:hidden rounded-lg p-2 text-muted hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-menu"
@@ -186,7 +186,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
 
       {/* Mobile menu — slides open below the nav bar */}
       {mobileMenuOpen && (
-        <div className="sm:hidden border-t border-gray-200" id="mobile-menu">
+        <div className="sm:hidden border-t border-edge" id="mobile-menu">
           <div className="space-y-1 px-4 py-3">
             <MobileNavLink href="/app/read" label="Read Bible" />
             <MobileNavLink href="/app/search" label="My Notes" />
@@ -201,12 +201,12 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             {auth.isAuthenticated && (
               <MobileNavLink href="/app/settings" label="Settings" />
             )}
-            <hr className="my-2 border-gray-200" />
+            <hr className="my-2 border-edge" />
             {auth.isAuthenticated ? (
               <>
                 <div className="flex items-center gap-2 px-3 py-2">
                   <UserAvatar avatarUrl={auth.avatarUrl} displayName={auth.displayName} />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-body">
                     {auth.displayName}
                   </span>
                 </div>
@@ -269,7 +269,7 @@ function NotesDropdown({
       <button
         type="button"
         onClick={onToggle}
-        className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-hover hover:text-heading focus:outline-none focus:ring-2 focus:ring-ring"
         aria-expanded={open}
         aria-haspopup="true"
       >
@@ -288,7 +288,7 @@ function NotesDropdown({
 
       {open && (
         <div
-          className="absolute left-0 top-full mt-1 w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-lg z-50"
+          className="absolute left-0 top-full mt-1 w-52 rounded-lg border border-edge bg-overlay py-1 shadow-lg z-50"
           role="menu"
         >
           <DropdownLink href="/app/search" label="My Notes" />
@@ -306,7 +306,7 @@ function DropdownLink({ href, label }: { href: string; label: string }) {
     <a
       href={href}
       role="menuitem"
-      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:bg-gray-100"
+      className="block px-4 py-2 text-sm text-body hover:bg-surface-hover hover:text-heading focus:outline-none focus:bg-surface-hover"
     >
       {label}
     </a>
@@ -318,7 +318,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <a
       href={href}
-      className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-hover hover:text-heading focus:outline-none focus:ring-2 focus:ring-ring"
     >
       {label}
     </a>
@@ -330,8 +330,8 @@ function MobileNavLink({ href, label, indent }: { href: string; label: string; i
   return (
     <a
       href={href}
-      className={`block rounded-lg py-3 text-base font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-        indent ? "pl-8 pr-3 text-sm text-gray-500" : "px-3"
+      className={`block rounded-lg py-3 text-base font-medium text-body hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring ${
+        indent ? "pl-8 pr-3 text-sm text-muted" : "px-3"
       }`}
     >
       {label}
@@ -359,7 +359,7 @@ function UserAvatar({ avatarUrl, displayName }: { avatarUrl: string | null; disp
 
   return (
     <div
-      className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white"
+      className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-medium text-on-accent"
       aria-hidden="true"
     >
       {initial}

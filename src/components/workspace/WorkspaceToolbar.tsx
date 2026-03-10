@@ -99,14 +99,14 @@ export function WorkspaceToolbar({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-gray-50 px-4 py-2 rounded-t-lg">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-edge bg-surface-alt px-4 py-2 rounded-t-lg">
       {/* Breadcrumb navigation */}
       <nav aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-1.5 text-sm text-gray-500">
+        <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
           <li>
             <a
               href="/app/read"
-              className="hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+              className="hover:text-heading focus:outline-none focus:ring-2 focus:ring-ring rounded px-1"
             >
               Bible
             </a>
@@ -115,7 +115,7 @@ export function WorkspaceToolbar({
             <span aria-hidden="true">/</span>
             <a
               href={`/app/read/${translation}`}
-              className="hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+              className="hover:text-heading focus:outline-none focus:ring-2 focus:ring-ring rounded px-1"
             >
               {translationInfo?.name ?? translation}
             </a>
@@ -124,14 +124,14 @@ export function WorkspaceToolbar({
             <span aria-hidden="true">/</span>
             <a
               href={`/app/read/${translation}/${book}`}
-              className="hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+              className="hover:text-heading focus:outline-none focus:ring-2 focus:ring-ring rounded px-1"
             >
               {bookInfo?.name ?? book}
             </a>
           </li>
           <li className="flex items-center gap-1.5">
             <span aria-hidden="true">/</span>
-            <span className="font-medium text-gray-900 px-1">
+            <span className="font-medium text-heading px-1">
               Chapter {chapter}
             </span>
           </li>
@@ -146,9 +146,9 @@ export function WorkspaceToolbar({
             type="button"
             onClick={handleCacheBook}
             disabled={cachingBook || bookOffline === true}
-            className="flex items-center gap-1.5 rounded-md border border-gray-300
-                       bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
-                       hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500
+            className="flex items-center gap-1.5 rounded-md border border-input-border
+                       bg-panel px-2.5 py-1.5 text-xs font-medium text-muted
+                       hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring
                        disabled:cursor-default"
             aria-label={bookOffline ? `${bookInfo.name} saved offline` : `Save ${bookInfo.name} for offline reading`}
             title={bookOffline ? "Book saved offline" : "Save book for offline reading"}
@@ -177,9 +177,9 @@ export function WorkspaceToolbar({
         <button
           type="button"
           onClick={onEnterCleanView}
-          className="flex items-center gap-1.5 rounded-md border border-gray-300
-                     bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
-                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex items-center gap-1.5 rounded-md border border-input-border
+                     bg-panel px-2.5 py-1.5 text-xs font-medium text-muted
+                     hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
           aria-label="Switch to clean reading view"
           title="Hide toolbar for distraction-free reading"
         >
@@ -194,9 +194,9 @@ export function WorkspaceToolbar({
         <button
           type="button"
           onClick={undocked ? onDock : onUndock}
-          className="hidden lg:flex items-center gap-1.5 rounded-md border border-gray-300
-                     bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
-                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="hidden lg:flex items-center gap-1.5 rounded-md border border-input-border
+                     bg-panel px-2.5 py-1.5 text-xs font-medium text-muted
+                     hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
           aria-label={undocked ? "Dock notes back to sidebar" : "Pop notes out to floating window"}
           title={undocked ? "Dock notes back to sidebar" : "Pop notes out to floating window"}
         >
@@ -241,9 +241,9 @@ export function WorkspaceToolbar({
           <button
             type="button"
             onClick={onToggleSwap}
-            className="hidden lg:flex items-center gap-1.5 rounded-md border border-gray-300
-                       bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
-                       hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="hidden lg:flex items-center gap-1.5 rounded-md border border-input-border
+                       bg-panel px-2.5 py-1.5 text-xs font-medium text-muted
+                       hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
             aria-label={swapped ? "Move Bible text to the left" : "Move Bible text to the right"}
             title={swapped ? "Move Bible text to the left" : "Move Bible text to the right"}
           >
@@ -270,9 +270,9 @@ export function WorkspaceToolbar({
         <button
           type="button"
           onClick={onToggleReaderLayout}
-          className="flex items-center gap-1.5 rounded-md border border-gray-300
-                     bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
-                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex items-center gap-1.5 rounded-md border border-input-border
+                     bg-panel px-2.5 py-1.5 text-xs font-medium text-muted
+                     hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
           aria-label={readerLayout === "centered" ? "Switch to column layout" : "Switch to centered layout"}
           title={readerLayout === "centered" ? "Switch to column layout" : "Switch to centered layout"}
         >
@@ -323,9 +323,9 @@ export function WorkspaceToolbar({
               annotationDots === "blue" ? "subtle" : annotationDots === "subtle" ? "hidden" : "blue";
             onAnnotationDotsChange(next);
           }}
-          className="flex items-center gap-1.5 rounded-md border border-gray-300
-                     bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
-                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex items-center gap-1.5 rounded-md border border-input-border
+                     bg-panel px-2.5 py-1.5 text-xs font-medium text-muted
+                     hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
           aria-label={`Note markers: ${annotationDots}. Click to change.`}
           title={`Note markers: ${annotationDots === "blue" ? "Blue dots" : annotationDots === "subtle" ? "Gray dots" : "Hidden"}`}
         >
@@ -339,7 +339,7 @@ export function WorkspaceToolbar({
             // Circle dot in the appropriate color
             <span
               className={`inline-block h-2.5 w-2.5 rounded-full ${
-                annotationDots === "subtle" ? "bg-gray-300" : "bg-blue-500"
+                annotationDots === "subtle" ? "bg-switch-off" : "bg-accent"
               }`}
               aria-hidden="true"
             />

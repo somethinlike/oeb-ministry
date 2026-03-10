@@ -148,8 +148,8 @@ export function ChapterReader({
         {/* Skeleton lines that mimic verse text */}
         {Array.from({ length: 8 }, (_, i) => (
           <div key={i} className="flex gap-2 animate-pulse">
-            <div className="h-4 w-6 rounded bg-gray-200" />
-            <div className="h-4 flex-1 rounded bg-gray-200" />
+            <div className="h-4 w-6 rounded bg-edge" />
+            <div className="h-4 flex-1 rounded bg-edge" />
           </div>
         ))}
         <span className="sr-only">Loading chapter text...</span>
@@ -210,7 +210,7 @@ export function ChapterReader({
 
   // Shared nav button styling — compact on small screens, with text label on md+
   const navBtnClass =
-    "flex items-center gap-1.5 rounded-lg border border-gray-300 p-2 md:px-3 md:py-2 text-gray-600 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "flex items-center gap-1.5 rounded-lg border border-input-border p-2 md:px-3 md:py-2 text-muted font-medium hover:bg-surface-alt focus:outline-none focus:ring-2 focus:ring-ring";
 
   /** Render a prev/next navigation element (button in workspace mode, <a> in standalone) */
   function NavButton({
@@ -293,7 +293,7 @@ export function ChapterReader({
         </div>
 
         {/* Center cell — chapter title, always centered */}
-        <h2 className="text-2xl font-bold text-gray-900 text-center min-w-0 truncate">
+        <h2 className="text-2xl font-bold text-heading text-center min-w-0 truncate">
           {chapterData.bookName} {chapterData.chapter}
         </h2>
 
@@ -312,8 +312,8 @@ export function ChapterReader({
       <article
         className={
           isColumns
-            ? "text-lg leading-relaxed text-gray-800"
-            : "mx-auto max-w-prose text-lg leading-relaxed text-gray-800"
+            ? "text-lg leading-relaxed text-heading"
+            : "mx-auto max-w-prose text-lg leading-relaxed text-heading"
         }
         style={{
           ...(isColumns ? { columns: "auto 20rem", columnGap: "2rem" } : {}),
@@ -343,20 +343,20 @@ export function ChapterReader({
               }}
               className={`
                 inline cursor-pointer rounded px-0.5 transition-colors duration-100
-                ${selected ? "bg-blue-100 text-blue-900" : "hover:bg-gray-100"}
-                focus:outline-none focus:ring-2 focus:ring-blue-400
+                ${selected ? "bg-accent-soft text-accent" : "hover:bg-surface-hover"}
+                focus:outline-none focus:ring-2 focus:ring-ring
               `}
               aria-label={`Verse ${verse.number}: ${placeholder ? "verse not yet translated" : displayText}${hasAnnotation ? " (has note)" : ""}`}
               aria-pressed={selected}
             >
               {/* Verse number — superscript, subtle */}
-              <sup className="mr-0.5 text-xs font-semibold text-gray-400 select-none">
+              <sup className="mr-0.5 text-xs font-semibold text-faint select-none">
                 {verse.number}
                 {/* Annotation dot indicator */}
                 {hasAnnotation && annotationDots !== "hidden" && (
                   <span
                     className={`ml-0.5 inline-block h-1.5 w-1.5 rounded-full align-super ${
-                      annotationDots === "subtle" ? "bg-gray-300" : "bg-blue-500"
+                      annotationDots === "subtle" ? "bg-gray-300" : "bg-accent"
                     }`}
                     aria-hidden="true"
                     title="Has a note"
@@ -372,7 +372,7 @@ export function ChapterReader({
                   target="_blank"
                   rel="noopener noreferrer"
                   title="This verse hasn't been translated yet. The Open English Bible is a free, open-source translation still in progress — visit their site to learn more or contribute."
-                  className="inline-flex items-center text-blue-400 hover:text-blue-600 transition-colors"
+                  className="inline-flex items-center text-faint hover:text-accent transition-colors"
                   onClick={(e) => e.stopPropagation()}
                   aria-label="Verse not yet translated — visit the Open English Bible project"
                 >
@@ -393,7 +393,7 @@ export function ChapterReader({
       {selection && !isWorkspaceMode && (
         <div
           className="fixed bottom-6 left-1/2 z-10 -translate-x-1/2
-                     rounded-full bg-blue-600 px-6 py-3 text-white shadow-lg
+                     rounded-full bg-accent px-6 py-3 text-on-accent shadow-lg
                      flex items-center gap-3 animate-in"
           role="status"
           aria-live="polite"
@@ -401,15 +401,15 @@ export function ChapterReader({
           <span className="text-sm font-medium">{selectionLabel}</span>
           <a
             href={`/app/annotate?t=${translation}&b=${book}&c=${chapter}&vs=${selection.start}&ve=${selection.end}`}
-            className="rounded-full bg-white px-4 py-1.5 text-sm font-bold text-blue-600
-                       hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white"
+            className="rounded-full bg-panel px-4 py-1.5 text-sm font-bold text-accent
+                       hover:bg-accent-soft focus:outline-none focus:ring-2 focus:ring-white"
           >
             Write a note
           </a>
           <button
             type="button"
             onClick={() => setInternalSelection(null)}
-            className="ml-1 rounded-full p-1 hover:bg-blue-700
+            className="ml-1 rounded-full p-1 hover:bg-accent-hover
                        focus:outline-none focus:ring-2 focus:ring-white"
             aria-label="Clear selection"
           >

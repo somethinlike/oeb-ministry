@@ -97,10 +97,10 @@ export function TranslationPicker({ compact = false }: TranslationPickerProps) {
           ref={triggerRef}
           type="button"
           onClick={handleTriggerClick}
-          className="flex items-center gap-1.5 rounded-md border border-gray-300
-                     bg-white px-3 py-1.5 text-sm font-medium text-gray-700
-                     hover:bg-gray-50 focus:border-blue-500 focus:outline-none
-                     focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
+          className="flex items-center gap-1.5 rounded-md border border-input-border
+                     bg-panel px-3 py-1.5 text-sm font-medium text-body
+                     hover:bg-surface-alt focus:border-ring focus:outline-none
+                     focus:ring-2 focus:ring-ring whitespace-nowrap"
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label="Choose a Bible translation"
@@ -111,13 +111,13 @@ export function TranslationPicker({ compact = false }: TranslationPickerProps) {
           </span>
           {/* Full name hidden on small screens or in compact mode */}
           {!compact && (
-            <span className="hidden md:inline text-gray-500">
+            <span className="hidden md:inline text-muted">
               — {currentTranslation?.name ?? translation}
             </span>
           )}
           {/* Chevron indicator */}
           <svg
-            className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150 ${
+            className={`h-4 w-4 shrink-0 text-faint transition-transform duration-150 ${
               open ? "rotate-180" : ""
             }`}
             fill="none"
@@ -137,8 +137,8 @@ export function TranslationPicker({ compact = false }: TranslationPickerProps) {
         {/* Dropdown panel */}
         {open && (
           <ul
-            className="absolute right-0 top-full z-50 mt-1 rounded-lg border border-gray-200
-                       bg-white shadow-lg overflow-hidden
+            className="absolute right-0 top-full z-50 mt-1 rounded-lg border border-edge
+                       bg-panel shadow-lg overflow-hidden
                        w-full min-w-[18rem]"
             role="listbox"
             aria-label="Bible translations"
@@ -161,15 +161,15 @@ export function TranslationPicker({ compact = false }: TranslationPickerProps) {
                   className={`flex items-center gap-2 px-3 py-2.5 text-sm cursor-pointer
                     truncate
                     ${isSelected
-                      ? "bg-blue-50 text-blue-900 font-medium"
-                      : "text-gray-700 hover:bg-gray-50"
+                      ? "bg-accent-soft text-accent font-medium"
+                      : "text-body hover:bg-surface-alt"
                     }
-                    focus:outline-none focus:bg-blue-50`}
+                    focus:outline-none focus:bg-accent-soft`}
                 >
                   <span className="font-semibold shrink-0">
                     {t.abbreviation}
                   </span>
-                  <span className="text-gray-500 truncate">
+                  <span className="text-muted truncate">
                     — {t.name}
                   </span>
                 </li>

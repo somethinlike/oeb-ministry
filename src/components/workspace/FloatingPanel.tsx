@@ -86,7 +86,7 @@ export function FloatingPanel({ children, onDock }: FloatingPanelProps) {
     <div
       role="dialog"
       aria-label="Your notes (floating)"
-      className="fixed z-40 flex flex-col rounded-lg border border-gray-300 bg-white shadow-xl"
+      className="fixed z-40 flex flex-col rounded-lg border border-input-border bg-panel shadow-xl"
       style={{
         left: pos.x,
         top: pos.y,
@@ -96,20 +96,20 @@ export function FloatingPanel({ children, onDock }: FloatingPanelProps) {
     >
       {/* Draggable header bar */}
       <div
-        className="flex items-center justify-between rounded-t-lg border-b border-gray-200
-                   bg-gray-50 px-3 py-2 cursor-grab active:cursor-grabbing select-none"
+        className="flex items-center justify-between rounded-t-lg border-b border-edge
+                   bg-surface-alt px-3 py-2 cursor-grab active:cursor-grabbing select-none"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       >
-        <span className="text-sm font-semibold text-gray-700">Your Notes</span>
+        <span className="text-sm font-semibold text-body">Your Notes</span>
         <button
           type="button"
           onClick={onDock}
           onPointerDown={(e) => e.stopPropagation()}
-          className="flex items-center gap-1 rounded-md border border-gray-300
-                     bg-white px-2 py-1 text-xs font-medium text-gray-600
-                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex items-center gap-1 rounded-md border border-input-border
+                     bg-panel px-2 py-1 text-xs font-medium text-muted
+                     hover:bg-surface-alt focus:outline-none focus:ring-2 focus:ring-ring"
           aria-label="Dock notes panel back into the sidebar"
           title="Dock back to sidebar"
         >

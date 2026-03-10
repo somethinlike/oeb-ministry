@@ -64,9 +64,9 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 rounded-lg border border-gray-300 p-2
-                   text-gray-600 hover:bg-gray-50
-                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex items-center gap-1.5 rounded-lg border border-input-border p-2
+                   text-muted hover:bg-surface-alt
+                   focus:outline-none focus:ring-2 focus:ring-ring"
         aria-expanded={open}
         aria-haspopup="true"
         aria-label="Reading settings"
@@ -96,24 +96,24 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
       {/* Settings popover */}
       {open && (
         <div
-          className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-gray-200
-                     bg-white shadow-lg"
+          className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-edge
+                     bg-panel shadow-lg"
           role="menu"
         >
           <div className="p-3 space-y-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider">
               Reading settings
             </p>
 
             {/* Layout toggle */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Layout</span>
+              <span className="text-sm text-body">Layout</span>
               <button
                 type="button"
                 onClick={props.onToggleReaderLayout}
-                className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs
-                           font-medium text-gray-600 hover:bg-gray-50
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-md border border-input-border bg-panel px-2.5 py-1 text-xs
+                           font-medium text-muted hover:bg-surface-alt
+                           focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {props.readerLayout === "centered" ? "Centered" : "Columns"}
               </button>
@@ -121,13 +121,13 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
 
             {/* Font picker — inline select matching label/control pattern */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Font</span>
+              <span className="text-sm text-body">Font</span>
               <select
                 value={props.readerFont}
                 onChange={(e) => props.onFontChange(e.target.value as ReaderFont)}
-                className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs
-                           font-medium text-gray-600
-                           focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-md border border-input-border bg-panel px-2.5 py-1 text-xs
+                           font-medium text-muted
+                           focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-label="Choose a reading font"
               >
                 {orderedFonts.map((font) => (
@@ -140,7 +140,7 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
 
             {/* Annotation dots */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Note markers</span>
+              <span className="text-sm text-body">Note markers</span>
               <button
                 type="button"
                 onClick={() => {
@@ -148,9 +148,9 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
                     props.annotationDots === "blue" ? "subtle" : props.annotationDots === "subtle" ? "hidden" : "blue";
                   props.onAnnotationDotsChange(next);
                 }}
-                className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white
-                           px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex items-center gap-1.5 rounded-md border border-input-border bg-panel
+                           px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-alt
+                           focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {props.annotationDots === "hidden" ? (
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
@@ -159,7 +159,7 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
                 ) : (
                   <span
                     className={`inline-block h-2 w-2 rounded-full ${
-                      props.annotationDots === "subtle" ? "bg-gray-300" : "bg-blue-500"
+                      props.annotationDots === "subtle" ? "bg-gray-300" : "bg-accent"
                     }`}
                     aria-hidden="true"
                   />
@@ -170,7 +170,7 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
 
             {/* Wording toggles */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Wording</span>
+              <span className="text-sm text-body">Wording</span>
               <TranslationToggleMenu
                 toggles={props.translationToggles}
                 onToggleChange={props.onToggleChange}
@@ -179,12 +179,12 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
 
             {/* Translation picker — compact mode shows abbreviation only */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Translation</span>
+              <span className="text-sm text-body">Translation</span>
               <TranslationPicker compact />
             </div>
 
             {/* Divider + show toolbar button */}
-            <div className="border-t border-gray-100 pt-2">
+            <div className="border-t border-edge-soft pt-2">
               <button
                 type="button"
                 onClick={() => {
@@ -192,9 +192,9 @@ export function ReaderSettingsPopover(props: ReaderSettingsProps) {
                   setOpen(false);
                 }}
                 className="flex w-full items-center justify-center gap-1.5 rounded-md
-                           border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium
-                           text-gray-600 hover:bg-gray-50
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           border border-input-border bg-panel px-3 py-1.5 text-xs font-medium
+                           text-muted hover:bg-surface-alt
+                           focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {/* Expand/maximize icon */}
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">

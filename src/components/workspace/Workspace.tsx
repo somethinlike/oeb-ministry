@@ -168,7 +168,7 @@ export function Workspace({
       chapter={chapter}
       userId={userId}
     >
-      <div className="flex flex-col h-full rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="flex flex-col h-full rounded-lg border border-edge bg-panel shadow-sm">
         {/* Toolbar: breadcrumbs + undock/swap + translation picker.
              Hidden in clean view — settings move to cog in chapter nav. */}
         {!cleanView && (

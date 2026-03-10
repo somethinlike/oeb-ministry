@@ -35,10 +35,10 @@ export function TranslationInfoIcon() {
     >
       <a
         href="/translations"
-        className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-gray-400
-                   text-xs font-bold text-gray-500
-                   hover:border-blue-500 hover:text-blue-600
-                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
+        className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-faint
+                   text-xs font-bold text-muted
+                   hover:border-accent hover:text-accent
+                   focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1
                    transition-colors duration-150"
         aria-label="Learn about Bible translations"
         aria-describedby={showTooltip ? tooltipId : undefined}

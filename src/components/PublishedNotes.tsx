@@ -65,9 +65,9 @@ export function PublishedNotes({ auth }: PublishedNotesProps) {
       {loading && (
         <div className="space-y-3" role="status">
           {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="animate-pulse rounded-lg border border-gray-200 p-4">
-              <div className="h-4 w-32 rounded bg-gray-200 mb-2" />
-              <div className="h-3 w-full rounded bg-gray-200" />
+            <div key={i} className="animate-pulse rounded-lg border border-edge p-4">
+              <div className="h-4 w-32 rounded bg-edge mb-2" />
+              <div className="h-3 w-full rounded bg-edge" />
             </div>
           ))}
           <span className="sr-only">Loading published notes...</span>
@@ -81,20 +81,20 @@ export function PublishedNotes({ auth }: PublishedNotesProps) {
             <a
               key={annotation.id}
               href={`/app/annotate?t=${annotation.translation}&b=${annotation.anchor.book}&c=${annotation.anchor.chapter}&vs=${annotation.anchor.verseStart}&ve=${annotation.anchor.verseEnd}&id=${annotation.id}`}
-              className="block rounded-lg border border-gray-200 p-4
-                         hover:border-blue-300 hover:bg-blue-50
-                         focus:outline-none focus:ring-2 focus:ring-blue-500
+              className="block rounded-lg border border-edge p-4
+                         hover:border-accent hover:bg-accent-soft
+                         focus:outline-none focus:ring-2 focus:ring-ring
                          transition-colors duration-150"
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-heading">
                   {formatVerseRef(annotation)}
                 </span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-faint">
                   {new Date(annotation.updatedAt).toLocaleDateString()}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 line-clamp-2">
+              <p className="text-sm text-muted line-clamp-2">
                 {annotation.contentMd}
               </p>
             </a>
@@ -105,13 +105,13 @@ export function PublishedNotes({ auth }: PublishedNotesProps) {
       {/* Empty state */}
       {!loading && annotations.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-lg text-gray-500">
+          <p className="text-lg text-muted">
             You haven&apos;t published any notes yet.
           </p>
           <a
             href="/app/search"
-            className="mt-4 inline-block rounded-lg bg-blue-600 px-6 py-3 font-medium text-white
-                       hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-4 inline-block rounded-lg bg-accent px-6 py-3 font-medium text-on-accent
+                       hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
           >
             Back to My Notes
           </a>

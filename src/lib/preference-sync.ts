@@ -20,6 +20,8 @@ import type { ReaderFont, ReaderLayout, AnnotationDotStyle } from "./workspace-p
 import { loadTranslationToggles, saveTranslationToggles } from "./translation-toggles";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types/database";
+import type { ColorMode, ColorTheme } from "./theme";
+import { COLOR_MODE_KEY, COLOR_THEME_KEY, applyTheme } from "./theme";
 
 // ── Types ──
 
@@ -36,9 +38,13 @@ export interface UserPreferences {
   assembly?: boolean;
   onlyBegotten?: boolean;
 
-  // New fields (stored in "oeb-user-prefs" localStorage key)
+  // User prefs (stored in "oeb-user-prefs" localStorage key)
   defaultTranslation?: string;
   denominationPreset?: string;
+
+  // Appearance (also mirrored to dedicated localStorage keys for anti-flash script)
+  colorMode?: ColorMode;
+  colorTheme?: ColorTheme;
 }
 
 const USER_PREFS_STORAGE_KEY = "oeb-user-prefs";
@@ -49,33 +55,62 @@ const VALID_FONTS = new Set(["system", "inter", "source-sans", "literata", "sour
 const VALID_DOT_STYLES = new Set(["blue", "subtle", "hidden"]);
 /** Valid layout keys */
 const VALID_LAYOUTS = new Set(["centered", "columns"]);
+/** Valid color mode keys */
+const VALID_COLOR_MODES = new Set(["system", "light", "dark"]);
+/** Valid color theme keys */
+const VALID_COLOR_THEMES = new Set(["default", "lutheran", "catholic", "orthodox"]);
 
 // ── localStorage helpers ──
 
-/** Load user-prefs-only localStorage key (defaultTranslation, denominationPreset). */
-function loadUserPrefsStorage(): { defaultTranslation?: string; denominationPreset?: string } {
+/** Load user-prefs-only localStorage key. */
+function loadUserPrefsStorage(): {
+  defaultTranslation?: string;
+  denominationPreset?: string;
+  colorMode?: ColorMode;
+  colorTheme?: ColorTheme;
+} {
   try {
     const raw = localStorage.getItem(USER_PREFS_STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
+    const parsed = raw ? JSON.parse(raw) : {};
+
+    // Color mode/theme are also stored in dedicated keys for anti-flash script
+    const colorMode = localStorage.getItem(COLOR_MODE_KEY);
+    const colorTheme = localStorage.getItem(COLOR_THEME_KEY);
+
     return {
       defaultTranslation: typeof parsed.defaultTranslation === "string" ? parsed.defaultTranslation : undefined,
       denominationPreset: typeof parsed.denominationPreset === "string" ? parsed.denominationPreset : undefined,
+      colorMode: colorMode && VALID_COLOR_MODES.has(colorMode) ? colorMode as ColorMode : undefined,
+      colorTheme: colorTheme && VALID_COLOR_THEMES.has(colorTheme) ? colorTheme as ColorTheme : undefined,
     };
   } catch {
     return {};
   }
 }
 
-/** Save user-prefs-only localStorage key. */
-function saveUserPrefsStorage(prefs: { defaultTranslation?: string; denominationPreset?: string }): void {
+/** Save user-prefs-only localStorage key + dedicated theme keys for anti-flash. */
+function saveUserPrefsStorage(prefs: {
+  defaultTranslation?: string;
+  denominationPreset?: string;
+  colorMode?: ColorMode;
+  colorTheme?: ColorTheme;
+}): void {
   try {
     const current = loadUserPrefsStorage();
     const merged = {
-      ...current,
-      ...prefs,
+      defaultTranslation: prefs.defaultTranslation ?? current.defaultTranslation,
+      denominationPreset: prefs.denominationPreset ?? current.denominationPreset,
     };
     localStorage.setItem(USER_PREFS_STORAGE_KEY, JSON.stringify(merged));
+
+    // Mirror color prefs to dedicated keys so the anti-flash script can read them
+    // without parsing JSON (it runs before any JS frameworks load)
+    if (prefs.colorMode !== undefined) {
+      localStorage.setItem(COLOR_MODE_KEY, prefs.colorMode);
+    }
+    if (prefs.colorTheme !== undefined) {
+      localStorage.setItem(COLOR_THEME_KEY, prefs.colorTheme);
+    }
   } catch {
     // Storage unavailable — silently ignore
   }
@@ -100,6 +135,8 @@ export function loadLocalPreferences(): UserPreferences {
     onlyBegotten: toggles.onlyBegotten,
     defaultTranslation: userPrefs.defaultTranslation,
     denominationPreset: userPrefs.denominationPreset,
+    colorMode: userPrefs.colorMode,
+    colorTheme: userPrefs.colorTheme,
   };
 }
 
@@ -124,10 +161,12 @@ export function savePreferencesToLocalStorage(prefs: UserPreferences): void {
     onlyBegotten: prefs.onlyBegotten,
   });
 
-  // User prefs (new key)
+  // User prefs (includes theme settings)
   saveUserPrefsStorage({
     defaultTranslation: prefs.defaultTranslation,
     denominationPreset: prefs.denominationPreset,
+    colorMode: prefs.colorMode,
+    colorTheme: prefs.colorTheme,
   });
 }
 
@@ -158,6 +197,12 @@ export function validatePreferences(raw: unknown): UserPreferences {
   if (typeof obj.onlyBegotten === "boolean") result.onlyBegotten = obj.onlyBegotten;
   if (typeof obj.defaultTranslation === "string") result.defaultTranslation = obj.defaultTranslation;
   if (typeof obj.denominationPreset === "string") result.denominationPreset = obj.denominationPreset;
+  if (typeof obj.colorMode === "string" && VALID_COLOR_MODES.has(obj.colorMode)) {
+    result.colorMode = obj.colorMode as ColorMode;
+  }
+  if (typeof obj.colorTheme === "string" && VALID_COLOR_THEMES.has(obj.colorTheme)) {
+    result.colorTheme = obj.colorTheme as ColorTheme;
+  }
 
   return result;
 }
@@ -235,6 +280,13 @@ export async function syncPreferences(
 
   // Write merged result to both stores
   savePreferencesToLocalStorage(merged);
+
+  // Apply theme from roaming preferences (in case the other device changed it)
+  if (merged.colorMode || merged.colorTheme) {
+    const mode = merged.colorMode ?? "system";
+    const theme = merged.colorTheme ?? "default";
+    applyTheme(mode, theme);
+  }
   try {
     await saveRemotePreferences(client, userId, merged);
   } catch {

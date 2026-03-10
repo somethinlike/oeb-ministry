@@ -110,16 +110,16 @@ export function TranslationFirstOpenPopup({
       role="status"
       aria-live="polite"
       className={`absolute top-full left-0 right-0 mt-2 z-40
-                  rounded-lg border border-blue-200 bg-blue-50 p-4 shadow-md
+                  rounded-lg border border-accent bg-accent-soft p-4 shadow-md
                   transition-opacity duration-300
                   ${opacityClass}`}
     >
-      <p className="text-sm text-blue-800 leading-relaxed">
+      <p className="text-sm text-accent leading-relaxed">
         Each Bible translation has its own story.{" "}
         <a
           href="/translations"
-          className="font-semibold text-blue-700 underline hover:text-blue-900
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+          className="font-semibold text-accent underline hover:text-accent-hover
+                     focus:outline-none focus:ring-2 focus:ring-ring rounded"
         >
           Visit our Translations page
         </a>{" "}

@@ -186,10 +186,10 @@ export function MarkdownEditor({
   }
 
   return (
-    <div className="rounded-lg border border-gray-300">
+    <div className="rounded-lg border border-input-border">
       {/* Toolbar */}
       <div
-        className="flex items-center gap-1 border-b border-gray-200 px-2 py-1.5"
+        className="flex items-center gap-1 border-b border-edge px-2 py-1.5"
         role="toolbar"
         aria-label="Text formatting"
       >
@@ -198,9 +198,9 @@ export function MarkdownEditor({
             key={action.ariaLabel}
             type="button"
             onClick={() => applyFormatting(action)}
-            className="rounded px-2.5 py-1.5 text-sm font-bold text-gray-600
-                       hover:bg-gray-100 hover:text-gray-900
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="rounded px-2.5 py-1.5 text-sm font-bold text-muted
+                       hover:bg-surface-hover hover:text-heading
+                       focus:outline-none focus:ring-2 focus:ring-ring"
             aria-label={action.ariaLabel}
             title={action.ariaLabel}
           >
@@ -219,8 +219,8 @@ export function MarkdownEditor({
           type="button"
           onClick={() => setShowPreview(!showPreview)}
           className={`rounded px-3 py-1.5 text-sm font-medium
-                     focus:outline-none focus:ring-2 focus:ring-blue-500
-                     ${showPreview ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-100"}`}
+                     focus:outline-none focus:ring-2 focus:ring-ring
+                     ${showPreview ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface-hover"}`}
           aria-pressed={showPreview}
         >
           {showPreview ? "Write" : "Preview"}
@@ -241,7 +241,7 @@ export function MarkdownEditor({
               {content}
             </ReactMarkdown>
           ) : (
-            <p className="text-gray-400 italic">Nothing to preview yet.</p>
+            <p className="text-faint italic">Nothing to preview yet.</p>
           )}
         </div>
       ) : (

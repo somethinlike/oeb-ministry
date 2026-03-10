@@ -35,7 +35,7 @@ export function ChapterAnnotationList({ hideHeader = false }: ChapterAnnotationL
 
   if (!userId) {
     return (
-      <div className="p-4 text-center text-gray-500">
+      <div className="p-4 text-center text-muted">
         <p>Sign in to create and view your notes.</p>
       </div>
     );
@@ -45,9 +45,9 @@ export function ChapterAnnotationList({ hideHeader = false }: ChapterAnnotationL
     return (
       <div className="space-y-3 p-4" role="status" aria-label="Loading notes">
         {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="animate-pulse rounded-lg border border-gray-200 p-3">
-            <div className="h-4 w-24 rounded bg-gray-200 mb-2" />
-            <div className="h-3 w-full rounded bg-gray-200" />
+          <div key={i} className="animate-pulse rounded-lg border border-edge p-3">
+            <div className="h-4 w-24 rounded bg-edge mb-2" />
+            <div className="h-3 w-full rounded bg-edge" />
           </div>
         ))}
         <span className="sr-only">Loading your notes...</span>
@@ -73,11 +73,11 @@ export function ChapterAnnotationList({ hideHeader = false }: ChapterAnnotationL
     <div className="flex flex-col h-full">
       {/* Header with "Write a note" button — hidden inside FloatingPanel which has its own title */}
       {!hideHeader && (
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-          <h3 className="text-sm font-semibold text-gray-700">
+        <div className="flex items-center justify-between border-b border-edge px-4 py-3">
+          <h3 className="text-sm font-semibold text-body">
             Your Notes
             {annotations.length > 0 && (
-              <span className="ml-1.5 text-xs font-normal text-gray-400">
+              <span className="ml-1.5 text-xs font-normal text-faint">
                 ({annotations.length})
               </span>
             )}
@@ -86,8 +86,8 @@ export function ChapterAnnotationList({ hideHeader = false }: ChapterAnnotationL
             <button
               type="button"
               onClick={startNewAnnotation}
-              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white
-                         hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-on-accent
+                         hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
             >
               Write a note
             </button>
@@ -98,7 +98,7 @@ export function ChapterAnnotationList({ hideHeader = false }: ChapterAnnotationL
       {/* Annotation list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {annotations.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-faint">
             <p className="text-sm">No notes for this chapter yet.</p>
             <p className="text-xs mt-1">
               Select verses to start writing.
@@ -110,16 +110,16 @@ export function ChapterAnnotationList({ hideHeader = false }: ChapterAnnotationL
               key={ann.id}
               type="button"
               onClick={() => editAnnotation(ann)}
-              className="w-full rounded-lg border border-gray-200 bg-white p-3 text-left
-                         hover:border-blue-300 hover:bg-blue-50
-                         focus:outline-none focus:ring-2 focus:ring-blue-500
+              className="w-full rounded-lg border border-edge bg-panel p-3 text-left
+                         hover:border-accent hover:bg-accent-soft
+                         focus:outline-none focus:ring-2 focus:ring-ring
                          transition-colors duration-150"
               aria-label={`Edit note for ${verseLabel(ann)}`}
             >
-              <p className="text-xs font-semibold text-blue-600 mb-1">
+              <p className="text-xs font-semibold text-accent mb-1">
                 {verseLabel(ann)}
               </p>
-              <p className="text-sm text-gray-600 leading-snug">
+              <p className="text-sm text-muted leading-snug">
                 {preview(ann.contentMd)}
               </p>
             </button>

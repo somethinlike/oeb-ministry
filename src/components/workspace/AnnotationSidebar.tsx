@@ -35,7 +35,7 @@ export function AnnotationSidebar({ hideHeader = false }: AnnotationSidebarProps
   // If not authenticated, the list view handles showing a sign-in prompt
   if (!userId) {
     return (
-      <div className="h-full bg-white">
+      <div className="h-full bg-panel">
         <ChapterAnnotationList hideHeader={hideHeader} />
       </div>
     );
@@ -52,14 +52,14 @@ export function AnnotationSidebar({ hideHeader = false }: AnnotationSidebarProps
       : selection?.end ?? verseStart;
 
     return (
-      <div className="h-full bg-white overflow-y-auto">
+      <div className="h-full bg-panel overflow-y-auto">
         {/* Back button to return to list */}
-        <div className="border-b border-gray-200 px-4 py-2">
+        <div className="border-b border-edge px-4 py-2">
           <button
             type="button"
             onClick={showAnnotationList}
-            className="text-sm text-gray-500 hover:text-gray-700
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+            className="text-sm text-muted hover:text-body
+                       focus:outline-none focus:ring-2 focus:ring-ring rounded px-1"
           >
             &larr; Back to notes
           </button>
@@ -83,7 +83,7 @@ export function AnnotationSidebar({ hideHeader = false }: AnnotationSidebarProps
 
   // ── Default: list view ──
   return (
-    <div className="h-full bg-white">
+    <div className="h-full bg-panel">
       <ChapterAnnotationList hideHeader={hideHeader} />
     </div>
   );

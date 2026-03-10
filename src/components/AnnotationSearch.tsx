@@ -164,13 +164,13 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search your notes..."
-          className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-lg
-                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 rounded-lg border border-input-border px-4 py-3 text-lg
+                     focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <button
           type="submit"
-          className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white
-                     hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-lg bg-accent px-6 py-3 font-medium text-on-accent
+                     hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
         >
           Search
         </button>
@@ -190,9 +190,9 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
       {loading && (
         <div className="space-y-3" role="status">
           {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="animate-pulse rounded-lg border border-gray-200 p-4">
-              <div className="h-4 w-32 rounded bg-gray-200 mb-2" />
-              <div className="h-3 w-full rounded bg-gray-200" />
+            <div key={i} className="animate-pulse rounded-lg border border-edge p-4">
+              <div className="h-4 w-32 rounded bg-edge mb-2" />
+              <div className="h-3 w-full rounded bg-edge" />
             </div>
           ))}
           <span className="sr-only">Loading notes...</span>
@@ -205,14 +205,14 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
           {/* Select All */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
                 <input
                   type="checkbox"
                   checked={selectedIds.size === results.length}
                   onChange={() =>
                     selectedIds.size === results.length ? deselectAll() : selectAll()
                   }
-                  className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                  className="h-4 w-4 rounded border-input-border accent-accent"
                   aria-label="Select all notes"
                 />
                 Select all
@@ -223,7 +223,7 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
               {hasDeleted && (
                 <a
                   href="/app/recycle-bin"
-                  className="flex items-center gap-1 text-sm text-gray-400 hover:text-red-600 transition-colors"
+                  className="flex items-center gap-1 text-sm text-faint hover:text-red-600 transition-colors"
                   title="Recycle Bin"
                   aria-label="Open Recycle Bin"
                 >
@@ -245,7 +245,7 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
               )}
             </div>
             {selectedIds.size > 0 && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-muted">
                 {selectedIds.size} selected
               </span>
             )}
@@ -258,31 +258,31 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
                 className={`flex items-start gap-3 rounded-lg border p-4
                            transition-colors duration-150
                            ${selectedIds.has(annotation.id)
-                             ? "border-blue-300 bg-blue-50"
-                             : "border-gray-200 hover:border-blue-300"}`}
+                             ? "border-accent bg-accent-soft"
+                             : "border-edge hover:border-accent"}`}
               >
                 <label className="flex items-center pt-0.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={selectedIds.has(annotation.id)}
                     onChange={() => toggleSelection(annotation.id)}
-                    className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                    className="h-4 w-4 rounded border-input-border accent-accent"
                     aria-label={`Select ${formatVerseRef(annotation)}`}
                   />
                 </label>
                 <a
                   href={`/app/annotate?t=${annotation.translation}&b=${annotation.anchor.book}&c=${annotation.anchor.chapter}&vs=${annotation.anchor.verseStart}&ve=${annotation.anchor.verseEnd}&id=${annotation.id}`}
-                  className="flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  className="flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-ring rounded"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-heading">
                       {formatVerseRef(annotation)}
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-faint">
                       {new Date(annotation.updatedAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-2">
+                  <p className="text-sm text-muted line-clamp-2">
                     {annotation.contentMd}
                   </p>
                 </a>
@@ -295,13 +295,13 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
       {/* Empty state */}
       {!loading && results.length === 0 && !query && (
         <div className="text-center py-12">
-          <p className="text-lg text-gray-500">
+          <p className="text-lg text-muted">
             You haven&apos;t written any notes yet.
           </p>
           <a
             href="/app/read"
-            className="mt-4 inline-block rounded-lg bg-blue-600 px-6 py-3 font-medium text-white
-                       hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-4 inline-block rounded-lg bg-accent px-6 py-3 font-medium text-on-accent
+                       hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
           >
             Start reading
           </a>
@@ -310,7 +310,7 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
 
       {/* No search results */}
       {!loading && results.length === 0 && query && (
-        <p className="text-center text-gray-500 py-8">
+        <p className="text-center text-muted py-8">
           No notes match &quot;{query}&quot;
         </p>
       )}
@@ -318,21 +318,21 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
       {/* Bulk action bar */}
       {selectedIds.size > 0 && (
         <div
-          className="sticky bottom-0 z-10 mt-4 -mx-4 border-t border-gray-200
-                     bg-white/95 backdrop-blur px-4 py-3
+          className="sticky bottom-0 z-10 mt-4 -mx-4 border-t border-edge
+                     bg-panel/95 backdrop-blur px-4 py-3
                      flex items-center justify-between"
           role="toolbar"
           aria-label="Bulk actions"
         >
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-body">
             {selectedIds.size} note{selectedIds.size !== 1 ? "s" : ""} selected
           </span>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={deselectAll}
-              className="rounded-lg px-3 py-1.5 text-sm text-gray-600
-                         hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="rounded-lg px-3 py-1.5 text-sm text-muted
+                         hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
             >
               Cancel
             </button>

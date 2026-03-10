@@ -81,7 +81,7 @@ export function SplitPaneDivider({
       aria-label="Resize panes"
       tabIndex={0}
       className="hidden lg:flex items-center justify-center w-2 cursor-col-resize
-                 bg-gray-100 hover:bg-blue-100 active:bg-blue-200
+                 bg-surface-hover hover:bg-accent-soft active:bg-accent-soft
                  transition-colors duration-100 select-none flex-shrink-0"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -107,9 +107,9 @@ export function SplitPaneDivider({
     >
       {/* Visual grip dots */}
       <div className="flex flex-col gap-1" aria-hidden="true">
-        <div className="h-1 w-1 rounded-full bg-gray-400" />
-        <div className="h-1 w-1 rounded-full bg-gray-400" />
-        <div className="h-1 w-1 rounded-full bg-gray-400" />
+        <div className="h-1 w-1 rounded-full bg-faint" />
+        <div className="h-1 w-1 rounded-full bg-faint" />
+        <div className="h-1 w-1 rounded-full bg-faint" />
       </div>
     </div>
   );

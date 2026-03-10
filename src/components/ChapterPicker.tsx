@@ -30,7 +30,7 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
   const [chapterStates, setChapterStates] = useState<Map<number, boolean>>(new Map());
 
   if (!bookInfo) {
-    return <p className="text-gray-500">Book not found.</p>;
+    return <p className="text-muted">Book not found.</p>;
   }
 
   const chapters = Array.from({ length: bookInfo.chapters }, (_, i) => i + 1);
@@ -77,7 +77,7 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-heading">
           {bookInfo.name}
         </h2>
         {/* Save book offline button */}
@@ -86,9 +86,9 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
             type="button"
             onClick={handleSaveBookOffline}
             disabled={caching || bookCached === true}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5
-                       text-xs font-medium text-gray-600 hover:bg-gray-50
-                       focus:outline-none focus:ring-2 focus:ring-blue-500
+            className="flex items-center gap-1.5 rounded-lg border border-input-border bg-panel px-3 py-1.5
+                       text-xs font-medium text-muted hover:bg-surface-alt
+                       focus:outline-none focus:ring-2 focus:ring-ring
                        disabled:opacity-60 disabled:cursor-default"
             aria-label={bookCached ? `${bookInfo.name} saved offline` : `Save ${bookInfo.name} for offline reading`}
           >
@@ -102,7 +102,7 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
               </>
             ) : bookCached ? (
               <>
-                <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+                <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>Saved offline</span>
@@ -118,7 +118,7 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
           </button>
         )}
       </div>
-      <p className="mb-6 text-gray-600">
+      <p className="mb-6 text-muted">
         Choose a chapter to start reading.
       </p>
 
@@ -130,9 +130,9 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
               key={ch}
               href={`/app/read/${translation}/${book}/${ch}`}
               className="relative flex h-12 w-full items-center justify-center rounded-lg
-                         border border-gray-200 bg-white font-medium text-gray-700
-                         hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700
-                         focus:outline-none focus:ring-2 focus:ring-blue-500
+                         border border-edge bg-panel font-medium text-body
+                         hover:border-accent hover:bg-accent-soft hover:text-accent
+                         focus:outline-none focus:ring-2 focus:ring-ring
                          transition-colors duration-150"
               aria-label={`${bookInfo.name} chapter ${ch}${isCached ? " (saved offline)" : ""}`}
             >

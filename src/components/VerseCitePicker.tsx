@@ -226,9 +226,9 @@ export function VerseCitePicker({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="rounded px-2.5 py-1.5 text-sm font-bold text-gray-600
-                   hover:bg-gray-100 hover:text-gray-900
-                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="rounded px-2.5 py-1.5 text-sm font-bold text-muted
+                   hover:bg-surface-hover hover:text-heading
+                   focus:outline-none focus:ring-2 focus:ring-ring"
         aria-label="Cite a verse"
         aria-expanded={open}
         aria-haspopup="true"
@@ -254,13 +254,13 @@ export function VerseCitePicker({
       {/* Popover */}
       {open && (
         <div
-          className="absolute left-0 top-full z-50 mt-1 w-80 rounded-lg border border-gray-200
-                     bg-white shadow-lg"
+          className="absolute left-0 top-full z-50 mt-1 w-80 rounded-lg border border-edge
+                     bg-panel shadow-lg"
           role="dialog"
           aria-label="Cite a verse"
         >
           {loading ? (
-            <div className="p-4 text-center text-sm text-gray-500" role="status">
+            <div className="p-4 text-center text-sm text-muted" role="status">
               Loading verses...
             </div>
           ) : selected ? (
@@ -271,21 +271,21 @@ export function VerseCitePicker({
                 <button
                   type="button"
                   onClick={() => setSelected(null)}
-                  className="rounded p-1 text-gray-500 hover:bg-gray-100
-                             focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded p-1 text-muted hover:bg-surface-hover
+                             focus:outline-none focus:ring-2 focus:ring-ring"
                   aria-label="Back to verse list"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                   </svg>
                 </button>
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-sm font-semibold text-body">
                   {selected.label}
                 </span>
               </div>
 
               {/* Full verse text */}
-              <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 rounded-md p-2">
+              <p className="text-sm text-muted leading-relaxed bg-surface-alt rounded-md p-2">
                 {selected.text}
               </p>
 
@@ -295,9 +295,9 @@ export function VerseCitePicker({
                   type="button"
                   onClick={() => setTrimStart((prev) => Math.min(prev + 1, maxTrim - trimEnd))}
                   disabled={trimStart + trimEnd >= maxTrim}
-                  className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600
-                             hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed
-                             focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded border border-input-border px-2 py-1 text-xs font-medium text-muted
+                             hover:bg-surface-alt disabled:opacity-40 disabled:cursor-not-allowed
+                             focus:outline-none focus:ring-2 focus:ring-ring"
                   aria-label="Trim one word from the start"
                 >
                   Trim start
@@ -306,8 +306,8 @@ export function VerseCitePicker({
                   <button
                     type="button"
                     onClick={() => setTrimStart((prev) => Math.max(0, prev - 1))}
-                    className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600
-                               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="rounded border border-input-border px-2 py-1 text-xs font-medium text-muted
+                               hover:bg-surface-alt focus:outline-none focus:ring-2 focus:ring-ring"
                     aria-label="Undo trim from start"
                   >
                     + Start
@@ -320,8 +320,8 @@ export function VerseCitePicker({
                   <button
                     type="button"
                     onClick={() => setTrimEnd((prev) => Math.max(0, prev - 1))}
-                    className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600
-                               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="rounded border border-input-border px-2 py-1 text-xs font-medium text-muted
+                               hover:bg-surface-alt focus:outline-none focus:ring-2 focus:ring-ring"
                     aria-label="Undo trim from end"
                   >
                     End +
@@ -331,9 +331,9 @@ export function VerseCitePicker({
                   type="button"
                   onClick={() => setTrimEnd((prev) => Math.min(prev + 1, maxTrim - trimStart))}
                   disabled={trimStart + trimEnd >= maxTrim}
-                  className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600
-                             hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed
-                             focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded border border-input-border px-2 py-1 text-xs font-medium text-muted
+                             hover:bg-surface-alt disabled:opacity-40 disabled:cursor-not-allowed
+                             focus:outline-none focus:ring-2 focus:ring-ring"
                   aria-label="Trim one word from the end"
                 >
                   Trim end
@@ -348,7 +348,7 @@ export function VerseCitePicker({
                     setTrimStart(0);
                     setTrimEnd(0);
                   }}
-                  className="text-xs text-blue-600 hover:text-blue-800
+                  className="text-xs text-accent hover:text-accent-hover
                              focus:outline-none focus:underline"
                 >
                   Reset to full text
@@ -356,9 +356,9 @@ export function VerseCitePicker({
               )}
 
               {/* Live preview */}
-              <div className="rounded-md border-l-[3px] border-blue-500 bg-blue-50 px-3 py-2">
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold text-blue-700">{selected.label}</span>
+              <div className="rounded-md border-l-[3px] border-accent bg-accent-soft px-3 py-2">
+                <p className="text-sm text-body">
+                  <span className="font-semibold text-accent">{selected.label}</span>
                   {" \u2014 "}
                   {trimStart > 0 && "..."}
                   {selectedWords.slice(trimStart, selectedWords.length - trimEnd).join(" ")}
@@ -370,8 +370,8 @@ export function VerseCitePicker({
               <button
                 type="button"
                 onClick={handleInsert}
-                className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white
-                           hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md bg-accent px-3 py-2 text-sm font-medium text-on-accent
+                           hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 Insert citation
               </button>
@@ -382,7 +382,7 @@ export function VerseCitePicker({
               {/* Anchor verses */}
               {anchorVerses.length > 0 && (
                 <div>
-                  <p className="sticky top-0 bg-white px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                  <p className="sticky top-0 bg-panel px-3 py-2 text-xs font-semibold text-muted uppercase tracking-wider border-b border-edge-soft">
                     Your verses
                   </p>
                   {anchorVerses.map((v) => (
@@ -390,13 +390,13 @@ export function VerseCitePicker({
                       key={`${v.book}:${v.chapter}:${v.number}`}
                       type="button"
                       onClick={() => handleSelectVerse(v)}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-blue-50
-                                 focus:outline-none focus:bg-blue-50"
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-accent-soft
+                                 focus:outline-none focus:bg-accent-soft"
                     >
-                      <span className="font-semibold text-blue-600">
+                      <span className="font-semibold text-accent">
                         {v.number}
                       </span>{" "}
-                      <span className="text-gray-600 line-clamp-2">
+                      <span className="text-muted line-clamp-2">
                         {v.text}
                       </span>
                     </button>
@@ -407,7 +407,7 @@ export function VerseCitePicker({
               {/* Related verses from cross-references */}
               {relatedVerses.length > 0 && (
                 <div>
-                  <p className="sticky top-0 bg-white px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                  <p className="sticky top-0 bg-panel px-3 py-2 text-xs font-semibold text-muted uppercase tracking-wider border-b border-edge-soft">
                     Related verses
                   </p>
                   {relatedVerses.map((v) => (
@@ -415,13 +415,13 @@ export function VerseCitePicker({
                       key={`${v.book}:${v.chapter}:${v.number}`}
                       type="button"
                       onClick={() => handleSelectVerse(v)}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-blue-50
-                                 focus:outline-none focus:bg-blue-50"
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-accent-soft
+                                 focus:outline-none focus:bg-accent-soft"
                     >
-                      <span className="font-semibold text-blue-600">
+                      <span className="font-semibold text-accent">
                         {v.label}
                       </span>{" "}
-                      <span className="text-gray-600 line-clamp-2">
+                      <span className="text-muted line-clamp-2">
                         {v.text}
                       </span>
                     </button>
@@ -431,7 +431,7 @@ export function VerseCitePicker({
 
               {/* Empty state — no verses loaded */}
               {anchorVerses.length === 0 && relatedVerses.length === 0 && (
-                <div className="p-4 text-center text-sm text-gray-400">
+                <div className="p-4 text-center text-sm text-faint">
                   <p>Verse text isn't available right now.</p>
                   <p className="mt-1">You can type a citation manually using the Quote button.</p>
                 </div>

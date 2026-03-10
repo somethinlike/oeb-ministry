@@ -48,8 +48,8 @@ export function BookPicker({ translation }: BookPickerProps) {
           placeholder="Search for a book..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-lg
-                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-lg border border-input-border px-4 py-3 text-lg
+                     focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring"
           autoComplete="off"
         />
       </div>
@@ -59,7 +59,7 @@ export function BookPicker({ translation }: BookPickerProps) {
         <section aria-labelledby="ot-heading">
           <h2
             id="ot-heading"
-            className="mb-3 text-lg font-semibold text-gray-700"
+            className="mb-3 text-lg font-semibold text-body"
           >
             Old Testament
           </h2>
@@ -72,11 +72,11 @@ export function BookPicker({ translation }: BookPickerProps) {
         <section aria-labelledby="dc-heading" className="mt-8">
           <h2
             id="dc-heading"
-            className="mb-1 text-lg font-semibold text-gray-700"
+            className="mb-1 text-lg font-semibold text-body"
           >
             Deuterocanon &amp; Apocrypha
           </h2>
-          <p className="mb-3 text-sm text-gray-500">
+          <p className="mb-3 text-sm text-muted">
             Additional books recognized by Catholic and Orthodox traditions
           </p>
           <BookGrid books={dcBooks} translation={translation} />
@@ -88,7 +88,7 @@ export function BookPicker({ translation }: BookPickerProps) {
         <section aria-labelledby="nt-heading" className="mt-8">
           <h2
             id="nt-heading"
-            className="mb-3 text-lg font-semibold text-gray-700"
+            className="mb-3 text-lg font-semibold text-body"
           >
             New Testament
           </h2>
@@ -98,7 +98,7 @@ export function BookPicker({ translation }: BookPickerProps) {
 
       {/* No results message */}
       {filteredBooks.length === 0 && (
-        <p className="text-center text-gray-500 py-8">
+        <p className="text-center text-muted py-8">
           No books match &quot;{filter}&quot;
         </p>
       )}
@@ -160,14 +160,14 @@ function BookTile({
     <div className="relative">
       <a
         href={`/app/read/${translation}/${book.id}`}
-        className="block rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10
-                   text-center font-medium text-gray-700
-                   hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700
-                   focus:outline-none focus:ring-2 focus:ring-blue-500
+        className="block rounded-lg border border-edge bg-panel px-4 py-3 pr-10
+                   text-center font-medium text-body
+                   hover:border-accent hover:bg-accent-soft hover:text-accent
+                   focus:outline-none focus:ring-2 focus:ring-ring
                    transition-colors duration-150"
       >
         {book.name}
-        <span className="block text-xs text-gray-400 mt-0.5">
+        <span className="block text-xs text-faint mt-0.5">
           {book.chapters} {book.chapters === 1 ? "chapter" : "chapters"}
         </span>
       </a>
@@ -177,8 +177,8 @@ function BookTile({
           type="button"
           onClick={handleSaveOffline}
           disabled={caching || cached === true}
-          className="absolute top-1.5 right-1.5 p-1 rounded text-gray-400 hover:text-blue-600
-                     focus:outline-none focus:ring-2 focus:ring-blue-500
+          className="absolute top-1.5 right-1.5 p-1 rounded text-faint hover:text-accent
+                     focus:outline-none focus:ring-2 focus:ring-ring
                      disabled:cursor-default"
           aria-label={cached ? `${book.name} saved offline` : `Save ${book.name} for offline reading`}
           title={cached ? "Saved offline" : "Save for offline reading"}
@@ -191,7 +191,7 @@ function BookTile({
             </svg>
           ) : cached ? (
             /* Checkmark — cached */
-            <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+            <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           ) : (

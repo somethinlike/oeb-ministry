@@ -16,17 +16,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <BaseLayout title="Open Source Theology" description="Why we build in the open and give freely — the theology, ethics, and technology behind Open Bible Ministry.">
   <!-- Top navigation for this public page -->
-  <nav class="border-b border-gray-200 bg-white" aria-label="Page navigation">
+  <nav class="border-b border-edge bg-panel" aria-label="Page navigation">
     <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
       <div class="flex h-14 items-center justify-between">
-        <a href="/" class="text-lg font-bold text-gray-900" aria-label="Open Bible Ministry home">
+        <a href="/" class="text-lg font-bold text-heading" aria-label="Open Bible Ministry home">
           Open Bible Ministry
         </a>
         <div class="flex items-center gap-4">
-          <a href="/app/read" class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <a href="/app/read" class="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-hover hover:text-heading focus:outline-none focus:ring-2 focus:ring-ring">
             Read the Bible
           </a>
-          <a href="/auth/signin" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <a href="/auth/signin" class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring">
             Sign in
           </a>
         </div>
@@ -42,10 +42,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <!-- ════════════════════════════════════════════════════════════ -->
 
     <header class="text-center mb-16">
-      <h1 class="text-4xl font-bold text-gray-900 sm:text-5xl leading-tight">
+      <h1 class="text-4xl font-bold text-heading sm:text-5xl leading-tight">
         Open Source Theology
       </h1>
-      <p class="mt-6 text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">
+      <p class="mt-6 text-xl text-muted leading-relaxed max-w-2xl mx-auto">
         Everything on this site is built to be given away. The Bible text is free.
         Your published notes are free. The code that runs the site is free. Here's
         why we believe that's exactly how it should be.
@@ -54,16 +54,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     <!-- The Scripture -->
     <section class="mb-16" aria-labelledby="scripture-heading">
-      <blockquote class="border-l-4 border-blue-500 pl-6 py-2">
-        <p class="text-2xl text-gray-800 italic leading-relaxed">
+      <blockquote class="border-l-4 border-accent pl-6 py-2">
+        <p class="text-2xl text-heading italic leading-relaxed">
           "Freely you have received; freely give."
         </p>
-        <footer class="mt-3 text-base text-gray-500">
+        <footer class="mt-3 text-base text-muted">
           — Jesus Christ, Matthew 10:8
         </footer>
       </blockquote>
 
-      <div class="mt-8 space-y-4 text-lg text-gray-700 leading-relaxed">
+      <div class="mt-8 space-y-4 text-lg text-body leading-relaxed">
         <p>
           This isn't a slogan. It's a command — and it's the foundation everything
           here is built on. If God gives wisdom, understanding, and talent freely,
@@ -85,16 +85,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <!-- ════════════════════════════════════════════════════════════ -->
 
     <section class="mb-16" aria-labelledby="examples-heading">
-      <h2 id="examples-heading" class="text-2xl font-bold text-gray-900 mb-8">
+      <h2 id="examples-heading" class="text-2xl font-bold text-heading mb-8">
         Those Who Gave Freely
       </h2>
 
       <!-- George Washington Carver -->
       <div class="mb-10">
-        <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <h3 class="text-xl font-semibold text-heading mb-3">
           George Washington Carver
         </h3>
-        <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+        <div class="space-y-4 text-lg text-body leading-relaxed">
           <p>
             Carver discovered over 300 uses for the peanut and hundreds more for
             sweet potatoes, soybeans, and pecans. He revolutionized Southern
@@ -105,7 +105,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             When asked why he wouldn't patent his discoveries, Carver replied:
           </p>
           <blockquote class="border-l-4 border-amber-400 pl-6 py-1 my-4">
-            <p class="text-gray-800 italic">
+            <p class="text-heading italic">
               "God gave them to me. How can I sell them to someone else?"
             </p>
           </blockquote>
@@ -126,10 +126,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
       <!-- Johann Sebastian Bach -->
       <div class="mb-10">
-        <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <h3 class="text-xl font-semibold text-heading mb-3">
           Johann Sebastian Bach
         </h3>
-        <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+        <div class="space-y-4 text-lg text-body leading-relaxed">
           <p>
             Bach composed over 1,100 works — cantatas, fugues, concertos, and
             some of the most complex music ever written. On nearly every
@@ -188,10 +188,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
       <!-- The Wider Tradition -->
       <div class="mb-10">
-        <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <h3 class="text-xl font-semibold text-heading mb-3">
           A Tradition, Not an Exception
         </h3>
-        <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+        <div class="space-y-4 text-lg text-body leading-relaxed">
           <p>
             Carver and Bach aren't outliers. They belong to a long line of people
             who understood that knowledge hoarded is knowledge wasted:
@@ -238,11 +238,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <!-- ════════════════════════════════════════════════════════════ -->
 
     <section class="mb-16" aria-labelledby="ethics-heading">
-      <h2 id="ethics-heading" class="text-2xl font-bold text-gray-900 mb-8">
+      <h2 id="ethics-heading" class="text-2xl font-bold text-heading mb-8">
         Our Ethics
       </h2>
 
-      <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+      <div class="space-y-4 text-lg text-body leading-relaxed">
         <p>
           Open Bible Ministry is built on two pillars: <strong>Christ's ethics</strong>
           and <strong>open knowledge</strong>. These aren't in tension — they're
@@ -251,11 +251,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </div>
 
       <!-- CC0 -->
-      <div class="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">
+      <div class="mt-8 rounded-lg border border-edge bg-surface-alt p-6">
+        <h3 class="text-lg font-semibold text-heading mb-3">
           Creative Commons Zero (CC0)
         </h3>
-        <div class="space-y-3 text-gray-700 leading-relaxed">
+        <div class="space-y-3 text-body leading-relaxed">
           <p>
             When you publish a note on this site, it's released under
             <strong>CC0</strong> — Creative Commons Zero. That means you're
@@ -273,11 +273,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </div>
 
       <!-- Christ's Ethics -->
-      <div class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">
+      <div class="mt-6 rounded-lg border border-edge bg-surface-alt p-6">
+        <h3 class="text-lg font-semibold text-heading mb-3">
           Christ's Ethics
         </h3>
-        <div class="space-y-3 text-gray-700 leading-relaxed">
+        <div class="space-y-3 text-body leading-relaxed">
           <p>
             Published content on this site reflects Christ's teaching. This
             means:
@@ -312,11 +312,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </div>
 
       <!-- Data Ownership -->
-      <div class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">
+      <div class="mt-6 rounded-lg border border-edge bg-surface-alt p-6">
+        <h3 class="text-lg font-semibold text-heading mb-3">
           Your Data Belongs to You
         </h3>
-        <div class="space-y-3 text-gray-700 leading-relaxed">
+        <div class="space-y-3 text-body leading-relaxed">
           <p>
             Every note you write can be downloaded at any time. If this site
             disappears tomorrow, you leave with everything. Your notes export
@@ -338,11 +338,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <!-- ════════════════════════════════════════════════════════════ -->
 
     <section class="mb-16" aria-labelledby="opensource-heading">
-      <h2 id="opensource-heading" class="text-2xl font-bold text-gray-900 mb-8">
+      <h2 id="opensource-heading" class="text-2xl font-bold text-heading mb-8">
         The Open Source Connection
       </h2>
 
-      <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+      <div class="space-y-4 text-lg text-body leading-relaxed">
         <p>
           The principles behind this site aren't new to the tech world either.
           The open source software movement — one of the most successful
@@ -385,59 +385,59 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <!-- ════════════════════════════════════════════════════════════ -->
 
     <section class="mb-16" aria-labelledby="technical-heading">
-      <h2 id="technical-heading" class="text-2xl font-bold text-gray-900 mb-2">
+      <h2 id="technical-heading" class="text-2xl font-bold text-heading mb-2">
         Under the Hood
       </h2>
-      <p class="text-base text-gray-500 mb-8">
+      <p class="text-base text-muted mb-8">
         Technical details for developers, engineers, and the curious.
       </p>
 
       <!-- Tech Stack -->
       <div class="mb-10">
-        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+        <h3 class="text-xl font-semibold text-heading mb-4">
           Technology Stack
         </h3>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
             <thead>
-              <tr class="border-b border-gray-200 text-gray-600">
+              <tr class="border-b border-edge text-muted">
                 <th class="py-2 pr-4 font-semibold">Layer</th>
                 <th class="py-2 pr-4 font-semibold">Technology</th>
                 <th class="py-2 font-semibold">Why</th>
               </tr>
             </thead>
-            <tbody class="text-gray-700">
-              <tr class="border-b border-gray-100">
+            <tbody class="text-body">
+              <tr class="border-b border-edge-soft">
                 <td class="py-2 pr-4 font-medium">Framework</td>
                 <td class="py-2 pr-4">Astro (SSR)</td>
                 <td class="py-2">Content-heavy site, static-first with interactive islands</td>
               </tr>
-              <tr class="border-b border-gray-100">
+              <tr class="border-b border-edge-soft">
                 <td class="py-2 pr-4 font-medium">UI</td>
                 <td class="py-2 pr-4">React + TypeScript</td>
                 <td class="py-2">Largest ecosystem for editors and interactive components</td>
               </tr>
-              <tr class="border-b border-gray-100">
+              <tr class="border-b border-edge-soft">
                 <td class="py-2 pr-4 font-medium">Styling</td>
                 <td class="py-2 pr-4">Tailwind CSS v4</td>
                 <td class="py-2">Utility-first, no separate CSS files to manage</td>
               </tr>
-              <tr class="border-b border-gray-100">
+              <tr class="border-b border-edge-soft">
                 <td class="py-2 pr-4 font-medium">Backend</td>
                 <td class="py-2 pr-4">Supabase (Postgres)</td>
                 <td class="py-2">Auth, database, Row Level Security — no custom backend</td>
               </tr>
-              <tr class="border-b border-gray-100">
+              <tr class="border-b border-edge-soft">
                 <td class="py-2 pr-4 font-medium">Encryption</td>
                 <td class="py-2 pr-4">Web Crypto API</td>
                 <td class="py-2">AES-256-GCM, browser-native, zero dependencies</td>
               </tr>
-              <tr class="border-b border-gray-100">
+              <tr class="border-b border-edge-soft">
                 <td class="py-2 pr-4 font-medium">Bible Text</td>
                 <td class="py-2 pr-4">Static JSON</td>
                 <td class="py-2">Immutable data served as static files — fast and offline-ready</td>
               </tr>
-              <tr class="border-b border-gray-100">
+              <tr class="border-b border-edge-soft">
                 <td class="py-2 pr-4 font-medium">Hosting</td>
                 <td class="py-2 pr-4">Vercel</td>
                 <td class="py-2">Edge deployment, automatic SSL, zero-config</td>
@@ -454,10 +454,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
       <!-- Security -->
       <div class="mb-10">
-        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+        <h3 class="text-xl font-semibold text-heading mb-4">
           Security Model
         </h3>
-        <div class="space-y-3 text-gray-700 leading-relaxed">
+        <div class="space-y-3 text-body leading-relaxed">
           <p>
             Security isn't a feature — it's the foundation. Every piece of user
             data is protected by multiple independent layers:
@@ -490,10 +490,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
       <!-- Open Source -->
       <div class="mb-10">
-        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+        <h3 class="text-xl font-semibold text-heading mb-4">
           Open Source Codebase
         </h3>
-        <div class="space-y-3 text-gray-700 leading-relaxed">
+        <div class="space-y-3 text-body leading-relaxed">
           <p>
             The complete source code for this site is publicly available. Every
             line of code, every security policy, every database migration —
@@ -510,10 +510,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
       <!-- AI Development & Auditability -->
       <div class="mb-10">
-        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+        <h3 class="text-xl font-semibold text-heading mb-4">
           Built With AI. Auditable By AI.
         </h3>
-        <div class="space-y-3 text-gray-700 leading-relaxed">
+        <div class="space-y-3 text-body leading-relaxed">
           <p>
             This site is developed through AI-assisted engineering. A human
             developer sets the vision, ethics, and product direction. An AI
@@ -565,11 +565,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </div>
 
       <!-- The Standard -->
-      <div class="rounded-lg border border-blue-200 bg-blue-50 p-6">
-        <h3 class="text-lg font-semibold text-blue-900 mb-3">
+      <div class="rounded-lg border border-accent bg-accent-soft p-6">
+        <h3 class="text-lg font-semibold text-accent mb-3">
           The Standard
         </h3>
-        <p class="text-blue-800 leading-relaxed">
+        <p class="text-accent leading-relaxed">
           The code that handles your Bible notes is held to the same rigor as
           the code that handles your bank account. Not because a regulation
           requires it, but because treating people's relationship with
@@ -585,22 +585,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <!-- Closing                                                     -->
     <!-- ════════════════════════════════════════════════════════════ -->
 
-    <section class="text-center py-12 border-t border-gray-200">
+    <section class="text-center py-12 border-t border-edge">
       <blockquote class="max-w-xl mx-auto">
-        <p class="text-xl text-gray-800 italic leading-relaxed">
+        <p class="text-xl text-heading italic leading-relaxed">
           "The object of all human life is to grow into the likeness of God,
           and to use every talent to serve others."
         </p>
-        <footer class="mt-3 text-base text-gray-500">
+        <footer class="mt-3 text-base text-muted">
           — paraphrase of Matthew 25:14–30, the Parable of the Talents
         </footer>
       </blockquote>
       <div class="mt-8">
         <a
           href="/app/read"
-          class="inline-block rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white
-                 shadow-sm hover:bg-blue-700
-                 focus:outline-none focus:ring-4 focus:ring-blue-300
+          class="inline-block rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-on-accent
+                 shadow-sm hover:bg-accent-hover
+                 focus:outline-none focus:ring-4 focus:ring-ring
                  transition-colors duration-150"
         >
           Start reading

@@ -26,7 +26,7 @@ export function Skeleton({ lines = 3, className = "" }: SkeletonProps) {
       {Array.from({ length: lines }, (_, i) => (
         <div
           key={i}
-          className={`h-4 rounded bg-gray-200 ${widths[i % widths.length]}`}
+          className={`h-4 rounded bg-edge ${widths[i % widths.length]}`}
         />
       ))}
       <span className="sr-only">Loading...</span>
@@ -37,10 +37,10 @@ export function Skeleton({ lines = 3, className = "" }: SkeletonProps) {
 /** Card-shaped skeleton for annotation results. */
 export function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-lg border border-gray-200 p-4">
-      <div className="h-4 w-32 rounded bg-gray-200 mb-2" />
-      <div className="h-3 w-full rounded bg-gray-200 mb-1" />
-      <div className="h-3 w-3/4 rounded bg-gray-200" />
+    <div className="animate-pulse rounded-lg border border-edge p-4">
+      <div className="h-4 w-32 rounded bg-edge mb-2" />
+      <div className="h-3 w-full rounded bg-edge mb-1" />
+      <div className="h-3 w-3/4 rounded bg-edge" />
     </div>
   );
 }

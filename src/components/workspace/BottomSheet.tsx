@@ -184,7 +184,7 @@ export function BottomSheet({ children, expanded = false }: BottomSheetProps) {
     <div
       role="dialog"
       aria-label="Your notes"
-      className="fixed inset-x-0 bottom-0 z-30 flex flex-col bg-white rounded-t-2xl shadow-2xl border-t border-gray-200 lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 flex flex-col bg-panel rounded-t-2xl shadow-2xl border-t border-edge lg:hidden"
       style={{
         height: `${maxHeight}px`,
         transform: `translateY(${translateY}px)`,
@@ -200,12 +200,12 @@ export function BottomSheet({ children, expanded = false }: BottomSheetProps) {
       >
         {/* Visual pill handle */}
         <div
-          className="h-1.5 w-10 rounded-full bg-gray-300"
+          className="h-1.5 w-10 rounded-full bg-input-border"
           aria-hidden="true"
         />
         {/* Header text */}
         <div className="mt-2 flex w-full items-center justify-between px-4">
-          <span className="text-sm font-semibold text-gray-700">
+          <span className="text-sm font-semibold text-body">
             Your Notes
           </span>
           {snap !== "peek" && (
@@ -215,8 +215,8 @@ export function BottomSheet({ children, expanded = false }: BottomSheetProps) {
                 setSnap("peek");
                 setSheetHeight(SNAP_PEEK);
               }}
-              className="text-xs text-gray-500 hover:text-gray-700
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+              className="text-xs text-muted hover:text-body
+                         focus:outline-none focus:ring-2 focus:ring-ring rounded px-1"
               aria-label="Minimize notes panel"
             >
               Minimize

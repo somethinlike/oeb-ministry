@@ -157,8 +157,8 @@ export function ExportButton({
       <select
         value={selectedTranslation}
         onChange={(e) => setSelectedTranslation(e.target.value)}
-        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900
-                   focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="rounded-lg border border-input-border bg-panel px-3 py-2 text-sm text-heading
+                   focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
         aria-label="Choose a translation for export"
       >
         <option value="" disabled>
@@ -193,8 +193,8 @@ export function ExportButton({
 
 function buttonClass(variant: "primary" | "secondary"): string {
   return variant === "primary"
-    ? "rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-    : "rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed";
+    ? "rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
+    : "rounded-lg border border-input-border px-4 py-2 text-sm font-medium text-body hover:bg-surface-alt focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed";
 }
 
 /** Triggers a file download from a string. */

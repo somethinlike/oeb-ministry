@@ -33,6 +33,12 @@ import {
   getPresetById,
 } from "../lib/denomination-presets";
 import { SUPPORTED_TRANSLATIONS, DEFAULT_TRANSLATION } from "../lib/constants";
+import {
+  COLOR_MODES,
+  COLOR_THEMES,
+  type ColorTheme,
+  applyTheme,
+} from "../lib/theme";
 import { ExportButton } from "./ExportButton";
 import type { AuthState } from "../types/auth";
 
@@ -138,21 +144,21 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
               referrerPolicy="no-referrer"
             />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-lg font-medium text-white">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-lg font-medium text-on-accent">
               {(auth.displayName ?? "U").charAt(0).toUpperCase()}
             </div>
           )}
           <div>
-            <p className="text-base font-medium text-gray-900">{auth.displayName}</p>
+            <p className="text-base font-medium text-heading">{auth.displayName}</p>
             {auth.email && (
-              <p className="text-sm text-gray-500">{auth.email}</p>
+              <p className="text-sm text-muted">{auth.email}</p>
             )}
             {providers.length > 0 && (
               <div className="mt-1 flex gap-2">
                 {providers.map((p) => (
                   <span
                     key={p}
-                    className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700"
+                    className="inline-flex items-center rounded-full bg-surface-hover px-2.5 py-0.5 text-xs font-medium text-body"
                   >
                     {PROVIDER_LABELS[p] ?? p}
                   </span>
@@ -163,6 +169,49 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
         </div>
       </Section>
 
+      {/* ── Appearance ── */}
+      <Section title="Appearance">
+        {/* Color mode: System / Light / Dark */}
+        <SettingRow label="Color mode" description="Choose light, dark, or follow your system setting">
+          <div className="flex gap-1 rounded-lg border border-input-border bg-surface-alt p-1">
+            {COLOR_MODES.map((m) => (
+              <button
+                key={m.value}
+                type="button"
+                onClick={() => {
+                  updatePref({ colorMode: m.value });
+                  applyTheme(m.value, prefs.colorTheme ?? "default");
+                }}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  (prefs.colorMode ?? "system") === m.value
+                    ? "bg-accent text-on-accent shadow-sm"
+                    : "text-muted hover:text-heading hover:bg-surface-hover"
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </SettingRow>
+
+        {/* Denomination theme */}
+        <SettingRow label="Theme" description="Color accent inspired by Christian traditions">
+          <select
+            value={prefs.colorTheme ?? "default"}
+            onChange={(e) => {
+              const theme = e.target.value as ColorTheme;
+              updatePref({ colorTheme: theme });
+              applyTheme(prefs.colorMode ?? "system", theme);
+            }}
+            className="rounded-lg border border-input-border bg-input-bg px-3 py-2 text-sm text-heading focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            {COLOR_THEMES.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+        </SettingRow>
+      </Section>
+
       {/* ── Reading ── */}
       <Section title="Reading">
         {/* Font picker */}
@@ -170,7 +219,7 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
           <select
             value={prefs.readerFont ?? "system"}
             onChange={(e) => updatePref({ readerFont: e.target.value as ReaderFont })}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-input-border bg-input-bg px-3 py-2 text-sm text-heading focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
           >
             {FONT_OPTIONS.map((f) => (
               <option key={f.key} value={f.key}>{f.label}</option>
@@ -183,7 +232,7 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
           <select
             value={prefs.annotationDots ?? "blue"}
             onChange={(e) => updatePref({ annotationDots: e.target.value as AnnotationDotStyle })}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-input-border bg-input-bg px-3 py-2 text-sm text-heading focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
           >
             <option value="blue">Blue dots</option>
             <option value="subtle">Subtle (gray)</option>
@@ -196,7 +245,7 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
           <select
             value={prefs.readerLayout ?? "centered"}
             onChange={(e) => updatePref({ readerLayout: e.target.value as ReaderLayout })}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-input-border bg-input-bg px-3 py-2 text-sm text-heading focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
           >
             <option value="centered">Centered column</option>
             <option value="columns">Multi-column</option>
@@ -214,7 +263,7 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
           <select
             value={isCustom ? "" : (currentPresetId || "")}
             onChange={(e) => handlePresetChange(e.target.value)}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-input-border bg-input-bg px-3 py-2 text-sm text-heading focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
           >
             <option value="">
               {isCustom ? "Custom" : "Choose a tradition..."}
@@ -236,7 +285,7 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
               onChange={(e) => {
                 if (e.target.value) handlePresetChange(e.target.value);
               }}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="rounded-lg border border-input-border bg-input-bg px-3 py-2 text-sm text-heading focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
             >
               <option value="">General</option>
               {children.map((c) => (
@@ -254,20 +303,20 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
             return (
               <div key={key} className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{info.label}</p>
-                  <p className="text-xs text-gray-500">{info.description}</p>
+                  <p className="text-sm font-medium text-heading">{info.label}</p>
+                  <p className="text-xs text-muted">{info.description}</p>
                 </div>
                 <button
                   type="button"
                   role="switch"
                   aria-checked={isOn}
                   onClick={() => handleToggleChange(key)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    isOn ? "bg-blue-600" : "bg-gray-200"
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
+                    isOn ? "bg-accent" : "bg-switch-off"
                   }`}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform duration-200 ease-in-out ${
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-on-accent shadow ring-0 transition-transform duration-200 ease-in-out ${
                       isOn ? "translate-x-5" : "translate-x-0"
                     }`}
                   />
@@ -287,7 +336,7 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
           <select
             value={prefs.defaultTranslation ?? DEFAULT_TRANSLATION}
             onChange={(e) => updatePref({ defaultTranslation: e.target.value })}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-input-border bg-input-bg px-3 py-2 text-sm text-heading focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
           >
             {SUPPORTED_TRANSLATIONS.map((t) => (
               <option key={t.id} value={t.id}>
@@ -316,8 +365,8 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>
-      <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
+      <h3 className="mb-4 text-lg font-semibold text-heading">{title}</h3>
+      <div className="rounded-lg border border-edge bg-panel p-4 sm:p-6">
         {children}
       </div>
     </section>
@@ -334,10 +383,10 @@ function SettingRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-3 first:pt-0 last:pb-0 border-b border-gray-100 last:border-0">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-3 first:pt-0 last:pb-0 border-b border-edge-soft last:border-0">
       <div>
-        <p className="text-sm font-medium text-gray-900">{label}</p>
-        <p className="text-xs text-gray-500">{description}</p>
+        <p className="text-sm font-medium text-heading">{label}</p>
+        <p className="text-xs text-muted">{description}</p>
       </div>
       <div className="shrink-0">{children}</div>
     </div>

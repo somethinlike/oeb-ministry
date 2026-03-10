@@ -28,7 +28,7 @@ export function FontPicker({ readerFont, onFontChange }: FontPickerProps) {
     <div className="flex items-center gap-2">
       <label
         htmlFor="font-picker"
-        className="text-sm font-medium text-gray-600 whitespace-nowrap"
+        className="text-sm font-medium text-muted whitespace-nowrap"
       >
         Font
       </label>
@@ -36,9 +36,9 @@ export function FontPicker({ readerFont, onFontChange }: FontPickerProps) {
         id="font-picker"
         value={readerFont}
         onChange={(e) => onFontChange(e.target.value as ReaderFont)}
-        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm
-                   font-medium text-gray-700
-                   focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="rounded-md border border-input-border bg-panel px-3 py-1.5 text-sm
+                   font-medium text-body
+                   focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring"
         aria-label="Choose a reading font"
       >
         {orderedFonts.map((font) => (

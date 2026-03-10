@@ -34,9 +34,27 @@ const { title, description = "Create Devotional Bibles through verse-anchored an
     <!-- PWA manifest -->
     <link rel="manifest" href="/manifest.webmanifest" />
 
+    <!-- Anti-flash: apply dark mode + denomination theme before first paint.
+         Reads from localStorage so the page renders with the correct colors
+         immediately — no white flash when the user has dark mode enabled. -->
+    <script is:inline>
+      (function() {
+        var mode = 'system';
+        var theme = 'default';
+        try {
+          mode = localStorage.getItem('oeb-color-mode') || 'system';
+          theme = localStorage.getItem('oeb-color-theme') || 'default';
+        } catch(e) {}
+        var dark = mode === 'dark' ||
+          (mode !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+        if (theme !== 'default') document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+
     <!-- Global styles loaded via frontmatter import above -->
   </head>
-  <body class="min-h-screen bg-white text-gray-900 antialiased">
+  <body class="min-h-screen bg-surface text-body antialiased">
     <main>
       <!-- Each page's content goes here -->
       <slot />

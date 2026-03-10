@@ -298,14 +298,14 @@ export function AnnotationPanel({
     <div className="space-y-6">
       {/* Header — shows which verse(s) this note is for */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-heading">
           {justDeleted
             ? "Moved to Recycle Bin"
             : existing
               ? "Edit your note"
               : "Write a note"}
         </h3>
-        <p className="text-sm text-gray-500 mt-1">{verseLabel}</p>
+        <p className="text-sm text-muted mt-1">{verseLabel}</p>
       </div>
 
       {/* Error message */}
@@ -352,9 +352,9 @@ export function AnnotationPanel({
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white
-                     hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
-                     focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-lg bg-accent px-6 py-2.5 font-medium text-on-accent
+                     hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed
+                     focus:outline-none focus:ring-2 focus:ring-ring"
         >
           {saving
             ? "Saving..."
@@ -368,8 +368,8 @@ export function AnnotationPanel({
         {justDeleted && (
           <a
             href="/app/search"
-            className="rounded-lg px-4 py-2.5 text-sm text-gray-600
-                       hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            className="rounded-lg px-4 py-2.5 text-sm text-muted
+                       hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
           >
             Return to My Notes
           </a>
@@ -404,8 +404,8 @@ export function AnnotationPanel({
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
-              className="rounded px-3 py-1.5 text-sm text-gray-600
-                         hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="rounded px-3 py-1.5 text-sm text-muted
+                         hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
             >
               Cancel
             </button>

@@ -32,7 +32,7 @@ const providers: string[] = (user.identities ?? [])
 
 <AppLayout title="Settings">
   <div class="mx-auto max-w-2xl">
-    <h2 class="text-2xl font-bold text-gray-900 mb-6">Settings</h2>
+    <h2 class="text-2xl font-bold text-heading mb-6">Settings</h2>
     <SettingsPage auth={authState} providers={providers} client:load />
   </div>
 </AppLayout>

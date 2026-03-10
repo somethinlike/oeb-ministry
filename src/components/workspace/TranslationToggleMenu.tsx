@@ -73,9 +73,9 @@ export function TranslationToggleMenu({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 rounded-md border border-gray-300
-                   bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600
-                   hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex items-center gap-1.5 rounded-md border border-input-border
+                   bg-panel px-2.5 py-1.5 text-xs font-medium text-muted
+                   hover:bg-surface-alt focus:outline-none focus:ring-2 focus:ring-ring"
         aria-expanded={open}
         aria-haspopup="true"
         aria-label="Word choices"
@@ -99,7 +99,7 @@ export function TranslationToggleMenu({
         <span>Wording</span>
         {/* Active count badge */}
         {activeCount > 0 && (
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-700">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-accent-soft text-[10px] font-bold text-accent">
             {activeCount}
           </span>
         )}
@@ -108,12 +108,12 @@ export function TranslationToggleMenu({
       {/* Dropdown popover */}
       {open && (
         <div
-          className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-gray-200
-                     bg-white shadow-lg"
+          className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-edge
+                     bg-panel shadow-lg"
           role="menu"
         >
           <div className="p-3 space-y-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider">
               Word choices
             </p>
 
@@ -137,20 +137,20 @@ export function TranslationToggleMenu({
                       className={`
                         shrink-0 rounded-md px-3 py-1 text-xs font-semibold
                         transition-colors duration-150 focus:outline-none focus:ring-2
-                        focus:ring-blue-500 focus:ring-offset-1
+                        focus:ring-ring focus:ring-offset-1
                         ${isOn
-                          ? "bg-blue-600 text-white border border-blue-600"
-                          : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"}
+                          ? "bg-accent text-on-accent border border-accent"
+                          : "bg-panel text-muted border border-input-border hover:bg-surface-alt"}
                       `}
                       aria-label={`${info.label}: switch to ${buttonLabel}`}
                     >
                       {buttonLabel}
                     </button>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted">
                       {info.label}
                     </span>
                   </div>
-                  <p className="text-[11px] text-gray-400 leading-tight pl-0.5">
+                  <p className="text-[11px] text-faint leading-tight pl-0.5">
                     {info.description}
                   </p>
                 </div>
@@ -158,7 +158,7 @@ export function TranslationToggleMenu({
             })}
 
             {/* Tier 2 hint — denomination presets are coming */}
-            <p className="text-[11px] text-gray-400 leading-tight border-t border-gray-100 pt-2 mt-1">
+            <p className="text-[11px] text-faint leading-tight border-t border-edge-soft pt-2 mt-1">
               Denomination presets coming soon — choose your tradition and these will be set automatically.
             </p>
           </div>
