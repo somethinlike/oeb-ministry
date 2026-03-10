@@ -12,9 +12,11 @@
  * Split ratio, side preference, and dock state persist to localStorage.
  */
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, type ReactNode } from "react";
 import { WorkspaceProvider, useWorkspace } from "./WorkspaceProvider";
 import { EncryptionProvider } from "../EncryptionProvider";
+import { KeyboardManager, KeybindHintToast } from "../KeyboardManager";
+import type { KeybindingPreset } from "../../lib/commands";
 import { WorkspaceToolbar } from "./WorkspaceToolbar";
 import { ReaderPane } from "./ReaderPane";
 import { AnnotationSidebar } from "./AnnotationSidebar";
@@ -165,6 +167,18 @@ export function Workspace({
   const leftPane = swapped ? <AnnotationSidebar /> : readerPane;
   const rightPane = swapped ? readerPane : <AnnotationSidebar />;
 
+  // Load keybinding preset from user preferences (localStorage)
+  const [keybindPreset] = useState<KeybindingPreset>(() => {
+    try {
+      const stored = localStorage.getItem("oeb-user-prefs");
+      const parsed = stored ? JSON.parse(stored) : {};
+      if (["default", "vscode", "vim"].includes(parsed.keybindingPreset)) {
+        return parsed.keybindingPreset as KeybindingPreset;
+      }
+    } catch { /* default */ }
+    return "default";
+  });
+
   return (
     <EncryptionProvider userId={userId} userEmail={userEmail}>
     <WorkspaceProvider
@@ -173,6 +187,18 @@ export function Workspace({
       chapter={chapter}
       userId={userId}
     >
+      <WorkspaceKeyboardWrapper
+        keybindPreset={keybindPreset}
+        toggleSwap={toggleSwap}
+        toggleReaderLayout={toggleReaderLayout}
+        handleEnterCleanView={handleEnterCleanView}
+        handleAnnotationDotsChange={handleAnnotationDotsChange}
+        annotationDots={annotationDots}
+        handleUndock={handleUndock}
+        handleDock={handleDock}
+        undocked={undocked}
+        handleToggleChange={handleToggleChange}
+      >
       <div className="flex flex-col h-full rounded-lg border border-edge bg-panel shadow-sm">
         {/* Toolbar: breadcrumbs + undock/swap + translation picker.
              Hidden in clean view — settings move to cog in chapter nav. */}
@@ -242,8 +268,155 @@ export function Workspace({
           </FloatingPanel>
         </div>
       )}
+    </WorkspaceKeyboardWrapper>
     </WorkspaceProvider>
     </EncryptionProvider>
+  );
+}
+
+/**
+ * WorkspaceKeyboardWrapper — lives inside WorkspaceProvider so it can
+ * use useWorkspace() to handle commands, then wraps children with KeyboardManager.
+ */
+function WorkspaceKeyboardWrapper({
+  keybindPreset,
+  toggleSwap,
+  toggleReaderLayout,
+  handleEnterCleanView,
+  handleAnnotationDotsChange,
+  annotationDots,
+  handleUndock,
+  handleDock,
+  undocked,
+  handleToggleChange,
+  children,
+}: {
+  keybindPreset: KeybindingPreset;
+  toggleSwap: () => void;
+  toggleReaderLayout: () => void;
+  handleEnterCleanView: () => void;
+  handleAnnotationDotsChange: (style: AnnotationDotStyle) => void;
+  annotationDots: AnnotationDotStyle;
+  handleUndock: () => void;
+  handleDock: () => void;
+  undocked: boolean;
+  handleToggleChange: (key: keyof TranslationToggles) => void;
+  children: ReactNode;
+}) {
+  const {
+    chapter,
+    navigateChapter,
+    selection,
+    setSelection,
+    startNewAnnotation,
+    sidebarView,
+    annotations,
+  } = useWorkspace();
+
+  const handleCommand = useCallback((commandId: string): boolean => {
+    switch (commandId) {
+      // Navigation
+      case "nav.readBible":
+        window.location.href = "/app/read";
+        return true;
+      case "nav.myNotes":
+        window.location.href = "/app/search";
+        return true;
+      case "nav.community":
+        window.location.href = "/app/community";
+        return true;
+      case "nav.settings":
+        window.location.href = "/app/settings";
+        return true;
+      case "nav.nextChapter":
+        navigateChapter(chapter + 1);
+        return true;
+      case "nav.prevChapter":
+        if (chapter > 1) navigateChapter(chapter - 1);
+        return true;
+
+      // Reader
+      case "reader.nextVerse": {
+        const current = selection?.end ?? 0;
+        setSelection({ start: current + 1, end: current + 1 });
+        return true;
+      }
+      case "reader.prevVerse": {
+        const current = selection?.start ?? 2;
+        if (current <= 1) return true;
+        setSelection({ start: current - 1, end: current - 1 });
+        return true;
+      }
+      case "reader.clearSelection":
+        setSelection(null);
+        return true;
+      case "reader.toggleLayout":
+        toggleReaderLayout();
+        return true;
+      case "reader.focusMode":
+        handleEnterCleanView();
+        return true;
+      case "reader.cycleDots": {
+        const cycle: AnnotationDotStyle[] = ["blue", "subtle", "hidden"];
+        const idx = cycle.indexOf(annotationDots);
+        handleAnnotationDotsChange(cycle[(idx + 1) % cycle.length]);
+        return true;
+      }
+      case "reader.swap":
+        toggleSwap();
+        return true;
+      case "reader.undock":
+        if (undocked) handleDock();
+        else handleUndock();
+        return true;
+
+      // Annotations
+      case "annotation.new":
+        if (selection) startNewAnnotation();
+        return true;
+
+      // Translation toggles
+      case "toggle.divineName":
+        handleToggleChange("divineName");
+        return true;
+      case "toggle.baptism":
+        handleToggleChange("baptism");
+        return true;
+      case "toggle.assembly":
+        handleToggleChange("assembly");
+        return true;
+      case "toggle.onlyBegotten":
+        handleToggleChange("onlyBegotten");
+        return true;
+
+      // System
+      case "system.search":
+        window.location.href = "/app/search";
+        return true;
+      case "system.signOut":
+        window.location.href = "/auth/signout";
+        return true;
+
+      default:
+        return false;
+    }
+  }, [
+    chapter, navigateChapter, selection, setSelection, startNewAnnotation,
+    toggleSwap, toggleReaderLayout, handleEnterCleanView,
+    handleAnnotationDotsChange, annotationDots,
+    handleUndock, handleDock, undocked, handleToggleChange,
+  ]);
+
+  return (
+    <KeyboardManager
+      preset={keybindPreset}
+      isWorkspace={true}
+      isEditing={sidebarView === "editor"}
+      onCommand={handleCommand}
+    >
+      {children}
+      <KeybindHintToast />
+    </KeyboardManager>
   );
 }
 
