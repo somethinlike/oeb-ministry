@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-03
+> Last updated: 2026-03-10
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -245,7 +245,87 @@
 
 ---
 
-## 12. Edge Cases
+## 12. Note Locking (Encryption)
+
+> **Prerequisite:** Must be signed in. The Supabase `user_encryption` table migration must be applied.
+
+### First-Time Setup
+
+1. Open a note (create or edit) in the workspace
+2. Click **"Lock this note"** button (below cross-references, above Save)
+3. A 3-step wizard should appear:
+   - **Step 1 — Introduction:** Explains locking in plain language. Click "Continue".
+   - **Step 2 — Passphrase:** Enter a passphrase (12+ characters minimum).
+     - Browser should offer to save it (credential manager)
+     - Confirm passphrase must match
+     - Click "Continue" → loading spinner while keys are derived
+   - **Step 3 — Recovery Code:** Shows a `XXXX-XXXX-XXXX-XXXX-XXXX-XXXX` code.
+     - "Copy to clipboard" button should work
+     - Must check "I have saved my recovery code" before "Finish setup" enables
+4. After finishing, the lock toggle should show **"Locked"** with a closed padlock icon
+5. Check Supabase → `user_encryption` table should have a new row for your user
+
+### Locking a Note
+
+1. Write a note and toggle "Lock this note" on → padlock icon + "Locked" label
+2. "Only you can read this note" appears next to the toggle
+3. Click "Save your note"
+4. Check Supabase → `annotations` table:
+   - `is_encrypted` = `true`
+   - `encryption_iv` populated (base64 string)
+   - `content_md` is base64 ciphertext (not your original text)
+
+### Viewing a Locked Note
+
+1. After saving a locked note, the sidebar should show:
+   - Lock icon next to the verse reference
+   - Preview text: *"Locked note"* (italic) instead of content
+2. Click the annotation card → panel opens:
+   - If already unlocked this session → content decrypts and displays normally
+   - If not unlocked → shows "This note is locked" with an Unlock button
+3. Click Unlock → enter passphrase → content appears in the editor
+
+### Unlocking After Page Reload
+
+1. Lock and save a note, then reload the page
+2. The encryption key clears from memory (by design — never persisted)
+3. Click a locked note in the sidebar → "This note is locked" state
+4. Click Unlock → enter passphrase → content appears
+5. Browser credential manager should auto-fill the passphrase
+
+### Removing Lock
+
+1. Open a locked note (unlock first if needed)
+2. Click the "Locked" toggle → changes to "Lock this note" (unlocked state)
+3. Click "Save your note"
+4. Check Supabase → `is_encrypted` = `false`, `content_md` back to plaintext
+
+### Search Behavior
+
+- Go to My Notes (`/app/search`)
+- Locked notes should appear in the recent list with a lock icon
+- **Full-text search should NOT find locked notes** (content is ciphertext)
+- Unlocked (plaintext) notes should still be searchable
+
+### Export Behavior
+
+- Go to My Notes → use batch export
+- If you have locked notes, a confirmation dialog should appear:
+  - "X locked notes will be skipped. Download the remaining Y notes?"
+- Confirm → zip downloads without locked notes
+- If ALL notes are locked → "All your notes are locked. Unlock them first to download."
+
+### Edge Cases
+
+- **Wrong passphrase:** Enter wrong passphrase in UnlockPrompt → "That passphrase didn't work" error
+- **Cancel prompts:** Cancel the setup wizard or unlock prompt → returns to previous state cleanly
+- **Lock toggle without setup:** First toggle triggers the full setup wizard
+- **Lock toggle after reload:** Toggle triggers unlock prompt (key cleared from memory)
+- **Very long note + encryption:** Write a 5000+ character note, lock it, save, reload, unlock, verify full content
+
+---
+
+## 13. Edge Cases
 
 - **Empty state:** New user with no notes → My Notes shows "Start reading" prompt
 - **Long note content:** Write a very long note → should scroll, not break layout
