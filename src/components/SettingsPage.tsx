@@ -32,14 +32,16 @@ import {
   getChildPresets,
   getPresetById,
 } from "../lib/denomination-presets";
-import { SUPPORTED_TRANSLATIONS, DEFAULT_TRANSLATION } from "../lib/constants";
+import { SUPPORTED_TRANSLATIONS, DEFAULT_TRANSLATION, BOOKS } from "../lib/constants";
 import {
   COLOR_MODES,
   COLOR_THEMES,
   type ColorTheme,
   applyTheme,
 } from "../lib/theme";
+import { PRESET_LABELS, type KeybindingPreset } from "../lib/commands";
 import { ExportButton } from "./ExportButton";
+import { OfflineDownloads } from "./OfflineDownloads";
 import { EncryptionProvider, useEncryption } from "./EncryptionProvider";
 import { EncryptionSetup } from "./EncryptionSetup";
 import type { AuthState } from "../types/auth";
@@ -253,6 +255,21 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
             <option value="columns">Multi-column</option>
           </select>
         </SettingRow>
+
+        {/* Keyboard shortcuts preset */}
+        <SettingRow label="Keyboard shortcuts" description="Choose a shortcut style that fits how you work">
+          <select
+            value={prefs.keybindingPreset ?? "default"}
+            onChange={(e) => updatePref({ keybindingPreset: e.target.value as KeybindingPreset })}
+            className="rounded-lg border border-input-border bg-input-bg px-3 py-2 text-sm text-heading focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            {(Object.entries(PRESET_LABELS) as [KeybindingPreset, string][]).map(
+              ([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ),
+            )}
+          </select>
+        </SettingRow>
       </Section>
 
       {/* ── Word Choices ── */}
@@ -347,6 +364,11 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
             ))}
           </select>
         </SettingRow>
+      </Section>
+
+      {/* ── Offline Reading ── */}
+      <Section title="Offline Reading">
+        <OfflineDownloads />
       </Section>
 
       {/* ── Your Data ── */}

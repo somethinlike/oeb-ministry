@@ -22,6 +22,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types/database";
 import type { ColorMode, ColorTheme } from "./theme";
 import { COLOR_MODE_KEY, COLOR_THEME_KEY, applyTheme } from "./theme";
+import type { KeybindingPreset } from "./commands";
 
 // ── Types ──
 
@@ -42,6 +43,9 @@ export interface UserPreferences {
   defaultTranslation?: string;
   denominationPreset?: string;
 
+  // Keyboard shortcuts
+  keybindingPreset?: KeybindingPreset;
+
   // Appearance (also mirrored to dedicated localStorage keys for anti-flash script)
   colorMode?: ColorMode;
   colorTheme?: ColorTheme;
@@ -59,6 +63,8 @@ const VALID_LAYOUTS = new Set(["centered", "columns"]);
 const VALID_COLOR_MODES = new Set(["system", "light", "dark"]);
 /** Valid color theme keys */
 const VALID_COLOR_THEMES = new Set(["default", "lutheran", "catholic", "orthodox"]);
+/** Valid keybinding preset keys */
+const VALID_KEYBINDING_PRESETS = new Set(["default", "vscode", "vim"]);
 
 // ── localStorage helpers ──
 
@@ -66,6 +72,7 @@ const VALID_COLOR_THEMES = new Set(["default", "lutheran", "catholic", "orthodox
 function loadUserPrefsStorage(): {
   defaultTranslation?: string;
   denominationPreset?: string;
+  keybindingPreset?: KeybindingPreset;
   colorMode?: ColorMode;
   colorTheme?: ColorTheme;
 } {
@@ -80,6 +87,8 @@ function loadUserPrefsStorage(): {
     return {
       defaultTranslation: typeof parsed.defaultTranslation === "string" ? parsed.defaultTranslation : undefined,
       denominationPreset: typeof parsed.denominationPreset === "string" ? parsed.denominationPreset : undefined,
+      keybindingPreset: typeof parsed.keybindingPreset === "string" && VALID_KEYBINDING_PRESETS.has(parsed.keybindingPreset)
+        ? parsed.keybindingPreset as KeybindingPreset : undefined,
       colorMode: colorMode && VALID_COLOR_MODES.has(colorMode) ? colorMode as ColorMode : undefined,
       colorTheme: colorTheme && VALID_COLOR_THEMES.has(colorTheme) ? colorTheme as ColorTheme : undefined,
     };
@@ -92,6 +101,7 @@ function loadUserPrefsStorage(): {
 function saveUserPrefsStorage(prefs: {
   defaultTranslation?: string;
   denominationPreset?: string;
+  keybindingPreset?: KeybindingPreset;
   colorMode?: ColorMode;
   colorTheme?: ColorTheme;
 }): void {
@@ -100,6 +110,7 @@ function saveUserPrefsStorage(prefs: {
     const merged = {
       defaultTranslation: prefs.defaultTranslation ?? current.defaultTranslation,
       denominationPreset: prefs.denominationPreset ?? current.denominationPreset,
+      keybindingPreset: prefs.keybindingPreset ?? current.keybindingPreset,
     };
     localStorage.setItem(USER_PREFS_STORAGE_KEY, JSON.stringify(merged));
 
@@ -135,6 +146,7 @@ export function loadLocalPreferences(): UserPreferences {
     onlyBegotten: toggles.onlyBegotten,
     defaultTranslation: userPrefs.defaultTranslation,
     denominationPreset: userPrefs.denominationPreset,
+    keybindingPreset: userPrefs.keybindingPreset,
     colorMode: userPrefs.colorMode,
     colorTheme: userPrefs.colorTheme,
   };
@@ -161,10 +173,11 @@ export function savePreferencesToLocalStorage(prefs: UserPreferences): void {
     onlyBegotten: prefs.onlyBegotten,
   });
 
-  // User prefs (includes theme settings)
+  // User prefs (includes theme settings + keybinding preset)
   saveUserPrefsStorage({
     defaultTranslation: prefs.defaultTranslation,
     denominationPreset: prefs.denominationPreset,
+    keybindingPreset: prefs.keybindingPreset,
     colorMode: prefs.colorMode,
     colorTheme: prefs.colorTheme,
   });
@@ -197,6 +210,9 @@ export function validatePreferences(raw: unknown): UserPreferences {
   if (typeof obj.onlyBegotten === "boolean") result.onlyBegotten = obj.onlyBegotten;
   if (typeof obj.defaultTranslation === "string") result.defaultTranslation = obj.defaultTranslation;
   if (typeof obj.denominationPreset === "string") result.denominationPreset = obj.denominationPreset;
+  if (typeof obj.keybindingPreset === "string" && VALID_KEYBINDING_PRESETS.has(obj.keybindingPreset)) {
+    result.keybindingPreset = obj.keybindingPreset as KeybindingPreset;
+  }
   if (typeof obj.colorMode === "string" && VALID_COLOR_MODES.has(obj.colorMode)) {
     result.colorMode = obj.colorMode as ColorMode;
   }
