@@ -20,10 +20,20 @@
 - Should redirect to the sign-in page (`/auth/signin`)
 - The sign-in page shows "Continue without signing in" at the bottom
 
+### Identity Linking
+- Sign in with one provider (e.g., Google)
+- Sign out, then sign in with a different provider that uses the **same email** (e.g., GitHub)
+- An interstitial page should appear: "Your accounts are connected"
+  - Shows which provider you just used and which you already had
+  - Explains they share the same email so data stays in one place
+  - "Continue" button takes you to the app
+- Sign out and sign in again with either provider → interstitial should **NOT** appear (only shows on first link)
+- All notes and settings should be identical regardless of which provider you use
+
 ### Auth Guard
 - While signed out, try visiting `/app/read`, `/app/settings`
 - Both should redirect to `/auth/signin`
-- `/app/search` should show an empty state card with "Sign in to see your notes" (no redirect)
+- `/app/search` should show an empty state with OAuth buttons (no redirect)
 
 ---
 
