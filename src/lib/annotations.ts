@@ -50,6 +50,9 @@ function rowToAnnotation(
       verseEnd: ref.verse_end,
     })),
     verseText: row.verse_text ?? null,
+    aiScreeningPassed: (row as Record<string, unknown>).ai_screening_passed as boolean | null ?? null,
+    aiScreeningFlags: (row as Record<string, unknown>).ai_screening_flags as unknown[] | null ?? null,
+    aiScreenedAt: (row as Record<string, unknown>).ai_screened_at as string | null ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -458,12 +461,19 @@ export async function submitForPublishing(
   // Sanitize markdown content before it enters the public pipeline
   const sanitizedContent = sanitizeMarkdownForPublishing(annotation.content_md);
 
+  // AI screening: annotate the submission with flags for moderators
+  const { screenContentRules } = await import("./ai-screening");
+  const screening = screenContentRules(sanitizedContent);
+
   const { error } = await client
     .from("annotations")
     .update({
       content_md: sanitizedContent,
       publish_status: "pending",
       author_display_name: authorDisplayName,
+      ai_screening_passed: screening.passed,
+      ai_screening_flags: screening.flags,
+      ai_screened_at: screening.screenedAt,
     })
     .eq("id", annotationId);
 
@@ -498,17 +508,22 @@ export async function batchSubmitForPublishing(
 
   if (publishable.length === 0) return { submitted: 0, skippedEncrypted };
 
-  // Sanitize and submit each one (Supabase doesn't support per-row updates in batch,
-  // so we run them in parallel for speed)
+  // Sanitize, screen, and submit each one (Supabase doesn't support per-row updates
+  // in batch, so we run them in parallel for speed)
+  const { screenContentRules } = await import("./ai-screening");
   await Promise.all(
     publishable.map(async (a) => {
       const sanitizedContent = sanitizeMarkdownForPublishing(a.content_md);
+      const screening = screenContentRules(sanitizedContent);
       const { error } = await client
         .from("annotations")
         .update({
           content_md: sanitizedContent,
           publish_status: "pending",
           author_display_name: authorDisplayName,
+          ai_screening_passed: screening.passed,
+          ai_screening_flags: screening.flags,
+          ai_screened_at: screening.screenedAt,
         })
         .eq("id", a.id);
       if (error) throw new Error(`Failed to submit annotation ${a.id}: ${error.message}`);

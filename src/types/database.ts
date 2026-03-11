@@ -33,6 +33,9 @@ export interface Database {
           published_at: string | null;
           rejection_reason: string | null;
           author_display_name: string | null;
+          ai_screening_passed: boolean | null;
+          ai_screening_flags: unknown[] | null;
+          ai_screened_at: string | null;
         };
         Insert: {
           id?: string;

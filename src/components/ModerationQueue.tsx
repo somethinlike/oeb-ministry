@@ -15,6 +15,7 @@ import {
 } from "../lib/annotations";
 import type { Annotation } from "../types/annotation";
 import type { AuthState } from "../types/auth";
+import type { ScreeningFlag } from "../types/moderation";
 import { BOOK_BY_ID } from "../lib/constants";
 import type { BookId } from "../types/bible";
 
@@ -175,6 +176,14 @@ export function ModerationQueue({ auth }: ModerationQueueProps) {
                 {annotation.contentMd}
               </div>
 
+              {/* AI Screening results */}
+              {annotation.aiScreeningPassed != null && (
+                <AiScreeningBadge
+                  passed={annotation.aiScreeningPassed}
+                  flags={(annotation.aiScreeningFlags ?? []) as ScreeningFlag[]}
+                />
+              )}
+
               {/* Cross-references */}
               {annotation.crossReferences.length > 0 && (
                 <p className="text-xs text-muted">
@@ -262,6 +271,48 @@ export function ModerationQueue({ auth }: ModerationQueueProps) {
           <p className="text-sm text-faint">No notes waiting for review.</p>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Shows AI screening status and any flags for moderator context. */
+function AiScreeningBadge({ passed, flags }: { passed: boolean; flags: ScreeningFlag[] }) {
+  if (flags.length === 0) {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-green-600">
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        AI screening: passed (no flags)
+      </div>
+    );
+  }
+
+  const severityColors: Record<string, string> = {
+    high: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+    medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+    low: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className={`flex items-center gap-1.5 text-xs ${passed ? "text-yellow-600" : "text-red-600"}`}>
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+        </svg>
+        AI screening: {passed ? "passed with flags" : "flagged"}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {flags.map((flag, i) => (
+          <span
+            key={i}
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${severityColors[flag.severity] ?? ""}`}
+            title={flag.message}
+          >
+            {flag.type}: {flag.message}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

@@ -478,11 +478,25 @@ export async function submitDevotionalForPublishing(
     }
   }
 
+  // AI screening: screen the devotional's title + description for flags
+  const { data: fullBible } = await client
+    .from("devotional_bibles")
+    .select("title, description")
+    .eq("id", devotionalBibleId)
+    .single();
+
+  const { screenContentRules } = await import("./ai-screening");
+  const contentToScreen = [fullBible?.title, fullBible?.description].filter(Boolean).join("\n\n");
+  const screening = screenContentRules(contentToScreen);
+
   const { error } = await client
     .from("devotional_bibles")
     .update({
       publish_status: "pending",
       author_display_name: authorDisplayName,
+      ai_screening_passed: screening.passed,
+      ai_screening_flags: screening.flags,
+      ai_screened_at: screening.screenedAt,
     })
     .eq("id", devotionalBibleId);
 

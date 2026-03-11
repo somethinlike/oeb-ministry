@@ -64,6 +64,12 @@ export interface Annotation {
   crossReferences: CrossReference[];
   /** The Bible verse text at the time the annotation was saved */
   verseText: string | null;
+  /** AI screening result: true if no high-severity flags. Null when not yet screened. */
+  aiScreeningPassed?: boolean | null;
+  /** AI screening flags (profanity, theology, spam) for moderator context */
+  aiScreeningFlags?: unknown[] | null;
+  /** When the AI screening was performed */
+  aiScreenedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   /** When set, this annotation is in the recycle bin (soft-deleted) */

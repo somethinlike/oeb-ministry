@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-11 (Phase 3.3c)
+> Last updated: 2026-03-11 (Phase 3.4)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -535,7 +535,34 @@
 
 ---
 
-## 17. Edge Cases
+## 17. AI Moderation Screening
+
+AI screening runs automatically when annotations or devotionals are submitted for publishing. It's annotative (non-blocking) — flags provide context for human moderators.
+
+### How screening works
+1. User clicks "Share publicly" on an annotation → content is screened before entering the moderation queue
+2. Screening checks: profanity (high severity), mild language (low), theological flags (medium), spam patterns (medium)
+3. `passed = true` means no high-severity flags — content still goes to moderation queue either way
+4. Results are stored on the annotation record (`ai_screening_passed`, `ai_screening_flags`, `ai_screened_at`)
+
+### Moderation Queue badges (`/app/moderation`)
+**Precondition:** Must be signed in as a moderator/admin
+
+1. **Clean pass (no flags):** Green checkmark icon + "AI screening: passed (no flags)"
+2. **Passed with flags:** Yellow warning icon + "AI screening: passed with flags" + colored flag badges
+3. **Failed (high-severity flags):** Red warning icon + "AI screening: flagged" + colored flag badges
+4. **Flag badge colors:** Red = high severity, Yellow = medium severity, Blue = low severity
+5. Each badge shows `type: message` (e.g., "theology: Contains theological claim about predestination")
+6. Badges are visible between the note content and the Approve/Reject buttons
+
+### Screening integration with publishing
+1. Submit an annotation for publishing → verify `ai_screening_passed` and `ai_screening_flags` are populated in the database
+2. Submit a devotional for publishing → same screening on title + description
+3. Batch submit annotations → each gets screened individually
+
+---
+
+## 18. Edge Cases
 
 - **Empty state:** New user with no notes → My Notes shows "Start reading" prompt
 - **Long note content:** Write a very long note → should scroll, not break layout
