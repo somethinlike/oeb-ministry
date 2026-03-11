@@ -67,11 +67,15 @@ const titles: Record<string, string> = {
   read: `${BOOK_BY_ID.get(book as any)?.name ?? book} ${chapter}`,
 };
 
-// Get user for workspace (may be null if auth cookies haven't synced)
+// Auth guard — redirect to sign-in if not authenticated (server-side)
 const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname)}`);
+}
 ---
 
-<AppLayout title={titles[view]} fullWidth={view === "read"} requireAuth={false}>
+<AppLayout title={titles[view]} fullWidth={view === "read"}>
   {/* Translation picker grid — shows all available Bibles */}
   {view === "translation" && (
     <div>
