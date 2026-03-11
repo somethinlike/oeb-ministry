@@ -28,7 +28,7 @@ type DbClient = Parameters<typeof batchSoftDeleteAnnotations>[0];
  */
 function mockUpdateIn(error: Error | null = null) {
   const updateArg = { value: undefined as unknown };
-  const inArgs = { value: undefined as unknown[] };
+  const inArgs = { value: [] as unknown[] };
 
   const inFn = vi.fn((...args: unknown[]) => {
     inArgs.value = args;

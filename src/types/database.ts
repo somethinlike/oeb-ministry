@@ -158,7 +158,8 @@ export interface Database {
       moderation_log: {
         Row: {
           id: string;
-          annotation_id: string;
+          annotation_id: string | null;
+          devotional_bible_id: string | null;
           moderator_id: string;
           action: string;
           reason: string | null;
@@ -166,7 +167,8 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          annotation_id: string;
+          annotation_id?: string | null;
+          devotional_bible_id?: string | null;
           moderator_id: string;
           action: string;
           reason?: string | null;
@@ -174,7 +176,8 @@ export interface Database {
         };
         Update: {
           id?: string;
-          annotation_id?: string;
+          annotation_id?: string | null;
+          devotional_bible_id?: string | null;
           moderator_id?: string;
           action?: string;
           reason?: string | null;
@@ -186,6 +189,13 @@ export interface Database {
             columns: ["annotation_id"];
             isOneToOne: false;
             referencedRelation: "annotations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "moderation_log_devotional_bible_id_fkey";
+            columns: ["devotional_bible_id"];
+            isOneToOne: false;
+            referencedRelation: "devotional_bibles";
             referencedColumns: ["id"];
           },
           {
@@ -243,6 +253,117 @@ export interface Database {
             columns: ["user_id"];
             isOneToOne: true;
             referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      devotional_bibles: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string;
+          translation: string;
+          type: string;
+          is_published: boolean;
+          publish_status: string | null;
+          published_at: string | null;
+          rejection_reason: string | null;
+          forked_from_id: string | null;
+          author_display_name: string | null;
+          entry_count: number;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          description?: string;
+          translation: string;
+          type: string;
+          is_published?: boolean;
+          publish_status?: string | null;
+          published_at?: string | null;
+          rejection_reason?: string | null;
+          forked_from_id?: string | null;
+          author_display_name?: string | null;
+          entry_count?: number;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          description?: string;
+          translation?: string;
+          type?: string;
+          is_published?: boolean;
+          publish_status?: string | null;
+          published_at?: string | null;
+          rejection_reason?: string | null;
+          forked_from_id?: string | null;
+          author_display_name?: string | null;
+          entry_count?: number;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "devotional_bibles_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "devotional_bibles_forked_from_id_fkey";
+            columns: ["forked_from_id"];
+            isOneToOne: false;
+            referencedRelation: "devotional_bibles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      devotional_bible_entries: {
+        Row: {
+          id: string;
+          devotional_bible_id: string;
+          annotation_id: string;
+          sort_order: number;
+          added_at: string;
+        };
+        Insert: {
+          id?: string;
+          devotional_bible_id: string;
+          annotation_id: string;
+          sort_order?: number;
+          added_at?: string;
+        };
+        Update: {
+          id?: string;
+          devotional_bible_id?: string;
+          annotation_id?: string;
+          sort_order?: number;
+          added_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "devotional_bible_entries_devotional_bible_id_fkey";
+            columns: ["devotional_bible_id"];
+            isOneToOne: false;
+            referencedRelation: "devotional_bibles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "devotional_bible_entries_annotation_id_fkey";
+            columns: ["annotation_id"];
+            isOneToOne: false;
+            referencedRelation: "annotations";
             referencedColumns: ["id"];
           },
         ];
