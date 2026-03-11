@@ -52,13 +52,22 @@ export function RecycleBin({ auth }: RecycleBinProps) {
     }
   }
 
+  /** Navigate to My Notes when the bin becomes empty. */
+  function redirectIfEmpty(remaining: Annotation[]) {
+    if (remaining.length === 0) {
+      window.location.href = "/app/search";
+    }
+  }
+
   async function handleRestore(id: string) {
     setActionInProgress(id);
     setError(null);
     try {
       await restoreAnnotation(supabase, id);
-      setAnnotations((prev) => prev.filter((a) => a.id !== id));
+      const remaining = annotations.filter((a) => a.id !== id);
+      setAnnotations(remaining);
       setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+      redirectIfEmpty(remaining);
     } catch {
       setError("Couldn't restore this note. Please try again.");
     } finally {
@@ -71,9 +80,11 @@ export function RecycleBin({ auth }: RecycleBinProps) {
     setError(null);
     try {
       await permanentlyDeleteAnnotation(supabase, id);
-      setAnnotations((prev) => prev.filter((a) => a.id !== id));
+      const remaining = annotations.filter((a) => a.id !== id);
+      setAnnotations(remaining);
       setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
       setConfirmDeleteId(null);
+      redirectIfEmpty(remaining);
     } catch {
       setError("Couldn't delete this note. Please try again.");
     } finally {
@@ -113,8 +124,10 @@ export function RecycleBin({ auth }: RecycleBinProps) {
     setError(null);
     try {
       await batchRestoreAnnotations(supabase, ids);
-      setAnnotations((prev) => prev.filter((a) => !selectedIds.has(a.id)));
+      const remaining = annotations.filter((a) => !selectedIds.has(a.id));
+      setAnnotations(remaining);
       setSelectedIds(new Set());
+      redirectIfEmpty(remaining);
     } catch {
       setError("Couldn't restore notes. Please try again.");
     } finally {
@@ -128,9 +141,11 @@ export function RecycleBin({ auth }: RecycleBinProps) {
     setError(null);
     try {
       await batchPermanentlyDeleteAnnotations(supabase, ids);
-      setAnnotations((prev) => prev.filter((a) => !selectedIds.has(a.id)));
+      const remaining = annotations.filter((a) => !selectedIds.has(a.id));
+      setAnnotations(remaining);
       setSelectedIds(new Set());
       setConfirmBulkDelete(false);
+      redirectIfEmpty(remaining);
     } catch {
       setError("Couldn't delete notes. Please try again.");
     } finally {
