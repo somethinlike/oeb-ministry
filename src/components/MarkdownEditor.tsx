@@ -8,14 +8,18 @@
  * - No "Markdown" label anywhere — it's just "your writing"
  *
  * Security:
- * - Preview rendered through react-markdown + rehype-sanitize
+ * - Preview rendered through react-markdown + rehype-raw + rehype-sanitize
+ * - rehype-raw parses inline HTML (like <mark>, <details>) so they render
+ * - rehype-sanitize strips anything dangerous using our custom schema
  * - No dangerouslySetInnerHTML anywhere
  */
 
 import { useState, useRef, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+import { sanitizeSchema } from "../lib/sanitize-schema";
 
 /** Helpers passed to the extraToolbarSlot render prop. */
 export interface ToolbarSlotHelpers {
@@ -49,6 +53,12 @@ interface ToolbarAction {
   suffix: string;
   /** If true, the action works on a new line (headings, lists) */
   blockLevel?: boolean;
+  /**
+   * If provided, this template replaces the normal prefix/suffix wrapping.
+   * Receives the selected text (or "text" if nothing selected) and returns
+   * the full string to insert. Used for multi-line structures like tables.
+   */
+  template?: (selected: string) => string;
 }
 
 const TOOLBAR_ACTIONS: ToolbarAction[] = [
@@ -89,6 +99,32 @@ const TOOLBAR_ACTIONS: ToolbarAction[] = [
     prefix: "> ",
     suffix: "",
     blockLevel: true,
+  },
+  // --- Phase 3.1 additions ---
+  {
+    label: "HL",
+    ariaLabel: "Highlight",
+    icon: "HL",
+    prefix: "<mark>",
+    suffix: "</mark>",
+  },
+  {
+    label: "CL",
+    ariaLabel: "Collapsible section",
+    icon: "CL",
+    prefix: "<details>\n<summary>",
+    suffix: "</summary>\n\nYour content here\n\n</details>",
+    blockLevel: true,
+  },
+  {
+    label: "TBL",
+    ariaLabel: "Table",
+    icon: "TBL",
+    prefix: "",
+    suffix: "",
+    blockLevel: true,
+    template: () =>
+      "| Column 1 | Column 2 |\n| -------- | -------- |\n| Cell 1   | Cell 2   |",
   },
 ];
 
@@ -148,7 +184,18 @@ export function MarkdownEditor({
     let newContent: string;
     let newCursorPos: number;
 
-    if (action.blockLevel) {
+    if (action.template) {
+      // Template-based actions (e.g., table) — insert the full template
+      const templateText = action.template(selectedText);
+      const beforeSelection = content.substring(0, start);
+      const needsNewline =
+        beforeSelection.length > 0 && !beforeSelection.endsWith("\n");
+      const prefix = needsNewline ? "\n" : "";
+
+      newContent =
+        beforeSelection + prefix + templateText + content.substring(end);
+      newCursorPos = start + prefix.length + templateText.length;
+    } else if (action.blockLevel) {
       // For block-level actions, insert on a new line
       const beforeSelection = content.substring(0, start);
       const needsNewline =
@@ -235,7 +282,7 @@ export function MarkdownEditor({
         >
           {content ? (
             <ReactMarkdown
-              rehypePlugins={[rehypeSanitize]}
+              rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
               remarkPlugins={[remarkGfm]}
             >
               {content}

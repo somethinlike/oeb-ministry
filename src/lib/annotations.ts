@@ -14,6 +14,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types/database";
 import type { Annotation, AnnotationFormData } from "../types/annotation";
 import type { BookId } from "../types/bible";
+import { sanitizeMarkdownForPublishing } from "./sanitize-schema";
 
 type DbClient = SupabaseClient<Database>;
 
@@ -429,15 +430,38 @@ export async function searchAnnotations(
  * Submits an annotation for CC0 publishing review.
  * Sets publish_status to 'pending' — a moderator will approve or reject.
  * Encrypted annotations cannot be published (content would be ciphertext).
+ *
+ * Defense-in-depth: sanitizes the markdown content before storing it as
+ * pending. Strips dangerous HTML tags, event attributes, and javascript:
+ * URLs so the stored content is clean even if a render-time bug bypasses
+ * rehype-sanitize.
  */
 export async function submitForPublishing(
   client: DbClient,
   annotationId: string,
   authorDisplayName: string,
 ): Promise<void> {
+  // Fetch the current content so we can sanitize it at the publish boundary
+  const { data: annotation, error: fetchError } = await client
+    .from("annotations")
+    .select("content_md, is_encrypted")
+    .eq("id", annotationId)
+    .single();
+
+  if (fetchError) throw new Error(`Failed to fetch annotation: ${fetchError.message}`);
+
+  // Encrypted content is ciphertext — publishing it would be nonsensical
+  if (annotation.is_encrypted) {
+    throw new Error("Cannot publish encrypted annotations. Unlock the note first.");
+  }
+
+  // Sanitize markdown content before it enters the public pipeline
+  const sanitizedContent = sanitizeMarkdownForPublishing(annotation.content_md);
+
   const { error } = await client
     .from("annotations")
     .update({
+      content_md: sanitizedContent,
       publish_status: "pending",
       author_display_name: authorDisplayName,
     })
