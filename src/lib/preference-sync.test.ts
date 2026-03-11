@@ -130,6 +130,16 @@ describe("savePreferencesToLocalStorage", () => {
     expect(userPrefs.denominationPreset).toBe("catholic");
   });
 
+  it("roundtrips customKeybindings through localStorage", () => {
+    const prefs: UserPreferences = {
+      keybindingPreset: "default",
+      customKeybindings: { "annotation.save": "mod+enter" },
+    };
+    savePreferencesToLocalStorage(prefs);
+    const loaded = loadLocalPreferences();
+    expect(loaded.customKeybindings).toEqual({ "annotation.save": "mod+enter" });
+  });
+
   it("preserves workspace-only fields (splitRatio, swapped, etc.)", () => {
     // Pre-populate with workspace layout prefs
     localStorage.setItem(
@@ -199,6 +209,43 @@ describe("validatePreferences", () => {
     const result = validatePreferences({ divineName: "yes", baptism: 1 });
     expect(result.divineName).toBeUndefined();
     expect(result.baptism).toBeUndefined();
+  });
+
+  it("accepts valid customKeybindings", () => {
+    const result = validatePreferences({
+      customKeybindings: { "annotation.save": "mod+enter", "reader.nextVerse": "n" },
+    });
+    expect(result.customKeybindings).toEqual({
+      "annotation.save": "mod+enter",
+      "reader.nextVerse": "n",
+    });
+  });
+
+  it("strips customKeybindings with invalid command IDs", () => {
+    const result = validatePreferences({
+      customKeybindings: { "fake.command": "mod+s" },
+    });
+    expect(result.customKeybindings).toBeUndefined();
+  });
+
+  it("strips customKeybindings with invalid key combos", () => {
+    const result = validatePreferences({
+      customKeybindings: { "annotation.save": "banana" },
+    });
+    expect(result.customKeybindings).toBeUndefined();
+  });
+
+  it("allows empty string to unbind in customKeybindings", () => {
+    const result = validatePreferences({
+      customKeybindings: { "annotation.save": "" },
+    });
+    expect(result.customKeybindings).toEqual({ "annotation.save": "" });
+  });
+
+  it("strips non-object customKeybindings", () => {
+    expect(validatePreferences({ customKeybindings: "nope" }).customKeybindings).toBeUndefined();
+    expect(validatePreferences({ customKeybindings: 42 }).customKeybindings).toBeUndefined();
+    expect(validatePreferences({ customKeybindings: [1, 2] }).customKeybindings).toBeUndefined();
   });
 });
 

@@ -7,6 +7,10 @@ import {
   formatBinding,
   fuzzyMatch,
   searchCommands,
+  isValidKeyCombo,
+  resolveBindings,
+  detectConflicts,
+  BROWSER_RESERVED_KEYS,
   type CommandDef,
 } from "./commands";
 
@@ -244,5 +248,190 @@ describe("keybinding presets", () => {
     const vimBindings = PRESET_BINDINGS.vim;
     const normalOnly = vimBindings.filter((b) => b.vimNormalOnly);
     expect(normalOnly.length).toBeGreaterThan(0);
+  });
+});
+
+// ── isValidKeyCombo ──
+
+describe("isValidKeyCombo", () => {
+  it("accepts a single letter key", () => {
+    expect(isValidKeyCombo("j")).toBe(true);
+    expect(isValidKeyCombo("a")).toBe(true);
+  });
+
+  it("accepts a single digit key", () => {
+    expect(isValidKeyCombo("0")).toBe(true);
+    expect(isValidKeyCombo("9")).toBe(true);
+  });
+
+  it("accepts special keys", () => {
+    expect(isValidKeyCombo("escape")).toBe(true);
+    expect(isValidKeyCombo("enter")).toBe(true);
+    expect(isValidKeyCombo("space")).toBe(true);
+    expect(isValidKeyCombo("arrowup")).toBe(true);
+  });
+
+  it("accepts mod+key combos", () => {
+    expect(isValidKeyCombo("mod+s")).toBe(true);
+    expect(isValidKeyCombo("mod+shift+p")).toBe(true);
+    expect(isValidKeyCombo("alt+arrowright")).toBe(true);
+  });
+
+  it("rejects empty string", () => {
+    expect(isValidKeyCombo("")).toBe(false);
+  });
+
+  it("rejects modifier-only combos (no base key)", () => {
+    expect(isValidKeyCombo("mod")).toBe(false);
+    expect(isValidKeyCombo("mod+shift")).toBe(false);
+  });
+
+  it("rejects duplicate modifiers", () => {
+    expect(isValidKeyCombo("mod+mod+s")).toBe(false);
+  });
+
+  it("rejects two non-modifier keys", () => {
+    expect(isValidKeyCombo("a+b")).toBe(false);
+    expect(isValidKeyCombo("mod+a+b")).toBe(false);
+  });
+
+  it("rejects unknown key names", () => {
+    expect(isValidKeyCombo("mod+banana")).toBe(false);
+    expect(isValidKeyCombo("super+a")).toBe(false);
+  });
+
+  it("is case-insensitive", () => {
+    expect(isValidKeyCombo("MOD+S")).toBe(true);
+    expect(isValidKeyCombo("Shift+A")).toBe(true);
+  });
+
+  it("accepts punctuation keys", () => {
+    expect(isValidKeyCombo("/")).toBe(true);
+    expect(isValidKeyCombo("mod+.")).toBe(true);
+    expect(isValidKeyCombo(";")).toBe(true);
+  });
+});
+
+// ── resolveBindings ──
+
+describe("resolveBindings", () => {
+  it("returns preset bindings when no overrides given", () => {
+    const result = resolveBindings("default");
+    expect(result).toEqual(PRESET_BINDINGS.default);
+  });
+
+  it("returns preset bindings when overrides object is empty", () => {
+    const result = resolveBindings("default", {});
+    expect(result).toEqual(PRESET_BINDINGS.default);
+  });
+
+  it("overrides an existing binding", () => {
+    const result = resolveBindings("default", { "annotation.save": "mod+enter" });
+    const saveBinding = result.find((b) => b.commandId === "annotation.save");
+    expect(saveBinding?.key).toBe("mod+enter");
+  });
+
+  it("adds a binding for a command that has no preset key", () => {
+    // "toggle.divineName" might not have a key in default preset
+    const defaultHas = PRESET_BINDINGS.default.some(
+      (b) => b.commandId === "toggle.divineName",
+    );
+    if (!defaultHas) {
+      const result = resolveBindings("default", { "toggle.divineName": "mod+d" });
+      const binding = result.find((b) => b.commandId === "toggle.divineName");
+      expect(binding?.key).toBe("mod+d");
+    }
+  });
+
+  it("unbinds a command when override value is empty string", () => {
+    const result = resolveBindings("default", { "system.palette": "" });
+    const paletteBinding = result.find((b) => b.commandId === "system.palette");
+    expect(paletteBinding).toBeUndefined();
+  });
+
+  it("ignores overrides for non-existent command IDs", () => {
+    const result = resolveBindings("default", { "fake.command": "mod+z" });
+    expect(result.find((b) => b.commandId === "fake.command")).toBeUndefined();
+  });
+
+  it("ignores overrides with invalid key combos", () => {
+    const original = PRESET_BINDINGS.default.find(
+      (b) => b.commandId === "system.palette",
+    );
+    const result = resolveBindings("default", { "system.palette": "banana" });
+    const paletteBinding = result.find((b) => b.commandId === "system.palette");
+    expect(paletteBinding?.key).toBe(original?.key);
+  });
+
+  it("works with different presets", () => {
+    const result = resolveBindings("vim", { "reader.nextVerse": "n" });
+    const binding = result.find((b) => b.commandId === "reader.nextVerse");
+    expect(binding?.key).toBe("n");
+  });
+});
+
+// ── detectConflicts ──
+
+describe("detectConflicts", () => {
+  it("returns empty map when no conflicts exist", () => {
+    const bindings = [
+      { commandId: "a", key: "mod+s" },
+      { commandId: "b", key: "mod+d" },
+    ];
+    const conflicts = detectConflicts(bindings);
+    expect(conflicts.size).toBe(0);
+  });
+
+  it("detects two commands sharing the same key", () => {
+    const bindings = [
+      { commandId: "a", key: "mod+s" },
+      { commandId: "b", key: "mod+s" },
+    ];
+    const conflicts = detectConflicts(bindings);
+    expect(conflicts.size).toBe(1);
+    expect(conflicts.get("mod+s")).toEqual(["a", "b"]);
+  });
+
+  it("normalizes key case for comparison", () => {
+    const bindings = [
+      { commandId: "a", key: "Mod+S" },
+      { commandId: "b", key: "mod+s" },
+    ];
+    const conflicts = detectConflicts(bindings);
+    expect(conflicts.size).toBe(1);
+  });
+
+  it("ignores bindings with empty keys", () => {
+    const bindings = [
+      { commandId: "a", key: "" },
+      { commandId: "b", key: "" },
+    ];
+    const conflicts = detectConflicts(bindings);
+    expect(conflicts.size).toBe(0);
+  });
+
+  it("handles three-way conflicts", () => {
+    const bindings = [
+      { commandId: "a", key: "j" },
+      { commandId: "b", key: "j" },
+      { commandId: "c", key: "j" },
+    ];
+    const conflicts = detectConflicts(bindings);
+    expect(conflicts.get("j")).toEqual(["a", "b", "c"]);
+  });
+});
+
+// ── BROWSER_RESERVED_KEYS ──
+
+describe("BROWSER_RESERVED_KEYS", () => {
+  it("includes common reserved shortcuts", () => {
+    expect(BROWSER_RESERVED_KEYS.has("mod+w")).toBe(true);
+    expect(BROWSER_RESERVED_KEYS.has("mod+t")).toBe(true);
+    expect(BROWSER_RESERVED_KEYS.has("mod+n")).toBe(true);
+  });
+
+  it("does not include non-reserved combos", () => {
+    expect(BROWSER_RESERVED_KEYS.has("mod+s")).toBe(false);
+    expect(BROWSER_RESERVED_KEYS.has("j")).toBe(false);
   });
 });

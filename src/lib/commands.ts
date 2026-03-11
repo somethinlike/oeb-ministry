@@ -212,6 +212,140 @@ export function formatBinding(binding: string): string {
     .join(isMac ? "" : "+");
 }
 
+// ── Custom keybinding resolution ──
+
+/**
+ * Valid non-modifier key names for keybinding strings.
+ * Single letters (a-z), digits (0-9), and special keys.
+ */
+const VALID_KEYS = new Set([
+  // Letters
+  ..."abcdefghijklmnopqrstuvwxyz".split(""),
+  // Digits
+  ..."0123456789".split(""),
+  // Special keys
+  "escape", "enter", "space", "tab", "backspace", "delete",
+  "arrowup", "arrowdown", "arrowleft", "arrowright",
+  // Punctuation
+  "/", ".", ",", ";", "'", "[", "]", "\\", "-", "=", "`",
+]);
+
+/** Valid modifier names in keybinding strings. */
+const VALID_MODIFIERS = new Set(["mod", "shift", "alt"]);
+
+/**
+ * Check whether a key combo string is valid.
+ * Valid format: optional modifiers + exactly one key, joined by "+".
+ * Examples: "mod+s", "shift+arrowdown", "j", "mod+shift+p"
+ */
+export function isValidKeyCombo(key: string): boolean {
+  if (!key || typeof key !== "string") return false;
+  const parts = key.toLowerCase().split("+");
+  if (parts.length === 0) return false;
+
+  let hasKey = false;
+  const seenModifiers = new Set<string>();
+
+  for (const part of parts) {
+    if (VALID_MODIFIERS.has(part)) {
+      if (seenModifiers.has(part)) return false; // duplicate modifier
+      seenModifiers.add(part);
+    } else if (VALID_KEYS.has(part)) {
+      if (hasKey) return false; // two non-modifier keys
+      hasKey = true;
+    } else {
+      return false; // unknown part
+    }
+  }
+
+  return hasKey; // must have at least one non-modifier key
+}
+
+/**
+ * Resolve effective keybindings: start with a preset, then layer
+ * custom overrides on top. An override value of "" unbinds the command.
+ */
+export function resolveBindings(
+  preset: KeybindingPreset,
+  customOverrides?: Record<string, string>,
+): Keybinding[] {
+  // Start with a copy of the preset
+  const base = [...PRESET_BINDINGS[preset]];
+
+  if (!customOverrides || Object.keys(customOverrides).length === 0) {
+    return base;
+  }
+
+  // Build a map of commandId → index for quick lookup
+  const indexByCommand = new Map<string, number>();
+  base.forEach((b, i) => indexByCommand.set(b.commandId, i));
+
+  for (const [commandId, key] of Object.entries(customOverrides)) {
+    // Verify the command actually exists
+    if (!COMMAND_MAP.has(commandId)) continue;
+
+    const existingIdx = indexByCommand.get(commandId);
+
+    if (key === "") {
+      // Unbind: remove the binding if it exists
+      if (existingIdx !== undefined) {
+        base[existingIdx] = { commandId, key: "" }; // mark for removal
+      }
+    } else if (isValidKeyCombo(key)) {
+      // Override or add
+      if (existingIdx !== undefined) {
+        base[existingIdx] = { commandId, key };
+      } else {
+        base.push({ commandId, key });
+      }
+    }
+    // Invalid key combos are silently skipped
+  }
+
+  // Filter out unbound entries (empty key)
+  return base.filter((b) => b.key !== "");
+}
+
+/**
+ * Detect conflicting keybindings (multiple commands on the same key).
+ * Returns a Map of key combo → array of command IDs sharing that key.
+ * Only includes entries with 2+ commands (actual conflicts).
+ */
+export function detectConflicts(
+  bindings: Keybinding[],
+): Map<string, string[]> {
+  const byKey = new Map<string, string[]>();
+  for (const b of bindings) {
+    if (!b.key) continue;
+    const normalized = b.key.toLowerCase();
+    const list = byKey.get(normalized) ?? [];
+    list.push(b.commandId);
+    byKey.set(normalized, list);
+  }
+
+  // Keep only actual conflicts (2+ commands)
+  const conflicts = new Map<string, string[]>();
+  for (const [key, cmds] of byKey) {
+    if (cmds.length > 1) conflicts.set(key, cmds);
+  }
+  return conflicts;
+}
+
+/**
+ * Browser-reserved shortcuts that can't be overridden.
+ * These are common across Chrome/Firefox/Edge on Windows/Linux.
+ */
+export const BROWSER_RESERVED_KEYS = new Set([
+  "mod+w",     // Close tab
+  "mod+t",     // New tab
+  "mod+n",     // New window
+  "mod+q",     // Quit browser
+  "mod+l",     // Focus address bar
+  "mod+d",     // Bookmark
+  "mod+shift+t", // Reopen closed tab
+  "mod+shift+n", // New incognito window
+]);
+
 // ── Fuzzy search for command palette ──
 
 export function fuzzyMatch(query: string, text: string): boolean {

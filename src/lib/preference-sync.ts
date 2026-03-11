@@ -22,7 +22,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types/database";
 import type { ColorMode, ColorTheme } from "./theme";
 import { COLOR_MODE_KEY, COLOR_THEME_KEY, applyTheme } from "./theme";
-import type { KeybindingPreset } from "./commands";
+import { type KeybindingPreset, isValidKeyCombo, COMMAND_MAP } from "./commands";
 
 // ── Types ──
 
@@ -45,6 +45,8 @@ export interface UserPreferences {
 
   // Keyboard shortcuts
   keybindingPreset?: KeybindingPreset;
+  /** Custom keybinding overrides: commandId → key combo. Empty string unbinds. */
+  customKeybindings?: Record<string, string>;
 
   // Appearance (also mirrored to dedicated localStorage keys for anti-flash script)
   colorMode?: ColorMode;
@@ -66,6 +68,28 @@ const VALID_COLOR_THEMES = new Set(["default", "lutheran", "catholic", "orthodox
 /** Valid keybinding preset keys */
 const VALID_KEYBINDING_PRESETS = new Set(["default", "vscode", "vim"]);
 
+/**
+ * Validate custom keybinding overrides from untrusted sources (localStorage/Supabase).
+ * Strips entries with invalid command IDs or key combos.
+ */
+function validateCustomKeybindings(raw: unknown): Record<string, string> | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const obj = raw as Record<string, unknown>;
+  const result: Record<string, string> = {};
+  let hasEntries = false;
+
+  for (const [commandId, keyCombo] of Object.entries(obj)) {
+    if (!COMMAND_MAP.has(commandId)) continue;
+    if (typeof keyCombo !== "string") continue;
+    // Empty string = unbind, otherwise must be valid
+    if (keyCombo !== "" && !isValidKeyCombo(keyCombo)) continue;
+    result[commandId] = keyCombo;
+    hasEntries = true;
+  }
+
+  return hasEntries ? result : undefined;
+}
+
 // ── localStorage helpers ──
 
 /** Load user-prefs-only localStorage key. */
@@ -73,6 +97,7 @@ function loadUserPrefsStorage(): {
   defaultTranslation?: string;
   denominationPreset?: string;
   keybindingPreset?: KeybindingPreset;
+  customKeybindings?: Record<string, string>;
   colorMode?: ColorMode;
   colorTheme?: ColorTheme;
 } {
@@ -89,6 +114,7 @@ function loadUserPrefsStorage(): {
       denominationPreset: typeof parsed.denominationPreset === "string" ? parsed.denominationPreset : undefined,
       keybindingPreset: typeof parsed.keybindingPreset === "string" && VALID_KEYBINDING_PRESETS.has(parsed.keybindingPreset)
         ? parsed.keybindingPreset as KeybindingPreset : undefined,
+      customKeybindings: validateCustomKeybindings(parsed.customKeybindings),
       colorMode: colorMode && VALID_COLOR_MODES.has(colorMode) ? colorMode as ColorMode : undefined,
       colorTheme: colorTheme && VALID_COLOR_THEMES.has(colorTheme) ? colorTheme as ColorTheme : undefined,
     };
@@ -102,16 +128,22 @@ function saveUserPrefsStorage(prefs: {
   defaultTranslation?: string;
   denominationPreset?: string;
   keybindingPreset?: KeybindingPreset;
+  customKeybindings?: Record<string, string>;
   colorMode?: ColorMode;
   colorTheme?: ColorTheme;
 }): void {
   try {
     const current = loadUserPrefsStorage();
-    const merged = {
+    const merged: Record<string, unknown> = {
       defaultTranslation: prefs.defaultTranslation ?? current.defaultTranslation,
       denominationPreset: prefs.denominationPreset ?? current.denominationPreset,
       keybindingPreset: prefs.keybindingPreset ?? current.keybindingPreset,
     };
+    // Only store customKeybindings if there are overrides (keep storage lean)
+    const customKb = prefs.customKeybindings ?? current.customKeybindings;
+    if (customKb && Object.keys(customKb).length > 0) {
+      merged.customKeybindings = customKb;
+    }
     localStorage.setItem(USER_PREFS_STORAGE_KEY, JSON.stringify(merged));
 
     // Mirror color prefs to dedicated keys so the anti-flash script can read them
@@ -147,6 +179,7 @@ export function loadLocalPreferences(): UserPreferences {
     defaultTranslation: userPrefs.defaultTranslation,
     denominationPreset: userPrefs.denominationPreset,
     keybindingPreset: userPrefs.keybindingPreset,
+    customKeybindings: userPrefs.customKeybindings,
     colorMode: userPrefs.colorMode,
     colorTheme: userPrefs.colorTheme,
   };
@@ -173,11 +206,12 @@ export function savePreferencesToLocalStorage(prefs: UserPreferences): void {
     onlyBegotten: prefs.onlyBegotten,
   });
 
-  // User prefs (includes theme settings + keybinding preset)
+  // User prefs (includes theme settings + keybinding preset + custom keybindings)
   saveUserPrefsStorage({
     defaultTranslation: prefs.defaultTranslation,
     denominationPreset: prefs.denominationPreset,
     keybindingPreset: prefs.keybindingPreset,
+    customKeybindings: prefs.customKeybindings,
     colorMode: prefs.colorMode,
     colorTheme: prefs.colorTheme,
   });
@@ -213,6 +247,8 @@ export function validatePreferences(raw: unknown): UserPreferences {
   if (typeof obj.keybindingPreset === "string" && VALID_KEYBINDING_PRESETS.has(obj.keybindingPreset)) {
     result.keybindingPreset = obj.keybindingPreset as KeybindingPreset;
   }
+  const customKb = validateCustomKeybindings(obj.customKeybindings);
+  if (customKb) result.customKeybindings = customKb;
   if (typeof obj.colorMode === "string" && VALID_COLOR_MODES.has(obj.colorMode)) {
     result.colorMode = obj.colorMode as ColorMode;
   }
