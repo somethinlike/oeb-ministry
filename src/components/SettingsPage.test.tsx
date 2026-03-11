@@ -60,11 +60,14 @@ describe("SettingsPage", () => {
 
   it("renders all five section headings", () => {
     render(<SettingsPage auth={mockAuth} providers={["google"]} />);
-    expect(screen.getByText("Account")).toBeInTheDocument();
-    expect(screen.getByText("Reading")).toBeInTheDocument();
-    expect(screen.getByText("Word Choices")).toBeInTheDocument();
-    expect(screen.getByText("Default Translation")).toBeInTheDocument();
-    expect(screen.getByText("Your Data")).toBeInTheDocument();
+    // Use getByRole("heading") to target section h3s, not category labels
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    const headingTexts = headings.map((h) => h.textContent);
+    expect(headingTexts).toContain("Account");
+    expect(headingTexts).toContain("Reading");
+    expect(headingTexts).toContain("Word Choices");
+    expect(headingTexts).toContain("Default Translation");
+    expect(headingTexts).toContain("Your Data");
   });
 
   it("displays account name and email", () => {

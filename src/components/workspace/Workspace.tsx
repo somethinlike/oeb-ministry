@@ -167,7 +167,7 @@ export function Workspace({
   const leftPane = swapped ? <AnnotationSidebar /> : readerPane;
   const rightPane = swapped ? readerPane : <AnnotationSidebar />;
 
-  // Load keybinding preset from user preferences (localStorage)
+  // Load keybinding preset + custom overrides from user preferences (localStorage)
   const [keybindPreset] = useState<KeybindingPreset>(() => {
     try {
       const stored = localStorage.getItem("oeb-user-prefs");
@@ -177,6 +177,17 @@ export function Workspace({
       }
     } catch { /* default */ }
     return "default";
+  });
+
+  const [customKeybindings] = useState<Record<string, string> | undefined>(() => {
+    try {
+      const stored = localStorage.getItem("oeb-user-prefs");
+      const parsed = stored ? JSON.parse(stored) : {};
+      if (parsed.customKeybindings && typeof parsed.customKeybindings === "object") {
+        return parsed.customKeybindings as Record<string, string>;
+      }
+    } catch { /* default */ }
+    return undefined;
   });
 
   return (
@@ -189,6 +200,7 @@ export function Workspace({
     >
       <WorkspaceKeyboardWrapper
         keybindPreset={keybindPreset}
+        customKeybindings={customKeybindings}
         toggleSwap={toggleSwap}
         toggleReaderLayout={toggleReaderLayout}
         handleEnterCleanView={handleEnterCleanView}
@@ -280,6 +292,7 @@ export function Workspace({
  */
 function WorkspaceKeyboardWrapper({
   keybindPreset,
+  customKeybindings,
   toggleSwap,
   toggleReaderLayout,
   handleEnterCleanView,
@@ -292,6 +305,7 @@ function WorkspaceKeyboardWrapper({
   children,
 }: {
   keybindPreset: KeybindingPreset;
+  customKeybindings?: Record<string, string>;
   toggleSwap: () => void;
   toggleReaderLayout: () => void;
   handleEnterCleanView: () => void;
@@ -410,6 +424,7 @@ function WorkspaceKeyboardWrapper({
   return (
     <KeyboardManager
       preset={keybindPreset}
+      customKeybindings={customKeybindings}
       isWorkspace={true}
       isEditing={sidebarView === "editor"}
       onCommand={handleCommand}

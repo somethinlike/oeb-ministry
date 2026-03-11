@@ -42,7 +42,7 @@ function mockClient(options: {
     }),
     _upsertFn: upsertFn,
     _selectFn: selectFn,
-  } as unknown as ReturnType<typeof mockClient>;
+  } as any;
 }
 
 // ── loadLocalPreferences ──

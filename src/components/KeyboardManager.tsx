@@ -17,6 +17,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   createContext,
   useContext,
   type ReactNode,
@@ -25,6 +26,7 @@ import {
   type KeybindingPreset,
   PRESET_BINDINGS,
   matchesBinding,
+  resolveBindings,
 } from "../lib/commands";
 import { CommandPalette } from "./CommandPalette";
 
@@ -59,6 +61,8 @@ export function useKeyboard(): KeyboardContextValue {
 interface KeyboardManagerProps {
   /** Active keybinding preset (from user preferences) */
   preset: KeybindingPreset;
+  /** Custom keybinding overrides (commandId → key combo) */
+  customKeybindings?: Record<string, string>;
   /** Whether we're inside the workspace reader */
   isWorkspace: boolean;
   /** Whether an annotation is being edited */
@@ -70,6 +74,7 @@ interface KeyboardManagerProps {
 
 export function KeyboardManager({
   preset,
+  customKeybindings,
   isWorkspace,
   isEditing,
   onCommand,
@@ -87,6 +92,12 @@ export function KeyboardManager({
   }, [isEditing, preset]);
 
   const openPalette = useCallback(() => setPaletteOpen(true), []);
+
+  // Resolve effective bindings: preset + custom overrides (memoized)
+  const bindings = useMemo(
+    () => resolveBindings(preset, customKeybindings),
+    [preset, customKeybindings],
+  );
 
   // ── Global keydown handler ──
   useEffect(() => {
@@ -126,7 +137,6 @@ export function KeyboardManager({
       // Don't process keyboard shortcuts while typing in inputs
       // (except Ctrl+S for save and Escape)
       if (isInputFocused) {
-        const bindings = PRESET_BINDINGS[preset];
         for (const binding of bindings) {
           if (matchesBinding(e, binding.key)) {
             // Only allow mod-key combos (Ctrl+S, etc.) through when in an input
@@ -140,8 +150,7 @@ export function KeyboardManager({
         return;
       }
 
-      // Match against active keybinding preset
-      const bindings = PRESET_BINDINGS[preset];
+      // Match against resolved keybindings (preset + custom overrides)
       for (const binding of bindings) {
         // Vim normal-only bindings are skipped in insert mode
         if (binding.vimNormalOnly && preset === "vim" && vimMode !== "normal") {
@@ -164,7 +173,7 @@ export function KeyboardManager({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [preset, vimMode, paletteOpen, onCommand]);
+  }, [preset, bindings, vimMode, paletteOpen, onCommand]);
 
   // ── Keybind detection (passive) ──
   useKeybindDetector(preset);

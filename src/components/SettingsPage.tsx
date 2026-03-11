@@ -39,7 +39,8 @@ import {
   type ColorTheme,
   applyTheme,
 } from "../lib/theme";
-import { PRESET_LABELS, type KeybindingPreset } from "../lib/commands";
+import { PRESET_LABELS, PRESET_BINDINGS, type KeybindingPreset } from "../lib/commands";
+import { KeybindingEditor } from "./KeybindingEditor";
 import { ExportButton } from "./ExportButton";
 import { OfflineDownloads } from "./OfflineDownloads";
 import { EncryptionProvider, useEncryption } from "./EncryptionProvider";
@@ -270,6 +271,34 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
             )}
           </select>
         </SettingRow>
+
+        {/* Custom keybinding editor — expandable below the preset picker */}
+        <details className="pt-2">
+          <summary className="cursor-pointer text-xs text-accent hover:text-accent-hover font-medium">
+            Customize individual shortcuts&hellip;
+          </summary>
+          <div className="mt-4">
+            <KeybindingEditor
+              preset={prefs.keybindingPreset ?? "default"}
+              customOverrides={prefs.customKeybindings ?? {}}
+              onOverrideChange={(commandId, key) => {
+                const activePreset = prefs.keybindingPreset ?? "default";
+                const presetKey = PRESET_BINDINGS[activePreset]?.find(
+                  (b) => b.commandId === commandId,
+                )?.key ?? "";
+                // If the new key matches the preset default, remove the override
+                const current = { ...(prefs.customKeybindings ?? {}) };
+                if (key === presetKey) {
+                  delete current[commandId];
+                } else {
+                  current[commandId] = key;
+                }
+                updatePref({ customKeybindings: Object.keys(current).length > 0 ? current : undefined });
+              }}
+              onResetAll={() => updatePref({ customKeybindings: undefined })}
+            />
+          </div>
+        </details>
       </Section>
 
       {/* ── Word Choices ── */}
