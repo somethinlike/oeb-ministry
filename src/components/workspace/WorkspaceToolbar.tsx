@@ -78,6 +78,7 @@ export function WorkspaceToolbar({
   // Offline cache state for current book
   const [bookOffline, setBookOffline] = useState<boolean | null>(null);
   const [cachingBook, setCachingBook] = useState(false);
+  const [cacheError, setCacheError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof caches === "undefined" || !bookInfo) return;
@@ -85,14 +86,26 @@ export function WorkspaceToolbar({
     isBookCached(translation, book, bookInfo.chapters).then(setBookOffline);
   }, [translation, book, bookInfo?.chapters]);
 
+  // Auto-dismiss error after 4 seconds
+  useEffect(() => {
+    if (!cacheError) return;
+    const timer = setTimeout(() => setCacheError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [cacheError]);
+
   async function handleCacheBook() {
     if (cachingBook || bookOffline || !bookInfo) return;
+    setCacheError(null);
     setCachingBook(true);
     try {
-      await cacheBookOffline(translation, book, bookInfo.chapters);
-      setBookOffline(true);
+      const chaptersStored = await cacheBookOffline(translation, book, bookInfo.chapters);
+      if (chaptersStored === 0) {
+        setCacheError("This book isn't available yet in this translation");
+      } else {
+        setBookOffline(chaptersStored === bookInfo.chapters);
+      }
     } catch {
-      // Silently fail
+      setCacheError("Something went wrong. Try again?");
     } finally {
       setCachingBook(false);
     }
@@ -142,35 +155,47 @@ export function WorkspaceToolbar({
       <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
         {/* Offline cache indicator for current book */}
         {typeof caches !== "undefined" && bookInfo && (
-          <button
-            type="button"
-            onClick={handleCacheBook}
-            disabled={cachingBook || bookOffline === true}
-            className="flex items-center gap-1.5 rounded-md border border-input-border
-                       bg-panel px-2.5 py-1.5 text-xs font-medium text-muted
-                       hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring
-                       disabled:cursor-default"
-            aria-label={bookOffline ? `${bookInfo.name} saved offline` : `Save ${bookInfo.name} for offline reading`}
-            title={bookOffline ? "Book saved offline" : "Save book for offline reading"}
-          >
-            {cachingBook ? (
-              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" className="opacity-25" />
-                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-75" />
-              </svg>
-            ) : bookOffline ? (
-              <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            ) : (
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-              </svg>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={handleCacheBook}
+              disabled={cachingBook || bookOffline === true}
+              className="flex items-center gap-1.5 rounded-md border border-input-border
+                         bg-panel px-2.5 py-1.5 text-xs font-medium text-muted
+                         hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring
+                         disabled:cursor-default"
+              aria-label={bookOffline ? `${bookInfo.name} saved offline` : `Save ${bookInfo.name} for offline reading`}
+              title={bookOffline ? "Book saved offline" : "Save book for offline reading"}
+            >
+              {cachingBook ? (
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" className="opacity-25" />
+                  <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-75" />
+                </svg>
+              ) : bookOffline ? (
+                <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ) : (
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                </svg>
+              )}
+              <span className="hidden sm:inline">
+                {cachingBook ? "Saving..." : bookOffline ? "Offline" : "Save offline"}
+              </span>
+            </button>
+            {cacheError && (
+              <div
+                className="absolute left-1/2 -translate-x-1/2 top-full mt-1 z-10
+                           rounded-lg bg-red-50 border border-red-200 px-3 py-1.5
+                           text-xs text-red-700 whitespace-nowrap shadow-sm"
+                role="alert"
+              >
+                {cacheError}
+              </div>
             )}
-            <span className="hidden sm:inline">
-              {cachingBook ? "Saving..." : bookOffline ? "Offline" : "Save offline"}
-            </span>
-          </button>
+          </div>
         )}
 
         {/* Clean view — hide toolbar and show only a cog in the nav bar */}

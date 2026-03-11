@@ -28,12 +28,27 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
   const [caching, setCaching] = useState(false);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
   const [chapterStates, setChapterStates] = useState<Map<number, boolean>>(new Map());
+  const [error, setError] = useState<string | null>(null);
 
   if (!bookInfo) {
     return <p className="text-muted">Book not found.</p>;
   }
 
   const chapters = Array.from({ length: bookInfo.chapters }, (_, i) => i + 1);
+
+  /** Re-check which chapters are actually in the cache. */
+  async function refreshChapterStates() {
+    const results = await Promise.all(
+      chapters.map(async (ch) => {
+        const isCached = await isChapterCached(translation, book, ch);
+        return [ch, isCached] as [number, boolean];
+      }),
+    );
+    const stateMap = new Map(results);
+    setChapterStates(stateMap);
+    // Book is fully cached only if every chapter is present
+    setBookCached(results.every(([, c]) => c));
+  }
 
   // Check cache state on mount
   useEffect(() => {
@@ -55,20 +70,23 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
   async function handleSaveBookOffline() {
     if (caching || bookCached) return;
 
+    setError(null);
     setCaching(true);
     setProgress({ completed: 0, total: bookInfo!.chapters });
 
     try {
-      await cacheBookOffline(translation, book, bookInfo!.chapters, (completed, total) => {
-        setProgress({ completed, total });
-      });
-      setBookCached(true);
-      // Update all chapter states to cached
-      const allCached = new Map<number, boolean>();
-      chapters.forEach((ch) => allCached.set(ch, true));
-      setChapterStates(allCached);
+      const chaptersStored = await cacheBookOffline(
+        translation, book, bookInfo!.chapters, (completed, total) => {
+          setProgress({ completed, total });
+        },
+      );
+      if (chaptersStored === 0) {
+        setError("This book isn't available yet in this translation");
+      }
+      // Re-check the real cache state instead of optimistically marking all as cached
+      await refreshChapterStates();
     } catch {
-      // Silently fail
+      setError("Something went wrong. Try again?");
     } finally {
       setCaching(false);
     }
@@ -118,6 +136,15 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
           </button>
         )}
       </div>
+      {/* Error message — shown when no chapters could be saved */}
+      {error && (
+        <div
+          className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
       <p className="mb-6 text-muted">
         Choose a chapter to start reading.
       </p>

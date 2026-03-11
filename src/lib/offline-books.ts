@@ -31,7 +31,8 @@ export async function cacheBookOffline(
   onProgress?: (completed: number, total: number) => void,
 ): Promise<number> {
   const cache = await caches.open(BIBLE_CACHE_NAME);
-  let completed = 0;
+  let attempted = 0;
+  let cached = 0;
 
   // Fetch chapters in parallel with a concurrency limit to avoid flooding
   const BATCH_SIZE = 5;
@@ -45,15 +46,17 @@ export async function cacheBookOffline(
         fetch(url)
           .then((response) => {
             if (response.ok) {
+              cached++;
               return cache.put(url, response);
             }
+            // Non-ok response (404, etc.) — chapter doesn't exist yet
           })
           .catch(() => {
-            // Individual chapter fetch failure — skip silently
+            // Network failure — skip silently
           })
           .then(() => {
-            completed++;
-            onProgress?.(completed, chapterCount);
+            attempted++;
+            onProgress?.(attempted, chapterCount);
           }),
       );
     }
@@ -61,7 +64,8 @@ export async function cacheBookOffline(
     await Promise.all(batch);
   }
 
-  return completed;
+  // Return the number of chapters actually stored in cache (not just attempted)
+  return cached;
 }
 
 /**

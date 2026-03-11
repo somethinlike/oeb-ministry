@@ -133,6 +133,7 @@ function BookTile({
 }) {
   const [cached, setCached] = useState<boolean | null>(null);
   const [caching, setCaching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Check cache state on mount
   useEffect(() => {
@@ -140,17 +141,29 @@ function BookTile({
     isBookCached(translation, book.id, book.chapters).then(setCached);
   }, [translation, book.id, book.chapters]);
 
+  // Auto-dismiss error after 4 seconds
+  useEffect(() => {
+    if (!error) return;
+    const timer = setTimeout(() => setError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [error]);
+
   async function handleSaveOffline(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     if (caching || cached) return;
 
+    setError(null);
     setCaching(true);
     try {
-      await cacheBookOffline(translation, book.id, book.chapters);
-      setCached(true);
+      const chaptersStored = await cacheBookOffline(translation, book.id, book.chapters);
+      if (chaptersStored === 0) {
+        setError("This book isn't available yet in this translation");
+      } else {
+        setCached(chaptersStored === book.chapters);
+      }
     } catch {
-      // Silently fail — user can retry
+      setError("Something went wrong. Try again?");
     } finally {
       setCaching(false);
     }
@@ -171,6 +184,17 @@ function BookTile({
           {book.chapters} {book.chapters === 1 ? "chapter" : "chapters"}
         </span>
       </a>
+      {/* Error tooltip — shown briefly when book has no available chapters */}
+      {error && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 z-10
+                     rounded-lg bg-red-50 border border-red-200 px-3 py-1.5
+                     text-xs text-red-700 whitespace-nowrap shadow-sm"
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
       {/* Save offline button — top-right corner */}
       {typeof caches !== "undefined" && (
         <button
