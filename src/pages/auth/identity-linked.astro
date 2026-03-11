@@ -1,0 +1,83 @@
+---
+/**
+ * Identity-linked interstitial — shown when a new OAuth provider is
+ * automatically linked to an existing account (same email address).
+ *
+ * Grandmother Principle: explain clearly what happened and why,
+ * without using technical jargon like "OAuth" or "identity provider."
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const returnUrl = Astro.url.searchParams.get("returnUrl") || "/app/read";
+const newProvider = Astro.url.searchParams.get("newProvider") || "another service";
+const existingProviders = Astro.url.searchParams.get("existingProviders") || "";
+
+/** Capitalize a provider name for display (e.g. "google" → "Google"). */
+function formatProvider(name: string): string {
+  const map: Record<string, string> = {
+    google: "Google",
+    github: "GitHub",
+    discord: "Discord",
+    azure: "Microsoft",
+  };
+  return map[name.toLowerCase()] || name;
+}
+
+const newName = formatProvider(newProvider);
+const existingNames = existingProviders
+  .split(",")
+  .filter(Boolean)
+  .map(formatProvider);
+
+// Build a friendly list: "Google" or "Google and GitHub" or "Google, GitHub, and Discord"
+function friendlyList(names: string[]): string {
+  if (names.length === 0) return "another sign-in method";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return names.slice(0, -1).join(", ") + ", and " + names[names.length - 1];
+}
+
+const existingList = friendlyList(existingNames);
+---
+
+<BaseLayout title="Account Connected">
+  <div class="flex min-h-screen items-center justify-center bg-surface-alt px-4">
+    <div class="w-full max-w-md">
+      <div class="rounded-lg border border-edge bg-panel p-8 text-center">
+        <!-- Link/chain icon -->
+        <svg class="mx-auto h-14 w-14 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.032a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364L4.34 8.627" />
+        </svg>
+
+        <h1 class="mt-5 text-xl font-bold text-heading">Your accounts are connected</h1>
+
+        <p class="mt-4 text-body leading-relaxed">
+          You just signed in with <strong class="text-heading">{newName}</strong>, and we noticed
+          you already had an account through <strong class="text-heading">{existingList}</strong>.
+        </p>
+
+        <p class="mt-3 text-body leading-relaxed">
+          Because they share the same email address, we connected them together.
+          All your notes, settings, and saved data are in one place — no matter
+          which sign-in method you use.
+        </p>
+
+        <div class="mt-6 rounded-lg bg-surface-alt p-4 text-left">
+          <p class="text-sm font-medium text-heading">What this means:</p>
+          <ul class="mt-2 space-y-1 text-sm text-muted">
+            <li>You can sign in with any of your connected methods</li>
+            <li>Your notes and settings stay the same either way</li>
+            <li>You can see your connected accounts in Settings</li>
+          </ul>
+        </div>
+
+        <a
+          href={returnUrl}
+          class="mt-6 inline-block w-full rounded-lg bg-accent px-5 py-3 text-base font-medium text-on-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+        >
+          Continue
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
