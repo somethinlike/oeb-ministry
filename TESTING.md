@@ -21,8 +21,9 @@
 - The sign-in page shows "Continue without signing in" at the bottom
 
 ### Auth Guard
-- While signed out, try visiting `/app/read`, `/app/search`, `/app/settings`
-- All should redirect to `/auth/signin`
+- While signed out, try visiting `/app/read`, `/app/settings`
+- Both should redirect to `/auth/signin`
+- `/app/search` should show an empty state card with "Sign in to see your notes" (no redirect)
 
 ---
 
