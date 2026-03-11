@@ -17,8 +17,8 @@
 
 ### Sign Out
 - Click your avatar in the NavBar → "Sign out"
-- Should redirect to the landing page
-- Navigating to `/app/read` should redirect to `/auth/signin`
+- Should redirect to the sign-in page (`/auth/signin`)
+- The sign-in page shows "Continue without signing in" at the bottom
 
 ### Auth Guard
 - While signed out, try visiting `/app/read`, `/app/search`, `/app/settings`
