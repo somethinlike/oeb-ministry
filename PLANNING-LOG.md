@@ -1082,3 +1082,148 @@ All remaining v2 features completed in a single sprint:
 **Test counts:** 27 test files, 397 tests passing (up from 361 pre-sprint).
 
 **What's next:** v3 (Devotional Bible Assembly) — collections, batch operations, advanced editor.
+
+---
+
+## Session 9 — 2026-02-25 to 2026-03-03 — Offline Hardening, Note Management, Settings Page
+
+### Context
+Continued v1 polish and began v2 infrastructure. Focus areas: offline reliability, note management UX, settings architecture, and export improvements.
+
+### Offline Reliability Overhaul (Feb 25)
+
+**Problem:** `navigator.onLine` is unreliable — it returns `true` when the machine has a network interface but no actual internet connectivity (common on mobile, VPNs, captive portals). The app was trusting it for offline detection.
+
+**Fix (three commits, progressive refinement):**
+1. Replaced `navigator.onLine` trust with real network verification — send an actual request and treat failure as offline.
+2. Used cross-origin requests (not same-origin) so the service worker cache doesn't mask connectivity failures.
+3. Final policy: assume online by default, verify offline only when operations fail. No preemptive connectivity checks.
+
+Also completed the offline annotation sync pipeline: cache, merge, cross-reference resolution, and refetch on reconnect (`84c2254`).
+
+### Recycle Bin & Note Management (Feb 25-27)
+
+**Implemented:**
+- **Recycle Bin page** (`/app/recycle-bin`): soft-deleted annotations land here, can be restored or permanently deleted.
+- **Published Notes page** (`/app/published`): view all notes with CC0 publish status.
+- **NavBar dropdown**: organized navigation into a compact dropdown menu to accommodate new pages.
+- **Multi-select with bulk actions**: checkboxes on My Notes and Recycle Bin for batch delete/restore/export.
+- **Recycle bin icon** on My Notes page for quick access.
+- **Auto-redirect**: when recycle bin empties (all items restored/deleted), redirect back to My Notes.
+
+### Settings Page & Preference Sync (Mar 1-2)
+
+**Implemented:**
+- **Settings page** (`/app/settings`): the "one page to rule them all" from Session 8 design discussion, now real.
+- **Supabase-backed preference sync**: `user_preferences` table with RLS, preferences roam across devices.
+- **Font picker** with hydration mismatch fix (server/client font state divergence).
+- **Dev server port** fixed to 4321 for concurrent development with other projects.
+- **Supabase config sync**: `config.toml` updated to match remote settings, localhost redirect URLs added for local OAuth testing.
+
+### Export Improvements (Mar 2)
+
+- **Dual-format export**: annotations export with full verse text included (not just references).
+- **Offline book caching**: integrated with the export/offline systems.
+- **"Download all notes" button** on My Notes page for one-click batch export.
+
+### ROADMAP & Testing Guide (Mar 1-3)
+
+- Created `ROADMAP.md` with full version-scoped feature roadmap (v1 through v3+).
+- Created comprehensive manual testing guide covering all features (`c66a612`).
+
+### Lessons Learned
+- **Never trust browser connectivity APIs.** `navigator.onLine` is a hint, not a fact. Always verify with real requests, and design for graceful degradation when requests fail mid-flight.
+- **Cross-origin matters for connectivity checks.** Same-origin requests can be served from the service worker cache, making them useless for detecting actual internet access.
+- **Hydration mismatches from localStorage.** When server-rendered HTML and client-side React disagree (e.g., font preference stored in localStorage), React throws hydration errors. Solution: render a neutral default on the server, update on the client after mount.
+
+---
+
+## Session 10 — 2026-03-10 to 2026-03-11 — v2 Feature Sprint & Auth UX Polish
+
+### Context
+Massive single-day sprint on Mar 10 shipped all remaining v2 features. Mar 11 followed up with auth flow fixes and test maintenance.
+
+### v2 Features Shipped (Mar 10)
+
+**1. Dark Mode & Denomination Themes**
+- Full dark mode support across the app.
+- Denomination-specific color themes (Orthodox, Catholic, etc.).
+- Orthodox and Catholic theme colors revised based on Ryan's feedback (`95327cb`).
+
+**2. Client-Side Encryption (AES-256-GCM)**
+- `src/lib/encryption.ts`: full crypto module using Web Crypto API with comprehensive test suite.
+- Database migration: encryption-related columns (`is_encrypted`, `encryption_iv`, etc.) added to annotations table.
+- `EncryptionProvider`: React context for in-memory CryptoKey lifecycle (key never persists to storage).
+- Encryption wired through the full annotation workflow: create, save, load, decrypt.
+- Encryption setup moved to Settings page (not inline during annotation creation) — cleaner UX.
+- Credential manager compatibility improvements for passphrase forms.
+- Open Source Theology page updated with accurate encryption implementation details.
+
+**3. CC0 Publishing Pipeline**
+- Database: `publish_status`, `published_at`, `rejection_reason`, `author_display_name` columns; `user_roles` and `moderation_log` tables with full RLS.
+- Service module: 8 functions (submit, retract, getPending, approve, reject, remove, getPublicFeed, searchPublic, checkIsModerator).
+- CC0 Intercession modal: carousel of 7 historical figures who gave freely (shown once per user).
+- Annotation panel: publish/retract/resubmit UI with contextual status badges.
+- Moderator queue (`/app/moderation`): one-click approve, reject with required written feedback.
+- Public feed (`/app/community`): browse all CC0 annotations, search, filter by book.
+- AI screening deferred to v3 — human moderation sufficient for launch scale.
+
+**4. Command Palette & Keyboard Navigation**
+- Command registry: 28 commands across 5 categories (navigation, reader, annotation, translation, system).
+- Three keybinding presets: Default (arrow keys), VSCode (Ctrl+G, Alt+arrows), Vim (j/k with normal/insert mode).
+- Command palette (`Ctrl+Shift+P`): fuzzy search, grouped by category, keyboard shortcut badges.
+- Vim mode state machine with bottom-left mode indicator.
+- Passive keybind detection (j/k/: patterns) with one-time toast suggesting Settings.
+- 36 tests for the commands module.
+
+**5. Offline Bible Downloads**
+- Settings UI: download entire translations with progress bars and storage estimates.
+- Remove button for cached translations.
+- Error handling for downloads when no chapters are available.
+
+### Auth & Onboarding UX Polish (Mar 10-11)
+
+**Sign-in page overhaul:**
+- Removed ethics agreement text (was too much friction for sign-in).
+- Added guest access button styled to match OAuth provider buttons.
+- Sign-out now redirects to sign-in page (not home).
+- Fixed Google OAuth button styling.
+- Updated subtitle to mention sharing.
+
+**Identity linking interstitial:**
+- When a user connects a new OAuth provider, an interstitial explains what identity linking means.
+- Lists all connected providers explicitly.
+- Bullet points explain "what this means" in plain language.
+- Several rounds of copy refinement (removing "You" prefix, adjusting formatting).
+
+**Search empty state:**
+- `/app/search` now shows a proper empty state for signed-out users with all OAuth providers listed.
+
+**Auth redirect:**
+- Unauthenticated users accessing `/app/read` now redirect to sign-in (`66507cb`).
+
+### Test & Documentation Maintenance (Mar 11)
+
+- Renamed `TESTING.md` to `MANUAL-TESTS.md` for clarity.
+- Fixed version format in testing guide to use calendar versioning.
+- Fixed `offline-books` test and added zero-cached edge case test.
+
+### Key Decisions
+- **Encryption setup lives in Settings, not inline.** Passphrase creation during the annotation flow was too jarring. Settings is the right place — users set it up once, then encryption is transparent.
+- **AI moderation deferred.** Human moderators are sufficient for the launch-scale user base. AI screening can be layered in later without architectural changes.
+- **Guest access is a first-class path.** Users can read the Bible and browse the public feed without signing in. Auth is only required for creating/saving content.
+- **TESTING.md renamed to MANUAL-TESTS.md.** Avoids confusion with automated test infrastructure — the file is a human QA checklist, not a test runner config.
+
+### Lessons Learned
+- **Ship the whole vertical.** The Mar 10 sprint worked because each feature was built end-to-end (DB migration → service module → UI → tests) before moving to the next. No half-built features blocking each other.
+- **Auth UX requires iteration.** The sign-in page went through 6+ commits of refinement. First pass was functional but friction-heavy. Small copy and layout changes had outsized impact on perceived quality.
+- **Identity linking needs explanation.** OAuth identity linking is a confusing concept for non-technical users. The interstitial was necessary — "you connected Google" means nothing without explaining that your notes are still yours regardless of which button you click next time.
+
+### Test Counts
+27 test files, 398 tests passing.
+
+### Open Questions for Next Session
+- **v3 scope definition:** Devotional Bible Assembly is the headline feature. What does the minimum viable collection look like? (Browse public annotations → add to personal collection → view collection overlaid on Bible text?)
+- **BottomSheet pointer event error:** Vitest catches an unhandled `setPointerCapture is not a function` error from `BottomSheet.test.tsx`. Not a test failure, but should be resolved (likely needs a jsdom stub update in `test-setup.ts`).
+- **WEB translation:** Session 7 identified the World English Bible as a candidate default translation. Still not implemented — should this be a v3 task or a standalone enhancement?
+- **Public profile pages:** Session 8 noted a future `/profile/{username}` page. When does this become relevant — v3 (collections need an author page) or later?
