@@ -56,9 +56,18 @@ describe("cacheBookOffline", () => {
 
     const result = await cacheBookOffline("web", "jhn", 3);
 
-    // All 3 complete (even with failure), but only 2 put in cache
-    expect(result).toBe(3);
+    // Only 2 chapters actually cached (1 failed), return value reflects real cache puts
+    expect(result).toBe(2);
     expect(mockCache.put).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns 0 when all fetches fail (book not available)", async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 404 });
+
+    const result = await cacheBookOffline("oeb-us", "exo", 3);
+
+    expect(result).toBe(0);
+    expect(mockCache.put).not.toHaveBeenCalled();
   });
 });
 
