@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-11
+> Last updated: 2026-03-11 (Phase 3.1)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -94,6 +94,12 @@
 ### Create a Note
 - Select a verse in the reader → "Write a note" panel opens
 - Type Markdown content (bold, italic, lists, links all work)
+- **Toolbar buttons:** B (Bold), I (Italic), H (Heading), • (Bullet list), " (Quote), HL (Highlight), CL (Collapsible), TBL (Table), Cite
+- **Highlight (HL):** Wraps selected text in `<mark>` tags → yellow highlight in preview
+- **Collapsible (CL):** Inserts `<details>/<summary>` block → clickable disclosure triangle in preview
+- **Table (TBL):** Inserts a markdown table template → renders as proper table in preview
+- Click **Preview** to see rendered output; click **Write** to return to editing
+- Preview sanitizes dangerous HTML (scripts, iframes, event handlers are stripped)
 - Optionally add cross-references via the picker
 - Optionally use the **Cite** button to insert a verse reference
 - Click "Save your note" → annotation appears in the sidebar list
