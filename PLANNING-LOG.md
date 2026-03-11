@@ -1,3 +1,5 @@
+> **ARCHIVED.** Key decisions have been distilled into CLAUDE.md. This file is kept as historical record but is no longer maintained. See CLAUDE.md for current project standards and architectural decisions.
+
 # OEB Ministry - Planning & Decision Log
 
 > This file logs high-level planning conversations and architectural decisions.

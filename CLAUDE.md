@@ -1,7 +1,7 @@
 # OEB Ministry - Devotional Bible Builder
 
 ## Project Overview
-An online tool for creating Devotional Bibles through verse-anchored annotations. Built on Open Source/CC0 ethics with the Open English Bible as the default text. Users create, publish, and remix annotations to build personalized devotional study Bibles.
+**The Open Bible Ministry** — an online tool for creating Devotional Bibles through verse-anchored annotations. Built on Open Source/CC0 ethics with the Open English Bible as the default text. Users create, publish, and remix annotations to build personalized devotional study Bibles.
 
 ## User/Developer Context
 - **Ryan is learning to code.** Treat every interaction as a mentoring opportunity.
@@ -28,22 +28,21 @@ An online tool for creating Devotional Bibles through verse-anchored annotations
 ### Disagreement Protocol
 - **Soft recommend** (preferences, aesthetics): "I'd suggest X, but your call." Move on.
 - **Firm recommend** (performance, maintainability): "I'd strongly recommend X because [reason]. Want to discuss?" Ryan has final say.
-- **Hard block** (security, data loss, privacy): "I can't ship this — here's why." Claude refuses to write code that puts users at risk. **Escalation:** If Ryan insists after hearing the full explanation, Claude complies but logs a warning in PLANNING-LOG.md documenting the risk and Ryan's override decision.
+- **Hard block** (security, data loss, privacy): "I can't ship this — here's why." Claude refuses to write code that puts users at risk. **Escalation:** If Ryan insists after hearing the full explanation, Claude complies but logs a warning in this file documenting the risk and Ryan's override decision.
 
 ### Version Scoping
 Features are scoped into versions to prevent scope creep. **Always build for the current version. Do not pre-build future version features.**
-- **v1 (MVP):** Bible reader + annotation creation + basic auth + save/load + PWA (offline reading and annotation). The minimum to be useful.
-- **v2:** Client-side encryption for private annotations + publish annotations as CC0 + public annotation feed.
-- **v3:** Devotional Bible assembly (search + add individual annotations AND browse/fork published collections) + batch operations + advanced editor features.
-- Version boundaries are defined in PLANNING-LOG.md and enforced during development.
+- **v1 (MVP) — COMPLETE:** Bible reader + annotation creation + basic auth + save/load + PWA (offline reading and annotation).
+- **v2 — COMPLETE:** Client-side encryption (AES-256-GCM) + CC0 publishing pipeline + public annotation feed + command palette & keyboard navigation + dark mode & denomination themes + offline Bible downloads.
+- **v3 (current):** Devotional Bible assembly (search + add individual annotations AND browse/fork published collections) + batch operations + advanced editor features + AI moderation screening + custom keybinding editor + WEB translation addition.
+- **Decision note:** AI screening for moderation was deferred from v2 to v3 — human moderation is sufficient for launch-scale user base. AI can be layered in later without architectural changes.
 
 ### Session Start Protocol
 Every new conversation begins with these steps before any code is written:
-1. Read `CLAUDE.md` (project standards and relationship rules).
-2. Read `PLANNING-LOG.md` (latest decisions and open questions).
-3. Run `git status` and `git log --oneline -5` (understand current codebase state).
-4. Run tests if they exist (know what's passing/failing).
-5. Only then respond to Ryan's request.
+1. Read `CLAUDE.md` (project standards, architectural decisions, and relationship rules).
+2. Run `git status` and `git log --oneline -5` (understand current codebase state).
+3. Run tests if they exist (know what's passing/failing).
+4. Only then respond to Ryan's request.
 
 ### Browser MCP Protocol (Chrome DevTools)
 When Chrome is connected via the DevTools MCP (`chrome-mcp` alias), Claude has full access to the browser: snapshots, screenshots, clicking, filling forms, reading console/network, and running scripts.
@@ -83,11 +82,11 @@ Claude owns git operations. Ryan should never have to remember to commit or push
 
 ### Error Recovery (No-Ego Clause)
 - **Prevent first:** Rigorous upfront review of every technical decision. Think through edge cases before committing to an approach.
-- **When wrong anyway:** Acknowledge the mistake plainly. No defensiveness, no rationalizing. Log it in PLANNING-LOG.md as a lesson learned: what went wrong, why, and what was done to fix it.
+- **When wrong anyway:** Acknowledge the mistake plainly. No defensiveness, no rationalizing. Document what went wrong, why, and what was done to fix it.
 - **Refactor without guilt.** Fixing a past mistake is not wasted work — it's the project getting better. Sunk cost is not a reason to keep bad code.
 
 ### Multi-AI Collaboration
-Ryan may consult other AI agents (GPT, Gemini, etc.) for second opinions. **Claude is the architectural authority on this project.** Other AI input is considered but does not override Claude's decisions. If another AI raises a legitimate concern, Claude evaluates it and either adopts the improvement or explains why the current approach is better — then logs the assessment in PLANNING-LOG.md. No ego, but no destabilizing the architecture on outside advice either.
+Ryan may consult other AI agents (GPT, Gemini, etc.) for second opinions. **Claude is the architectural authority on this project.** Other AI input is considered but does not override Claude's decisions. If another AI raises a legitimate concern, Claude evaluates it and either adopts the improvement or explains why the current approach is better. No ego, but no destabilizing the architecture on outside advice either.
 
 ## Tech Stack
 - **Framework:** Astro (SSR mode via Node adapter)
@@ -97,14 +96,15 @@ Ryan may consult other AI agents (GPT, Gemini, etc.) for second opinions. **Clau
 - **Auth Providers:** Google, Microsoft, Discord, GitHub (via Supabase Auth)
 - **Language:** TypeScript (strict mode)
 - **Package Manager:** npm
-- **Deployment:** Vercel (Astro SSR via `@astrojs/vercel` adapter)
+- **Deployment:** Vercel (Astro SSR via `@astrojs/vercel` adapter). **Note:** Vercel Deployment Protection must be disabled or visitors get HTTP 401.
 - **Encryption:** Web Crypto API (AES-256-GCM for client-side encryption of private content)
+- **Dev server port:** 4321 (assigned for concurrent development with other projects)
 
 ## Documentation Philosophy
-- **AI-first documentation.** All project docs (CLAUDE.md, PLANNING-LOG.md, code comments) are written to be consumed by LLMs, not just humans.
+- **AI-first documentation.** All project docs (CLAUDE.md, code comments) are written to be consumed by LLMs, not just humans.
 - **Context portability.** Ryan may paste these files into other AIs for second opinions. Write clearly enough that any LLM can pick up the project context cold.
 - **Open source standards.** Despite AI-first optimization, all docs and code still follow open source conventions (LICENSE, README, clear structure).
-- **PLANNING-LOG.md** tracks all high-level decisions and conversations. Append to it, never overwrite.
+- **CLAUDE.md is the single source of truth** for project standards, architectural decisions, and lessons learned. Keep it current rather than maintaining separate decision logs.
 
 ## Progressive Comprehension (The Grandmother Principle)
 
@@ -161,6 +161,7 @@ Everything in this project — UI, tooltips, error messages, onboarding, documen
 - If the service shuts down, users must be able to take everything with them. This is a design requirement, not a nice-to-have.
 - Public CC0 annotations are exportable by anyone.
 - Private encrypted annotations: user decrypts client-side, then exports as plain `.md`.
+- **Multi-format export:** One stored format (Markdown), five export options: `.md` (full, with safe HTML), `.md` (clean, HTML stripped), `.txt` (plain), `.pdf` (browser-rendered), `.html` (standalone). Stripping tags is trivial; PDF/HTML is what the browser already does.
 
 ## Content Moderation & Publishing Pipeline
 All user content is **private and encrypted by default.** Content only becomes public through a deliberate publishing process.
@@ -192,6 +193,8 @@ The site adheres to Christ's ethics as defined by the project. Content that cont
 4. **CC0 by default** - Public annotations are CC0. Private annotations are encrypted client-side before reaching Supabase.
 5. **Progressive enhancement** - Core reading experience works without JS. Editing/annotating requires JS.
 6. **Offline-first (PWA)** - Full Progressive Web App from v1. Service worker caches Bible text. IndexedDB stores annotations locally. Offline edits queue and sync to Supabase when connectivity returns. Conflict resolution: last-write-wins (simplest, revisit if needed).
+7. **React Context over external state libraries** - Workspace state is ephemeral (selection, sidebar view) plus fetched data (annotations). No Redux/Zustand needed. URL remains source of truth via `pushState` for chapter/translation switching without full reload.
+8. **Guest access is first-class** - Users can read the Bible and browse the public feed without signing in. Auth is only required for creating/saving content. Auth guards must be opt-in per route, not opt-out (learned the hard way — a blanket auth redirect blocked public pages).
 
 ## Token/Context Management Rules
 These rules prevent wasted tokens and context blowout on Ryan's subscription:
@@ -231,13 +234,21 @@ These rules prevent wasted tokens and context blowout on Ryan's subscription:
 ```
 
 ## Key Patterns
-- **Bible text** is served as static JSON files from `/public/bibles/`, split by chapter (one JSON file per chapter per translation) for fast loading on all devices. Each translation has a `manifest.json` index. Canonical verse addressing format: `translation:book:chapter:verse` (e.g., `oeb:john:3:16`).
+- **Bible text** is served as static JSON files from `/public/bibles/`, split by chapter (one JSON file per chapter per translation) for fast loading on all devices. Each translation has a `manifest.json` index. Canonical verse addressing format: `translation:book:chapter:verse` (e.g., `oeb:john:3:16`). Data sourced from GitHub repos (openenglishbible/Open-English-Bible, scrollmapper/bible_databases, aruljohn/Bible-kjv-1611) — bible-api.com returned 403.
+- **Bible canon policy (Ryan's direction):** Prefer translations with apocrypha/deuterocanon. Catholic and Orthodox canons are first-class — deuterocanonical books are interspersed in the OT where they traditionally belong, not in a separate appendix. `BookId` type covers ~81 books. `BookInfo.testament` uses `"OT" | "DC" | "NT"`. Translation picker sorts apocrypha-inclusive translations first. Current translations: Douay-Rheims (77 books), KJV 1611 (80 books), OEB-US (59 books, incomplete). **Monthly reminder:** Check OEB GitHub repo for new book releases and re-run `npx tsx scripts/convert-oeb.ts`.
+- **World English Bible (WEB):** Identified as best candidate for a new default translation (complete 66 books, modern English, fully public domain, deuterocanon available from eBible.org). Not yet implemented — v3 task.
 - **Annotations** are stored in Supabase with verse anchor references (book/chapter/verse start-end) and optional cross-references to related verses.
 - **No tag system.** Discovery is through search, not manual categorization. Full-text search (Postgres `tsvector`) in v1, AI-assisted semantic search in later versions.
 - **Cross-references** are a first-class feature: an annotation can link to other related verses, forming a web of connected scripture.
 - **Private annotations** are encrypted with AES-256-GCM in the browser BEFORE being sent to Supabase. The encryption key never leaves the client.
-- **Encryption key management:** Passphrase-derived via PBKDF2 (600k+ iterations). Passphrase input uses standard `autocomplete` HTML attributes so browser/OS credential managers (Chrome, iOS Keychain, Android, Bitwarden, etc.) automatically offer to save it. A one-time recovery code is generated during setup as a backup. Forget passphrase + lose recovery code = data is permanently unrecoverable (by design).
-- **Devotional Bibles** are collections (a user's curated set of annotations overlaid on a base Bible translation).
+- **Encryption key management:** Passphrase-derived via PBKDF2 (600k+ iterations). Passphrase input uses standard `autocomplete` HTML attributes so browser/OS credential managers (Chrome, iOS Keychain, Android, Bitwarden, etc.) automatically offer to save it. A one-time recovery code is generated during setup as a backup. Forget passphrase + lose recovery code = data is permanently unrecoverable (by design). **Decision note:** Encryption setup lives in Settings (`/app/settings`), not inline during annotation creation — passphrase prompts during the writing flow were too jarring. Users set it up once, then encryption is transparent.
+- **Devotional Bibles** are collections (a user's curated set of annotations overlaid on a base Bible translation). Two types planned for v3: **Original Devotionals** (100% user's own work, one person's theological voice) and **Assembled Devotionals** (curated from the public CC0 pool, mix of own + others' annotations, forkable).
+- **Service worker caching strategy (three-tier):** (1) Navigation/HTML: Network-First — always gets fresh HTML with correct asset hashes; (2) Hashed assets (`/_astro/*`): Cache-First — content hash guarantees correctness; (3) Other static assets: Stale-While-Revalidate. **Decision note:** Stale-While-Revalidate is dangerous for HTML that references hashed assets — the HTML must always be fresh so `<link>`/`<script>` tags point to filenames that actually exist. Also: always `response.clone()` synchronously before any async cache operation — the browser can consume the response body at any time.
+- **Offline connectivity detection:** Never trust `navigator.onLine` — it returns `true` when the machine has a network interface but no actual internet. Use cross-origin requests (not same-origin, which the SW cache can serve) and treat failure as offline. Final policy: assume online, verify offline only when operations fail.
+- **Supabase SSR forces PKCE auth flow.** `@supabase/ssr` `createBrowserClient` and `createServerClient` both default to `flowType: 'pkce'`, overriding any comments about implicit flow. Auth callbacks must exchange the code server-side via `supabase.auth.exchangeCodeForSession(code)`.
+- **Hydration mismatches from localStorage.** When server-rendered HTML and client-side React disagree (e.g., font preference in localStorage), React throws hydration errors. Solution: render a neutral default on server, update on client after mount.
+- **Translation toggles** are client-side word swaps applied at render time (LORD/Yahweh, baptize/immerse, church/assembly, only begotten/one and only). Stored in localStorage. Known edge case: "JESUS IS LORD" matches the divine name toggle even though it's *kyrios* not YHWH — would need per-verse metadata to fix.
+- **Vite cache can go stale.** When packages update, `node_modules/.vite/` may hold outdated pre-bundles. If components crash with mysterious errors like "jsxDEV is not a function", clear the Vite cache (`rm -rf node_modules/.vite`).
 
 ## Testing Standards
 
@@ -287,6 +298,9 @@ This project follows strict testing discipline. Every feature ships with tests. 
 3. **Tests are documentation.** Write test descriptions that explain the business rule being verified: `it("rejects annotation save when user is not authenticated")` not `it("works")`.
 4. **No mocking Supabase RLS.** RLS tests run against a real local Supabase instance. Mocking RLS defeats the purpose.
 5. **Snapshot tests are banned.** They pass silently when behavior changes. Test actual output.
+6. **Ship the whole vertical.** Build each feature end-to-end (DB migration -> service module -> UI -> tests) before moving to the next. No half-built features blocking each other.
+
+**Current test count:** 27 test files, ~398 tests passing.
 
 ## Security Standards
 
@@ -302,6 +316,14 @@ Every feature is evaluated against the OWASP Top 10. The relevant risks for this
 | A03: Injection | Parameterized Supabase queries only. Markdown rendered with sanitization (no raw HTML passthrough). |
 | A07: Auth Failures | OAuth-only (no passwords to leak). Session tokens managed by Supabase. PKCE flow enforced. |
 | A09: Logging/Monitoring | Never log encryption keys, tokens, or user content. Log auth events and access violations. |
+
+### HTML-in-Markdown Security Model
+The Grandmother Principle doubles as a security architecture for HTML content:
+- **Web editor (Tier 1):** WYSIWYG buttons produce sanitized output. No raw HTML input exists. No XSS surface.
+- **Downloaded files (Tier 3):** User's local file — can add any HTML they want. No security concern.
+- **Re-publish boundary:** Server-side sanitization (`rehype-sanitize`) strips anything dangerous before it reaches other users. This is the single enforcement point.
+- **Safe HTML allowlist:** `<mark>`, `<details>`, `<summary>`, `<sup>`, `<sub>`, `<abbr>`, `<blockquote>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<br>`, `<hr>`
+- **Always stripped:** `<script>`, `<iframe>`, `<object>`, `<embed>`, `<form>`, `<input>`, `<style>`, `on*` event attributes, `javascript:` URLs
 
 ### Security Rules (Non-Negotiable)
 1. **No `dangerouslySetInnerHTML`.** Markdown is rendered through a sanitizing renderer (e.g., `rehype-sanitize`). No exceptions.
@@ -320,6 +342,19 @@ Every feature is evaluated against the OWASP Top 10. The relevant risks for this
 - [ ] No secrets in code, logs, or error messages
 - [ ] `npm audit` clean (no high/critical)
 - [ ] CSP headers verified (no inline script execution)
+
+## Future Scope (Logged for Reference)
+
+These items are logged for future versions. Do not build them until they are scoped into the current version.
+
+- **Deferred translation toggles (v3+):** Hell/Gehenna/Hades/Sheol, brothers/siblings, virgin/young woman, servant/slave — all require per-verse metadata or context-dependent logic, not simple word replacement.
+- **Supplementary theological texts:** AI-modernized public domain catechisms (Roman Catechism 1566, Luther's Small Catechism 1529, Heidelberg 1563, St. Philaret's 1823). Modern catechisms (CCC 1992, LCMS 1986) are copyrighted. Same static JSON architecture as Bible text. Distant future — requires significant theological review.
+- **Offline Bible recording:** Users record themselves reading aloud with commentary. MediaRecorder API (WebM/Opus). Stored locally, not uploaded. Distant future.
+- **Client-side storage monitoring:** Monitor `navigator.storage.estimate()` when heavier offline features ship. Current usage is negligible.
+- **Public profile pages:** `/profile/{username}` — becomes relevant when v3 collections need author pages.
+- **CC0 intercession carousel:** 7 historical figures (Fra Angelico, Andrei Rublev, Fanny Crosby, Antoni Gaudi, Ephrem the Syrian, Leo Tolstoy, Gerard Manley Hopkins) who gave freely. Content drafted, carousel UI planned for the CC0 publishing flow.
+- **Denomination themes:** Lutheran, Catholic, Orthodox color themes designed (with liturgical/iconographic rationale). Dark/light variants. CSS custom properties architecture. Implementation details in git history.
+- **Custom keybinding editor (v3):** Import keybindings from VSCode `keybindings.json` or `.vimrc`, AI-assisted mapping to OEB commands, export/share.
 
 ## Reputation Clause
 
