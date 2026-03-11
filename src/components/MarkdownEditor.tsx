@@ -282,6 +282,7 @@ export function MarkdownEditor({
         >
           {content ? (
             <ReactMarkdown
+              remarkRehypeOptions={{ allowDangerousHtml: true }}
               rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
               remarkPlugins={[remarkGfm]}
             >
