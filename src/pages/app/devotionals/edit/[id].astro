@@ -1,0 +1,35 @@
+---
+/**
+ * Edit devotional page — form for editing an existing devotional bible.
+ * Auth-gated. Loads the existing devotional and passes it to DevotionalForm.
+ */
+import AppLayout from "../../../../layouts/AppLayout.astro";
+import { DevotionalForm } from "../../../../components/DevotionalForm";
+import type { AuthState } from "../../../../types/auth";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/app/devotionals");
+}
+
+const authState: AuthState = {
+  isAuthenticated: true,
+  displayName: user.user_metadata?.full_name ?? user.email ?? "User",
+  email: user.email ?? null,
+  avatarUrl: user.user_metadata?.avatar_url ?? null,
+  userId: user.id,
+};
+---
+
+<AppLayout title="Edit Devotional">
+  <div class="mx-auto max-w-2xl">
+    <DevotionalForm auth={authState} devotionalId={id} client:load />
+  </div>
+</AppLayout>

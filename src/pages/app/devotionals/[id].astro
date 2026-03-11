@@ -1,0 +1,35 @@
+---
+/**
+ * Devotional detail page — view and manage a single devotional bible.
+ * Auth-gated. Passes the devotional ID from the URL to the React island.
+ */
+import AppLayout from "../../../layouts/AppLayout.astro";
+import { DevotionalDetail } from "../../../components/DevotionalDetail";
+import type { AuthState } from "../../../types/auth";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/app/devotionals");
+}
+
+const authState: AuthState = {
+  isAuthenticated: true,
+  displayName: user.user_metadata?.full_name ?? user.email ?? "User",
+  email: user.email ?? null,
+  avatarUrl: user.user_metadata?.avatar_url ?? null,
+  userId: user.id,
+};
+---
+
+<AppLayout title="Devotional">
+  <div class="mx-auto max-w-2xl">
+    <DevotionalDetail auth={authState} devotionalId={id} client:load />
+  </div>
+</AppLayout>

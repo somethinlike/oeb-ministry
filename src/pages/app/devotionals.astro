@@ -1,0 +1,29 @@
+---
+/**
+ * Devotionals list page — shows the user's devotional bible collections.
+ * Auth-gated: redirects to sign-in if not authenticated.
+ */
+import AppLayout from "../../layouts/AppLayout.astro";
+import { DevotionalList } from "../../components/DevotionalList";
+import type { AuthState } from "../../types/auth";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const authState: AuthState = {
+  isAuthenticated: true,
+  displayName: user.user_metadata?.full_name ?? user.email ?? "User",
+  email: user.email ?? null,
+  avatarUrl: user.user_metadata?.avatar_url ?? null,
+  userId: user.id,
+};
+---
+
+<AppLayout title="My Devotionals">
+  <div class="mx-auto max-w-2xl">
+    <DevotionalList auth={authState} client:load />
+  </div>
+</AppLayout>

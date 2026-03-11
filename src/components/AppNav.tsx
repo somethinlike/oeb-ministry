@@ -116,6 +116,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
               ) : (
                 <NavLink href="/app/search" label="My Notes" />
               )}
+              <NavLink href="/app/devotionals" label="Devotionals" />
               <NavLink href="/app/community" label="Community" />
               <NavLink href="/translations" label="Translations" />
               <NavLink href="/open-source-theology" label="Our Ethics" />
@@ -203,6 +204,7 @@ export function AppNav({ auth: initialAuth }: AppNavProps) {
             {hasPublished && (
               <MobileNavLink href="/app/published" label="My Published Notes" indent />
             )}
+            <MobileNavLink href="/app/devotionals" label="Devotionals" />
             <MobileNavLink href="/app/community" label="Community Notes" />
             <MobileNavLink href="/translations" label="Translations" />
             <MobileNavLink href="/open-source-theology" label="Our Ethics" />

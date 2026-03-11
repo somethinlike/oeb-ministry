@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-11 (Phase 3.2)
+> Last updated: 2026-03-11 (Phase 3.3b)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -460,7 +460,63 @@
 
 ---
 
-## 16. Edge Cases
+## 16. Devotional Bibles
+
+> **Prerequisite:** Must be signed in. Must have at least a few annotations saved.
+
+### List Page
+
+1. Navigate to `/app/devotionals` (or click "Devotionals" in nav bar)
+2. **Empty state:** Shows "You haven't created any devotionals yet" with explanation and "Create your first devotional" CTA
+3. **With devotionals:** Shows cards with title, type badge (Original/Assembled), translation abbreviation, note count, date, description (truncated)
+4. Click a card → navigates to detail page (`/app/devotionals/{id}`)
+
+### Create Form
+
+1. Click "+ New devotional" from list page
+2. Form shows: Title (required), Description (optional), Bible translation dropdown, Type toggle (Original / Assembled)
+3. "Create devotional" button disabled until title entered
+4. Fill in title → click "Create devotional" → redirects to detail page
+5. "Cancel" and "Back" links return to list page
+
+### Detail Page
+
+1. Shows: back link, title, type badge, translation name, note count, description
+2. **"Edit details"** link → navigates to edit form
+3. **"+ Add notes"** button → opens annotation picker modal
+4. **Empty state:** "This devotional has no notes yet" with "Add some to get started" link
+5. **With entries:** Each entry shows verse reference, content preview, up/down reorder arrows, remove (X) button
+6. **Reorder:** First entry's "up" disabled, last entry's "down" disabled; clicking arrows swaps entries
+7. **Remove entry:** Click X → inline confirmation "Remove? Yes / No"; click Yes → entry removed
+8. **"Share with community"** button appears when entries > 0 and no publish status
+9. **Delete:** Click "Delete" → inline confirmation "Move to recycle bin? Yes / No"; click Yes → soft-deletes and redirects to list
+
+### Edit Form
+
+1. Click "Edit details" on detail page → navigates to `/app/devotionals/edit/{id}`
+2. Form pre-populated with existing title, description, translation, type
+3. Shows "Edit devotional" heading, "Save changes" button
+4. "Back" and "Cancel" links return to detail page
+
+### Annotation Picker Modal
+
+1. Click "+ Add notes" on detail page → modal opens with backdrop blur
+2. **"My Notes" tab:** Shows user's own annotations (verse ref + content preview)
+3. **Search:** Type query → click Search → filters results
+4. **Selection:** Click a note → checkbox checked, border highlights; footer shows "N selected"
+5. **Already added:** Notes already in the devotional show checked + disabled + "Already added" label
+6. **"Community Notes" tab:** Only shows for "assembled" type devotionals
+7. Click "Add N notes" → modal closes, entries appear in detail page
+8. Click "Cancel" or X → modal closes without adding
+
+### Navigation
+
+- "Devotionals" link appears in both desktop nav and mobile menu
+- All breadcrumb/back links navigate correctly
+
+---
+
+## 17. Edge Cases
 
 - **Empty state:** New user with no notes → My Notes shows "Start reading" prompt
 - **Long note content:** Write a very long note → should scroll, not break layout
