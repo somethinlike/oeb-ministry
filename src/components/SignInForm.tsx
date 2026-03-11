@@ -143,11 +143,6 @@ export function SignInForm({ returnUrl }: SignInFormProps) {
         </button>
       ))}
 
-      <p className="mt-6 text-center text-sm text-muted">
-        By signing in, you agree to use this tool respectfully and in
-        accordance with Christ&apos;s ethics.
-      </p>
-
       <a
         href="/app/read"
         className="
