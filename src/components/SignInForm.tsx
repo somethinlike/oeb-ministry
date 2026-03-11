@@ -14,6 +14,8 @@ import type { AuthProvider } from "../types/auth";
 
 interface SignInFormProps {
   returnUrl: string;
+  /** Hide the "Continue without signing in" link (e.g. when embedded in a page already accessible to guests). */
+  showGuestOption?: boolean;
 }
 
 /** Maps our provider IDs to Supabase's expected provider names. */
@@ -70,7 +72,7 @@ const PROVIDER_CONFIG: {
   },
 ];
 
-export function SignInForm({ returnUrl }: SignInFormProps) {
+export function SignInForm({ returnUrl, showGuestOption = true }: SignInFormProps) {
   const [loading, setLoading] = useState<AuthProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -143,19 +145,21 @@ export function SignInForm({ returnUrl }: SignInFormProps) {
         </button>
       ))}
 
-      <a
-        href="/app/read"
-        className="
-          flex w-full items-center justify-center gap-3 rounded-lg
-          bg-transparent hover:bg-surface-hover text-muted
-          px-6 py-4 text-lg font-medium
-          border border-edge shadow-sm
-          transition-colors duration-150
-          focus:outline-none focus:ring-4 focus:ring-ring
-        "
-      >
-        Continue without signing in
-      </a>
+      {showGuestOption && (
+        <a
+          href="/app/read"
+          className="
+            flex w-full items-center justify-center gap-3 rounded-lg
+            bg-transparent hover:bg-surface-hover text-muted
+            px-6 py-4 text-lg font-medium
+            border border-edge shadow-sm
+            transition-colors duration-150
+            focus:outline-none focus:ring-4 focus:ring-ring
+          "
+        >
+          Continue without signing in
+        </a>
+      )}
     </div>
   );
 }
