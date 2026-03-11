@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-11 (Phase 3.3b)
+> Last updated: 2026-03-11 (Phase 3.3c)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -513,6 +513,25 @@
 
 - "Devotionals" link appears in both desktop nav and mobile menu
 - All breadcrumb/back links navigate correctly
+
+### Community Devotionals (Browse & Fork)
+
+1. Go to `/app/community` → two tabs: "Notes" and "Devotionals"
+2. **Notes tab (default):** Same as before — search, book filter, published annotations
+3. **Devotionals tab:** Shows published devotionals with filter by translation dropdown
+4. **Empty state:** "No community devotionals available yet. Be the first to share one!"
+5. **With published devotionals:** Cards show title, type badge, translation, note count, author, fork count
+6. **"Make a copy" button:** Creates an editable fork in user's own devotionals, redirects to it
+7. Click a devotional title → navigates to public detail view (`/app/community/devotionals/{id}`)
+
+### Public Devotional Detail
+
+1. Shows title, metadata (type badge, translation, note count, author, fork count)
+2. "Back" link → returns to Community page
+3. **"Make your own copy" button:** Creates fork, redirects to user's copy
+4. All entries listed in order with numbering, verse refs, content
+5. Read-only — no editing controls
+6. If devotional is not published → redirects to community page
 
 ---
 

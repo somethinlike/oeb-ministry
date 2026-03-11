@@ -1,0 +1,26 @@
+---
+/**
+ * Public devotional detail — read-only view of a published community devotional.
+ * Auth-gated (users must sign in to view community content).
+ */
+import AppLayout from "../../../../layouts/AppLayout.astro";
+import { PublishedDevotionalDetail } from "../../../../components/PublishedDevotionalDetail";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect(`/auth/signin?returnUrl=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/app/community");
+}
+---
+
+<AppLayout title="Community Devotional">
+  <div class="mx-auto max-w-2xl">
+    <PublishedDevotionalDetail devotionalId={id} userId={user.id} client:load />
+  </div>
+</AppLayout>

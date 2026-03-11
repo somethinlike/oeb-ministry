@@ -1,14 +1,17 @@
 ---
 /**
- * Community Notes page — browse published CC0 annotations from all users.
+ * Community page — browse published CC0 content from all users.
+ *
+ * Two tabs:
+ * - "Notes" — individual published annotations (existing PublicFeed)
+ * - "Devotionals" — published devotional bibles with fork/copy support
  *
  * Grandmother Principle:
- * - "Community Notes" not "Public Annotation Feed"
+ * - "Community" not "Public Content Repository"
  * - Accessible to all authenticated users
- * - Search + filter by Bible book
  */
 import AppLayout from "../../layouts/AppLayout.astro";
-import { PublicFeed } from "../../components/PublicFeed";
+import { CommunityTabs } from "../../components/CommunityTabs";
 
 const user = Astro.locals.user;
 
@@ -17,13 +20,13 @@ if (!user) {
 }
 ---
 
-<AppLayout title="Community Notes">
+<AppLayout title="Community">
   <div class="mx-auto max-w-3xl">
-    <h2 class="text-2xl font-bold text-heading mb-2">Community Notes</h2>
+    <h2 class="text-2xl font-bold text-heading mb-2">Community</h2>
     <p class="text-sm text-muted mb-6">
-      Notes shared freely by the community. Everything here is CC0 &mdash; read,
+      Content shared freely by the community. Everything here is CC0 &mdash; read,
       share, and build on it however you like.
     </p>
-    <PublicFeed client:load />
+    <CommunityTabs userId={user.id} client:load />
   </div>
 </AppLayout>
