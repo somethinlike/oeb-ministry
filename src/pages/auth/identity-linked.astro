@@ -29,15 +29,18 @@ const existingNames = existingProviders
   .filter(Boolean)
   .map(formatProvider);
 
-// Build a friendly list: "Google" or "Google and GitHub" or "Google, GitHub, and Discord"
-function friendlyList(names: string[]): string {
+/** Builds a list with each name wrapped in <strong>, connectors unbolded. */
+function boldList(names: string[]): string {
+  const b = (n: string) => `<strong class="text-heading">${n}</strong>`;
   if (names.length === 0) return "another sign-in method";
-  if (names.length === 1) return names[0];
-  if (names.length === 2) return `${names[0]} and ${names[1]}`;
-  return names.slice(0, -1).join(", ") + ", and " + names[names.length - 1];
+  if (names.length === 1) return b(names[0]);
+  if (names.length === 2) return `${b(names[0])} and ${b(names[1])}`;
+  return names.slice(0, -1).map(b).join(", ") + ", and " + b(names[names.length - 1]);
 }
 
-const existingList = friendlyList(existingNames);
+const allNames = [newName, ...existingNames];
+const existingListHtml = boldList(existingNames);
+const allListHtml = boldList(allNames);
 ---
 
 <BaseLayout title="Account Connected">
@@ -53,7 +56,7 @@ const existingList = friendlyList(existingNames);
 
         <p class="mt-4 text-body leading-relaxed">
           You just signed in with <strong class="text-heading">{newName}</strong>, and we noticed
-          you already had an account through <strong class="text-heading">{existingList}</strong>.
+          you already had an account through <Fragment set:html={existingListHtml} />.
         </p>
 
         <p class="mt-3 text-body leading-relaxed">
@@ -65,7 +68,7 @@ const existingList = friendlyList(existingNames);
         <div class="mt-6 rounded-lg bg-surface-alt p-4 text-left">
           <p class="text-sm font-medium text-heading">What this means:</p>
           <ul class="mt-2 space-y-1 text-sm text-muted">
-            <li>You can sign in with any of your connected methods</li>
+            <li>You can sign in with <Fragment set:html={allListHtml} /></li>
             <li>Your notes and settings stay the same either way</li>
             <li>You can see your connected accounts in Settings</li>
           </ul>
