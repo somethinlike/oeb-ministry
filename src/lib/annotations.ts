@@ -471,6 +471,54 @@ export async function submitForPublishing(
 }
 
 /**
+ * Batch-submits multiple annotations for CC0 publishing review.
+ * Skips encrypted annotations (they can't be published as ciphertext).
+ * Sanitizes each annotation's content at the publish boundary.
+ *
+ * Returns the count of annotations actually submitted (excluding encrypted ones).
+ */
+export async function batchSubmitForPublishing(
+  client: DbClient,
+  annotationIds: string[],
+  authorDisplayName: string,
+): Promise<{ submitted: number; skippedEncrypted: number }> {
+  if (annotationIds.length === 0) return { submitted: 0, skippedEncrypted: 0 };
+
+  // Fetch content and encryption status for all selected annotations
+  const { data: annotations, error: fetchError } = await client
+    .from("annotations")
+    .select("id, content_md, is_encrypted")
+    .in("id", annotationIds);
+
+  if (fetchError) throw new Error(`Failed to fetch annotations: ${fetchError.message}`);
+
+  // Separate publishable from encrypted
+  const publishable = (annotations ?? []).filter((a) => !a.is_encrypted);
+  const skippedEncrypted = (annotations ?? []).length - publishable.length;
+
+  if (publishable.length === 0) return { submitted: 0, skippedEncrypted };
+
+  // Sanitize and submit each one (Supabase doesn't support per-row updates in batch,
+  // so we run them in parallel for speed)
+  await Promise.all(
+    publishable.map(async (a) => {
+      const sanitizedContent = sanitizeMarkdownForPublishing(a.content_md);
+      const { error } = await client
+        .from("annotations")
+        .update({
+          content_md: sanitizedContent,
+          publish_status: "pending",
+          author_display_name: authorDisplayName,
+        })
+        .eq("id", a.id);
+      if (error) throw new Error(`Failed to submit annotation ${a.id}: ${error.message}`);
+    }),
+  );
+
+  return { submitted: publishable.length, skippedEncrypted };
+}
+
+/**
  * Retracts a published or pending annotation back to private.
  * Clears all publishing state.
  */

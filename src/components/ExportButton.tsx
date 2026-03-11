@@ -33,12 +33,15 @@ interface ExportButtonProps {
   userId?: string;
   /** Visual variant */
   variant?: "primary" | "secondary";
+  /** When provided, export only these annotations instead of fetching all */
+  selectedAnnotations?: Annotation[];
 }
 
 export function ExportButton({
   annotation,
   userId,
   variant = "secondary",
+  selectedAnnotations,
 }: ExportButtonProps) {
   const [loading, setLoading] = useState(false);
   const [selectedTranslation, setSelectedTranslation] = useState("");
@@ -71,46 +74,54 @@ export function ExportButton({
   );
 
   async function handleBatchExport() {
-    if (!userId || !selectedTranslation) return;
+    if ((!userId && !selectedAnnotations) || !selectedTranslation) return;
 
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from("annotations")
-        .select("*")
-        .eq("user_id", userId)
-        .is("deleted_at", null)
-        .order("book")
-        .order("chapter")
-        .order("verse_start");
+      let annotations: Annotation[];
 
-      if (error) throw error;
+      if (selectedAnnotations) {
+        // Export only the selected annotations (from bulk action bar)
+        annotations = selectedAnnotations;
+      } else {
+        // Export all annotations for the user
+        const { data, error } = await supabase
+          .from("annotations")
+          .select("*")
+          .eq("user_id", userId!)
+          .is("deleted_at", null)
+          .order("book")
+          .order("chapter")
+          .order("verse_start");
 
-      const annotations: Annotation[] = (data ?? []).map((row) => ({
-        id: row.id,
-        userId: row.user_id,
-        translation: row.translation,
-        anchor: {
-          book: row.book as BookId,
-          chapter: row.chapter,
-          verseStart: row.verse_start,
-          verseEnd: row.verse_end,
-        },
-        contentMd: row.content_md,
-        isPublic: row.is_public,
-        isEncrypted: row.is_encrypted ?? false,
-        encryptionIv: row.encryption_iv ?? null,
-        crossReferences: [],
-        verseText: row.verse_text ?? null,
-        publishStatus: row.publish_status ?? null,
-        publishedAt: row.published_at ?? null,
-        rejectionReason: row.rejection_reason ?? null,
-        authorDisplayName: row.author_display_name ?? null,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-        deletedAt: row.deleted_at,
-      }));
+        if (error) throw error;
+
+        annotations = (data ?? []).map((row) => ({
+          id: row.id,
+          userId: row.user_id,
+          translation: row.translation,
+          anchor: {
+            book: row.book as BookId,
+            chapter: row.chapter,
+            verseStart: row.verse_start,
+            verseEnd: row.verse_end,
+          },
+          contentMd: row.content_md,
+          isPublic: row.is_public,
+          isEncrypted: row.is_encrypted ?? false,
+          encryptionIv: row.encryption_iv ?? null,
+          crossReferences: [],
+          verseText: row.verse_text ?? null,
+          publishStatus: row.publish_status ?? null,
+          publishedAt: row.published_at ?? null,
+          rejectionReason: row.rejection_reason ?? null,
+          authorDisplayName: row.author_display_name ?? null,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          deletedAt: row.deleted_at,
+        }));
+      }
 
       if (annotations.length === 0) {
         alert("You don't have any notes to download yet.");
@@ -201,14 +212,16 @@ export function ExportButton({
         onClick={handleBatchExport}
         disabled={loading || !selectedTranslation}
         className={buttonClass(variant)}
-        aria-label="Download all your notes"
+        aria-label={selectedAnnotations ? "Download selected notes" : "Download all your notes"}
       >
         {loading ? (
           "Preparing download..."
         ) : (
           <>
             <span aria-hidden="true">&#8595; </span>
-            Download all notes
+            {selectedAnnotations
+              ? `Download ${selectedAnnotations.length} note${selectedAnnotations.length !== 1 ? "s" : ""}`
+              : "Download all notes"}
           </>
         )}
       </button>

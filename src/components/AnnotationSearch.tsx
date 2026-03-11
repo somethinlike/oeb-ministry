@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
-import { searchAnnotations, batchSoftDeleteAnnotations, hasDeletedAnnotations } from "../lib/annotations";
+import { searchAnnotations, batchSoftDeleteAnnotations, batchSubmitForPublishing, hasDeletedAnnotations } from "../lib/annotations";
 import type { Annotation } from "../types/annotation";
 import type { AuthState } from "../types/auth";
 import { BOOK_BY_ID } from "../lib/constants";
@@ -149,6 +149,46 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
     } finally {
       setBulkActionInProgress(false);
     }
+  }
+
+  async function handleBulkPublish() {
+    if (!auth.displayName) {
+      setError("Set a display name in Settings before sharing.");
+      return;
+    }
+    const ids = Array.from(selectedIds);
+    setBulkActionInProgress(true);
+    setError(null);
+    try {
+      const { submitted, skippedEncrypted } = await batchSubmitForPublishing(
+        supabase,
+        ids,
+        auth.displayName,
+      );
+      // Update local state to reflect pending status
+      setResults((prev) =>
+        prev.map((a) =>
+          selectedIds.has(a.id) && !a.isEncrypted
+            ? { ...a, publishStatus: "pending" }
+            : a,
+        ),
+      );
+      setSelectedIds(new Set());
+      const msg = `${submitted} note${submitted !== 1 ? "s" : ""} submitted for review.`;
+      const skip = skippedEncrypted > 0
+        ? ` ${skippedEncrypted} locked note${skippedEncrypted !== 1 ? "s were" : " was"} skipped.`
+        : "";
+      alert(msg + skip);
+    } catch {
+      setError("Couldn't submit notes for sharing. Please try again.");
+    } finally {
+      setBulkActionInProgress(false);
+    }
+  }
+
+  /** Get the selected annotations as full objects (for export). */
+  function getSelectedAnnotations(): Annotation[] {
+    return results.filter((a) => selectedIds.has(a.id));
   }
 
   return (
@@ -343,14 +383,31 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
         <div
           className="sticky bottom-0 z-10 mt-4 -mx-4 border-t border-edge
                      bg-panel/95 backdrop-blur px-4 py-3
-                     flex items-center justify-between"
+                     flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
           role="toolbar"
           aria-label="Bulk actions"
         >
           <span className="text-sm font-medium text-body">
             {selectedIds.size} note{selectedIds.size !== 1 ? "s" : ""} selected
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <ExportButton
+              selectedAnnotations={getSelectedAnnotations()}
+              variant="secondary"
+            />
+            <button
+              type="button"
+              onClick={handleBulkPublish}
+              disabled={bulkActionInProgress}
+              className="rounded-lg border border-accent px-3 py-1.5 text-sm font-medium text-accent
+                         hover:bg-accent-soft disabled:opacity-50
+                         focus:outline-none focus:ring-2 focus:ring-ring"
+              aria-label={`Share ${selectedIds.size} selected notes`}
+            >
+              {bulkActionInProgress
+                ? "Submitting..."
+                : `Share selected (${selectedIds.size})`}
+            </button>
             <button
               type="button"
               onClick={deselectAll}
@@ -369,7 +426,7 @@ export function AnnotationSearch({ auth }: AnnotationSearchProps) {
             >
               {bulkActionInProgress
                 ? "Moving..."
-                : `Move to Recycle Bin (${selectedIds.size})`}
+                : `Recycle Bin (${selectedIds.size})`}
             </button>
           </div>
         </div>
