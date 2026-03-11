@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-11 (Phase 3.1)
+> Last updated: 2026-03-11 (Phase 3.2)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -128,10 +128,22 @@
 - Go to `/app/search` (or click "My Notes" in nav)
 - **Recent notes** load on page open (up to 20, newest first)
 - **Search bar:** Type keywords → click search → results filtered by full-text search
-- **Multi-select:** Check boxes on notes → "Export" and "Delete" bulk actions appear
 - **Select all** checkbox in the header
-- **Recycle Bin link** appears if you have deleted notes
+- **Recycle Bin link** (trash icon) appears if you have deleted notes
 - **Export button** (translation dropdown + download) — see Export section below
+
+### Bulk Action Bar (Phase 3.2)
+- Check one or more notes → a sticky bottom bar appears with:
+  - **"N notes selected"** count on the left
+  - **Export** (translation dropdown + "Download N notes") — exports only selected notes
+  - **"Share selected (N)"** — submits selected notes for CC0 review
+    - Encrypted (locked) notes are automatically skipped
+    - Shows alert: "N notes submitted for review. M locked notes were skipped."
+    - Requires a display name (set in Settings) — shows error if missing
+  - **"Cancel"** — deselects all
+  - **"Recycle Bin (N)"** — soft-deletes selected notes
+- **Select all** checkbox toggles all notes on/off
+- After bulk delete, the Recycle Bin link appears (if not already visible)
 
 ---
 
