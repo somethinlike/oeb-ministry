@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-10
+> Last updated: 2026-03-11
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -46,8 +46,7 @@
 
 ### Book Picker
 - Should show Old Testament, New Testament sections
-- For WEB/KJV/DRA: should also show "Deuterocanon & Apocrypha" section
-- For OEB: no Deuterocanon section
+- All translations show "Deuterocanon & Apocrypha" section (OEB, WEB, KJV, DRA)
 - Search bar filters books in real time (try "john", "psalm", "cor")
 - Each book shows chapter count
 - **Save offline icon** (cloud/download) appears on each book tile
@@ -308,7 +307,7 @@
 - Toolbar buttons wrap properly
 
 ### Tablet (640–1024px)
-- Book picker: 3-column grid
+- Book picker: 4-column grid
 - Chapter picker: 8-column grid
 
 ### Desktop (> 1024px)
