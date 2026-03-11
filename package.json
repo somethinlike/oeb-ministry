@@ -1,7 +1,7 @@
 {
   "name": "oeb-ministry",
   "type": "module",
-  "version": "2026.03.10.1500",
+  "version": "2026.03.11.1853",
   "private": true,
   "description": "An online tool for creating Devotional Bibles through verse-anchored annotations",
   "scripts": {

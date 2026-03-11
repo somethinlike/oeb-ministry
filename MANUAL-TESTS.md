@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-11 (Phase 3.4)
+> Last updated: 2026-03-11 (Phase 3.5)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -263,6 +263,20 @@
 - **Keyboard shortcuts:** Default / VSCode / Vim
   - Changing preset persists to localStorage and syncs via Supabase
   - Reloading the reader → keyboard shortcuts should use the chosen preset
+- **Custom keybinding editor:** Click "Customize individual shortcuts..." below the preset picker
+  - Commands grouped by 5 categories (Navigation, Reading, Notes, Word Choices, System)
+  - Each command shows its current key binding (or "none" if unbound)
+  - Click a key binding → enters recording mode ("Press a key..." pulsing animation)
+  - Press any key/combo → captures it and updates the binding
+  - Press Escape → cancels recording without changing
+  - Press Backspace → unbinds the shortcut
+  - **"modified"** indicator appears on overridden bindings
+  - Reset button (↩) per binding to restore preset default
+  - **"Reset all to preset"** button at top clears all overrides
+  - Conflict warnings: "Already used by: [command]" shown when a key is used twice
+  - Browser-reserved keys (Ctrl+W, Ctrl+T, etc.) show "Reserved by browser" warning
+  - Changes persist to localStorage and sync to Supabase
+  - Reload → custom bindings survive and apply in the reader workspace
 
 ### Word Choices
 - **Denomination preset:** Choose a tradition → toggles auto-apply

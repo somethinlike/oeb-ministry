@@ -300,7 +300,7 @@ This project follows strict testing discipline. Every feature ships with tests. 
 5. **Snapshot tests are banned.** They pass silently when behavior changes. Test actual output.
 6. **Ship the whole vertical.** Build each feature end-to-end (DB migration -> service module -> UI -> tests) before moving to the next. No half-built features blocking each other.
 
-**Current test count:** 27 test files, ~398 tests passing.
+**Current test count:** 32 test files, ~534 tests passing.
 
 ## Security Standards
 
