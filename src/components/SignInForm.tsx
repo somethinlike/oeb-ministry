@@ -148,14 +148,19 @@ export function SignInForm({ returnUrl }: SignInFormProps) {
         accordance with Christ&apos;s ethics.
       </p>
 
-      <div className="mt-4 text-center">
-        <a
-          href="/app/read"
-          className="text-sm text-muted underline hover:text-heading transition-colors"
-        >
-          Continue without signing in
-        </a>
-      </div>
+      <a
+        href="/app/read"
+        className="
+          flex w-full items-center justify-center gap-3 rounded-lg
+          bg-transparent hover:bg-surface-hover text-muted
+          px-6 py-4 text-lg font-medium
+          border border-edge shadow-sm
+          transition-colors duration-150
+          focus:outline-none focus:ring-4 focus:ring-ring
+        "
+      >
+        Continue without signing in
+      </a>
     </div>
   );
 }
