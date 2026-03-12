@@ -125,6 +125,31 @@ export function DevotionalForm({ auth, devotionalId }: DevotionalFormProps) {
         </div>
       )}
 
+      {/* Type toggle */}
+      <fieldset>
+        <legend className="block text-sm font-medium text-heading mb-2">
+          Type
+        </legend>
+        <div className="grid grid-cols-2 gap-3">
+          <TypeOption
+            id="type-original"
+            value="original"
+            label="Original"
+            description="All notes are yours — one voice"
+            selected={type === "original"}
+            onChange={() => setType("original")}
+          />
+          <TypeOption
+            id="type-assembled"
+            value="assembled"
+            label="Assembled"
+            description="Curate notes from you and the community"
+            selected={type === "assembled"}
+            onChange={() => setType("assembled")}
+          />
+        </div>
+      </fieldset>
+
       {/* Title */}
       <div>
         <label htmlFor="dev-title" className="block text-sm font-medium text-heading mb-1">
@@ -179,31 +204,6 @@ export function DevotionalForm({ auth, devotionalId }: DevotionalFormProps) {
           ))}
         </select>
       </div>
-
-      {/* Type toggle */}
-      <fieldset>
-        <legend className="block text-sm font-medium text-heading mb-2">
-          Type
-        </legend>
-        <div className="grid grid-cols-2 gap-3">
-          <TypeOption
-            id="type-original"
-            value="original"
-            label="Original"
-            description="All notes are yours — one voice"
-            selected={type === "original"}
-            onChange={() => setType("original")}
-          />
-          <TypeOption
-            id="type-assembled"
-            value="assembled"
-            label="Assembled"
-            description="Curate notes from you and the community"
-            selected={type === "assembled"}
-            onChange={() => setType("assembled")}
-          />
-        </div>
-      </fieldset>
 
       {/* Submit */}
       <div className="flex gap-3">
