@@ -300,7 +300,7 @@ This project follows strict testing discipline. Every feature ships with tests. 
 5. **Snapshot tests are banned.** They pass silently when behavior changes. Test actual output.
 6. **Ship the whole vertical.** Build each feature end-to-end (DB migration -> service module -> UI -> tests) before moving to the next. No half-built features blocking each other.
 
-**Current test count:** 32 test files, ~534 tests passing.
+**Current test count:** 35 test files, ~579 tests passing.
 
 ## Security Standards
 
@@ -351,10 +351,9 @@ These items are logged for future versions. Do not build them until they are sco
 - **Supplementary theological texts:** AI-modernized public domain catechisms (Roman Catechism 1566, Luther's Small Catechism 1529, Heidelberg 1563, St. Philaret's 1823). Modern catechisms (CCC 1992, LCMS 1986) are copyrighted. Same static JSON architecture as Bible text. Distant future — requires significant theological review.
 - **Offline Bible recording:** Users record themselves reading aloud with commentary. MediaRecorder API (WebM/Opus). Stored locally, not uploaded. Distant future.
 - **Client-side storage monitoring:** Monitor `navigator.storage.estimate()` when heavier offline features ship. Current usage is negligible.
-- **Public profile pages:** `/profile/{username}` — becomes relevant when v3 collections need author pages.
 - **CC0 intercession carousel:** 7 historical figures (Fra Angelico, Andrei Rublev, Fanny Crosby, Antoni Gaudi, Ephrem the Syrian, Leo Tolstoy, Gerard Manley Hopkins) who gave freely. Content drafted, carousel UI planned for the CC0 publishing flow.
 - **Denomination themes:** Lutheran, Catholic, Orthodox color themes designed (with liturgical/iconographic rationale). Dark/light variants. CSS custom properties architecture. Implementation details in git history.
-- **Custom keybinding editor (v3):** Import keybindings from VSCode `keybindings.json` or `.vimrc`, AI-assisted mapping to OEB commands, export/share.
+- **Keybinding import/export:** Import keybindings from VSCode `keybindings.json` or `.vimrc`, AI-assisted mapping to OEB commands, export/share. (Editor itself is built — this is the import/export/share layer.)
 
 ## Reputation Clause
 

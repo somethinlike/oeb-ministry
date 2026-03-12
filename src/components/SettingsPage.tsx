@@ -1,12 +1,13 @@
 /**
  * SettingsPage — user preferences with Supabase-backed sync.
  *
- * Five sections:
+ * Six sections:
  * 1. Account (read-only) — avatar, name, email, OAuth provider
- * 2. Reading — font picker, annotation dot style
- * 3. Word Choices — denomination preset + individual toggles
- * 4. Default Translation — translation picker
- * 5. Your Data — export button
+ * 2. Public Profile — slug, display name, bio (client-only, after sync)
+ * 3. Reading — font picker, annotation dot style
+ * 4. Word Choices — denomination preset + individual toggles
+ * 5. Default Translation — translation picker
+ * 6. Your Data — export button
  *
  * Preferences save to localStorage instantly (offline-safe) and
  * fire-and-forget sync to Supabase (roaming across devices).

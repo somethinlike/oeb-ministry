@@ -576,7 +576,41 @@ AI screening runs automatically when annotations or devotionals are submitted fo
 
 ---
 
-## 18. Edge Cases
+## 19. Public Profiles
+
+### Profile Setup (Settings)
+1. Go to **Settings** → **Public Profile** section (appears after sync)
+2. **No profile yet:** Shows "Create profile" button
+3. Enter a **profile URL** (slug): lowercase letters, numbers, hyphens, 3-30 chars
+   - Instant validation: shows format errors, reserved word errors
+   - Availability check: "Available!" or "This URL is already taken"
+   - Auto-formatting: spaces and underscores converted to hyphens, uppercase lowered
+4. Enter a **display name** (1-50 chars)
+5. Enter a **short bio** (optional, up to 500 chars, counter shown)
+6. Click "Create profile" → success message
+7. "View your page" link appears → opens `/profile/{slug}` in new tab
+8. "Remove profile" → inline confirmation → removes public page
+
+### Profile Page (`/profile/{slug}`)
+1. Navigate to `/profile/{slug}` (no sign-in required)
+2. **Header:** Avatar initial (or image), display name, bio, "Member since" date
+3. **Notes tab (default):** Shows published CC0 annotations
+   - Each card: verse reference, content preview, publish date
+   - Empty state: "{Name} hasn't shared any notes yet."
+4. **Devotionals tab:** Shows published devotional bibles
+   - Each card: title, type badge (Original/Assembled), translation, note count
+   - Clickable → links to community devotional detail page
+   - Empty state: "{Name} hasn't shared any devotionals yet."
+5. **Not found:** If slug doesn't exist → "Profile not found" with link to community
+
+### Author Links in Community Feeds
+- **Community Notes** (`/app/community`): Author names link to `/profile/{slug}` when the author has a profile
+- **Community Devotionals**: Same profile linking on author names
+- Authors without profiles still show their name as plain text
+
+---
+
+## 20. Edge Cases
 
 - **Empty state:** New user with no notes → My Notes shows "Start reading" prompt
 - **Long note content:** Write a very long note → should scroll, not break layout
