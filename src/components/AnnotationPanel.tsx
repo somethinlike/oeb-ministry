@@ -755,17 +755,17 @@ export function AnnotationPanel({
                     type="button"
                     onClick={handleDelete}
                     disabled={deleting}
-                    className="rounded bg-red-600 px-3 py-1.5 text-sm font-medium text-white
-                               hover:bg-red-700 disabled:opacity-50
-                               focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white
+                               hover:bg-green-700 disabled:opacity-50
+                               focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     {deleting ? "Moving..." : "Yes, move it"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(false)}
-                    className="rounded px-3 py-1.5 text-sm text-muted
-                               hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="rounded bg-red-600 px-3 py-1.5 text-sm font-medium text-white
+                               hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     Cancel
                   </button>

@@ -332,16 +332,16 @@ export function DevotionalDetail({ auth, devotionalId }: DevotionalDetailProps) 
               type="button"
               onClick={handleDeleteDevotional}
               disabled={actionInProgress}
-              className="rounded-lg bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700
-                         disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="rounded-lg bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700
+                         disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               Yes
             </button>
             <button
               type="button"
               onClick={() => setConfirmDeleteDevotional(false)}
-              className="rounded-lg border border-edge px-3 py-1 text-sm text-muted
-                         hover:bg-surface-alt focus:outline-none focus:ring-2 focus:ring-ring"
+              className="rounded-lg bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700
+                         focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               No
             </button>
@@ -485,16 +485,16 @@ function EntryCard({
             type="button"
             onClick={onConfirmRemove}
             disabled={actionInProgress}
-            className="rounded px-2 py-0.5 text-xs bg-red-600 text-white hover:bg-red-700
-                       disabled:opacity-50 focus:outline-none focus:ring-1 focus:ring-red-500"
+            className="rounded px-2 py-0.5 text-xs bg-green-600 text-white hover:bg-green-700
+                       disabled:opacity-50 focus:outline-none focus:ring-1 focus:ring-green-500"
           >
             Yes
           </button>
           <button
             type="button"
             onClick={onCancelRemove}
-            className="rounded px-2 py-0.5 text-xs border border-edge text-muted
-                       hover:bg-surface-alt focus:outline-none focus:ring-1 focus:ring-ring"
+            className="rounded px-2 py-0.5 text-xs bg-red-600 text-white hover:bg-red-700
+                       focus:outline-none focus:ring-1 focus:ring-red-500"
           >
             No
           </button>

@@ -286,13 +286,13 @@ export function ProfileEditor({ userId, defaultDisplayName }: ProfileEditorProps
             <span className="text-muted">Remove your public page?</span>
             <button
               onClick={handleDelete}
-              className="text-red-500 hover:text-red-600 font-medium"
+              className="text-green-600 hover:text-green-700 font-medium"
             >
               Yes
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
-              className="text-muted hover:text-heading"
+              className="text-red-500 hover:text-red-600 font-medium"
             >
               No
             </button>
