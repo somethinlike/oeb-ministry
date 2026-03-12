@@ -7,7 +7,7 @@
  * - Simple form: name, short bio, URL
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import {
   getProfileByUserId,
@@ -67,20 +67,28 @@ export function ProfileEditor({ userId, defaultDisplayName }: ProfileEditorProps
     }
   }
 
-  // Debounced slug availability check
-  const checkSlugAvailability = useCallback(
-    async (value: string) => {
-      const validationError = validateSlug(value);
-      if (validationError) {
-        setSlugError(validationError);
-        setSlugAvailable(null);
-        return;
-      }
-
+  // Debounced slug availability check via useEffect
+  // Fires whenever `slug` changes (including pre-fill from existing profile)
+  useEffect(() => {
+    if (slug.length < 3) {
       setSlugError(null);
-      setCheckingSlug(true);
+      setSlugAvailable(null);
+      return;
+    }
+
+    const validationError = validateSlug(slug);
+    if (validationError) {
+      setSlugError(validationError);
+      setSlugAvailable(null);
+      return;
+    }
+
+    setSlugError(null);
+    setCheckingSlug(true);
+
+    const timer = setTimeout(async () => {
       try {
-        const available = await isSlugAvailable(supabase, value, userId);
+        const available = await isSlugAvailable(supabase, slug, userId);
         setSlugAvailable(available);
         if (!available) {
           setSlugError("This URL is already taken");
@@ -90,9 +98,13 @@ export function ProfileEditor({ userId, defaultDisplayName }: ProfileEditorProps
       } finally {
         setCheckingSlug(false);
       }
-    },
-    [userId],
-  );
+    }, 400);
+
+    return () => {
+      clearTimeout(timer);
+      setCheckingSlug(false);
+    };
+  }, [slug, userId]);
 
   function handleSlugChange(value: string) {
     // Auto-format: lowercase, replace spaces/underscores with hyphens
@@ -100,12 +112,6 @@ export function ProfileEditor({ userId, defaultDisplayName }: ProfileEditorProps
     setSlug(formatted);
     setSlugAvailable(null);
     setSlugError(null);
-
-    if (formatted.length >= 3) {
-      // Simple debounce: check after a short delay
-      const timer = setTimeout(() => checkSlugAvailability(formatted), 400);
-      return () => clearTimeout(timer);
-    }
   }
 
   async function handleSave() {
