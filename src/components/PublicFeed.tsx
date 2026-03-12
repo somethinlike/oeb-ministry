@@ -14,6 +14,7 @@ import {
   getPublicFeedAnnotations,
   searchPublicAnnotations,
 } from "../lib/annotations";
+import { getProfileSlugsForUsers } from "../lib/user-profiles";
 import type { Annotation } from "../types/annotation";
 import { BOOK_BY_ID, BOOKS } from "../lib/constants";
 import type { BookId } from "../types/bible";
@@ -25,6 +26,8 @@ export function PublicFeed() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [filterBook, setFilterBook] = useState("");
+  // Map of userId → profile slug for linking author names
+  const [authorSlugs, setAuthorSlugs] = useState<Map<string, string>>(new Map());
 
   // Load initial feed
   useEffect(() => {
@@ -40,10 +43,22 @@ export function PublicFeed() {
         limit: 50,
       });
       setAnnotations(result);
+      // Load profile slugs for author linking (non-blocking)
+      loadAuthorSlugs(result);
     } catch {
       setError("Couldn't load community notes. Please try again.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadAuthorSlugs(anns: Annotation[]) {
+    try {
+      const userIds = [...new Set(anns.map((a) => a.userId))];
+      const slugs = await getProfileSlugsForUsers(supabase, userIds);
+      setAuthorSlugs(slugs);
+    } catch {
+      // Non-critical — author names just won't be linked
     }
   }
 
@@ -200,7 +215,17 @@ export function PublicFeed() {
               {/* Attribution + date */}
               <div className="flex items-center justify-between pt-1">
                 <span className="text-xs text-muted">
-                  by {annotation.authorDisplayName ?? "Anonymous"}
+                  by{" "}
+                  {authorSlugs.has(annotation.userId) ? (
+                    <a
+                      href={`/profile/${authorSlugs.get(annotation.userId)}`}
+                      className="text-accent hover:text-accent-hover underline"
+                    >
+                      {annotation.authorDisplayName ?? "Anonymous"}
+                    </a>
+                  ) : (
+                    annotation.authorDisplayName ?? "Anonymous"
+                  )}
                 </span>
                 <span className="text-xs text-faint">
                   {annotation.publishedAt

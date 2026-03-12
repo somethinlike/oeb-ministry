@@ -1,0 +1,23 @@
+---
+/**
+ * Public profile page — shows a user's published notes and devotionals.
+ *
+ * This page is publicly accessible (no auth required) so anyone can
+ * see a user's shared content. The URL slug comes from the user's
+ * profile settings.
+ */
+import AppLayout from "../../layouts/AppLayout.astro";
+import { PublicProfilePage } from "../../components/PublicProfilePage";
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect("/app/community");
+}
+---
+
+<AppLayout title="Profile" requireAuth={false}>
+  <div class="mx-auto max-w-2xl">
+    <PublicProfilePage slug={slug} client:load />
+  </div>
+</AppLayout>

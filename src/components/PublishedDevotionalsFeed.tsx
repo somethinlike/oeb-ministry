@@ -14,6 +14,7 @@ import {
   forkDevotionalBible,
   getForkCount,
 } from "../lib/devotional-bibles";
+import { getProfileSlugsForUsers } from "../lib/user-profiles";
 import { SUPPORTED_TRANSLATIONS } from "../lib/constants";
 import type { DevotionalBible } from "../types/devotional-bible";
 
@@ -28,6 +29,7 @@ export function PublishedDevotionalsFeed({ userId }: PublishedDevotionalsFeedPro
   const [error, setError] = useState<string | null>(null);
   const [filterTranslation, setFilterTranslation] = useState("");
   const [forkingId, setForkingId] = useState<string | null>(null);
+  const [authorSlugs, setAuthorSlugs] = useState<Map<string, string>>(new Map());
 
   const loadFeed = useCallback(async () => {
     setLoading(true);
@@ -52,6 +54,15 @@ export function PublishedDevotionalsFeed({ userId }: PublishedDevotionalsFeedPro
         }),
       );
       setForkCounts(counts);
+
+      // Load profile slugs for author linking (non-blocking)
+      try {
+        const userIds = [...new Set(result.map((d) => d.userId))];
+        const slugs = await getProfileSlugsForUsers(supabase, userIds);
+        setAuthorSlugs(slugs);
+      } catch {
+        // Non-critical
+      }
     } catch {
       setError("Couldn't load community devotionals. Please try again.");
     } finally {
@@ -164,7 +175,19 @@ export function PublishedDevotionalsFeed({ userId }: PublishedDevotionalsFeedPro
                       <span>{translationName(d.translation)}</span>
                       <span>{d.entryCount} note{d.entryCount !== 1 ? "s" : ""}</span>
                       {d.authorDisplayName && (
-                        <span>by {d.authorDisplayName}</span>
+                        <span>
+                          by{" "}
+                          {authorSlugs.has(d.userId) ? (
+                            <a
+                              href={`/profile/${authorSlugs.get(d.userId)}`}
+                              className="text-accent hover:text-accent-hover underline"
+                            >
+                              {d.authorDisplayName}
+                            </a>
+                          ) : (
+                            d.authorDisplayName
+                          )}
+                        </span>
                       )}
                       {forks > 0 && (
                         <span title={`${forks} ${forks === 1 ? "person has" : "people have"} made a copy`}>

@@ -45,6 +45,7 @@ import { ExportButton } from "./ExportButton";
 import { OfflineDownloads } from "./OfflineDownloads";
 import { EncryptionProvider, useEncryption } from "./EncryptionProvider";
 import { EncryptionSetup } from "./EncryptionSetup";
+import { ProfileEditor } from "./ProfileEditor";
 import type { AuthState } from "../types/auth";
 
 interface SettingsPageProps {
@@ -173,6 +174,19 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
           </div>
         </div>
       </Section>
+
+      {/* ── Public Profile ── */}
+      {synced && auth.userId && (
+        <Section title="Public Profile">
+          <p className="text-sm text-muted mb-4">
+            Create a public page to showcase the notes and devotionals you&rsquo;ve shared with the community.
+          </p>
+          <ProfileEditor
+            userId={auth.userId}
+            defaultDisplayName={auth.displayName ?? ""}
+          />
+        </Section>
+      )}
 
       {/* ── Appearance ── */}
       <Section title="Appearance">
