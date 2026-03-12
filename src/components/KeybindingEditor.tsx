@@ -110,6 +110,27 @@ export function KeybindingEditor({
         )}
       </div>
 
+      {/* Tier 2: learn more */}
+      <details className="text-xs text-muted">
+        <summary className="cursor-pointer hover:text-heading">
+          Tips for choosing shortcuts
+        </summary>
+        <ul className="mt-2 space-y-1 leading-relaxed pl-4 list-disc">
+          <li>
+            Some browser shortcuts (like Ctrl+W to close a tab) can&apos;t be
+            overridden. These are marked if you try to use them.
+          </li>
+          <li>
+            If two commands share the same shortcut, both will be highlighted
+            so you can fix the conflict.
+          </li>
+          <li>
+            Press <strong>Escape</strong> while recording to cancel, or
+            press <strong>Backspace</strong> to remove a shortcut entirely.
+          </li>
+        </ul>
+      </details>
+
       {/* Category groups */}
       {CATEGORY_ORDER.map((category) => {
         const commands = grouped.get(category);
@@ -154,27 +175,6 @@ export function KeybindingEditor({
           </div>
         );
       })}
-
-      {/* Tier 2: learn more */}
-      <details className="text-xs text-muted">
-        <summary className="cursor-pointer hover:text-heading">
-          Tips for choosing shortcuts
-        </summary>
-        <ul className="mt-2 space-y-1 leading-relaxed pl-4 list-disc">
-          <li>
-            Some browser shortcuts (like Ctrl+W to close a tab) can&apos;t be
-            overridden. These are marked if you try to use them.
-          </li>
-          <li>
-            If two commands share the same shortcut, both will be highlighted
-            so you can fix the conflict.
-          </li>
-          <li>
-            Press <strong>Escape</strong> while recording to cancel, or
-            press <strong>Backspace</strong> to remove a shortcut entirely.
-          </li>
-        </ul>
-      </details>
     </div>
   );
 }
