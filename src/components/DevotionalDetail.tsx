@@ -27,6 +27,7 @@ import type { DevotionalBibleWithEntries, DevotionalBibleEntry } from "../types/
 import type { Annotation } from "../types/annotation";
 import type { BookId } from "../types/bible";
 import { AnnotationPicker } from "./AnnotationPicker";
+import { Cc0Intercession } from "./Cc0Intercession";
 
 interface DevotionalDetailProps {
   auth: AuthState;
@@ -42,6 +43,7 @@ export function DevotionalDetail({ auth, devotionalId }: DevotionalDetailProps) 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [confirmDeleteDevotional, setConfirmDeleteDevotional] = useState(false);
   const [actionInProgress, setActionInProgress] = useState(false);
+  const [showCc0Intercession, setShowCc0Intercession] = useState(false);
 
   const loadDevotional = useCallback(async () => {
     setLoading(true);
@@ -172,15 +174,28 @@ export function DevotionalDetail({ auth, devotionalId }: DevotionalDetailProps) 
     }
   }
 
-  async function handlePublish() {
+  /** Initiates the sharing flow. Shows CC0 intercession if first time. */
+  function handleShareClick() {
     if (!auth.displayName) {
       setError("Set a display name in Settings before sharing.");
       return;
     }
+    const hasSeenCc0 = localStorage.getItem("oeb-has-seen-cc0-intercession") === "true";
+    if (hasSeenCc0) {
+      handlePublish();
+    } else {
+      setShowCc0Intercession(true);
+    }
+  }
+
+  /** Submits the devotional for CC0 publishing. */
+  async function handlePublish() {
+    setShowCc0Intercession(false);
     setActionInProgress(true);
     setError(null);
     try {
-      await submitDevotionalForPublishing(supabase, devotionalId, auth.displayName);
+      await submitDevotionalForPublishing(supabase, devotionalId, auth.displayName!);
+      localStorage.setItem("oeb-has-seen-cc0-intercession", "true");
       loadDevotional(); // Refresh to show updated status
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't submit for sharing. Please try again.");
@@ -286,7 +301,7 @@ export function DevotionalDetail({ auth, devotionalId }: DevotionalDetailProps) 
         {!devotional.publishStatus && devotional.entryCount > 0 && (
           <button
             type="button"
-            onClick={handlePublish}
+            onClick={handleShareClick}
             disabled={actionInProgress}
             className="rounded-lg border border-accent px-3 py-1.5 text-sm font-medium text-accent
                        hover:bg-accent-soft disabled:opacity-50
@@ -379,6 +394,14 @@ export function DevotionalDetail({ auth, devotionalId }: DevotionalDetailProps) 
           existingEntryAnnotationIds={existingIds}
           onAdd={handleAddAnnotations}
           onClose={() => setShowPicker(false)}
+        />
+      )}
+
+      {/* CC0 Intercession — first-publish education flow */}
+      {showCc0Intercession && (
+        <Cc0Intercession
+          onAccept={handlePublish}
+          onCancel={() => setShowCc0Intercession(false)}
         />
       )}
     </div>
