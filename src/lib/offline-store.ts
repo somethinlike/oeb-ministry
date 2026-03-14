@@ -8,7 +8,7 @@
  * much nicer to work with than the raw callback-based API.
  */
 
-import { openDB, type IDBPDatabase } from "idb";
+import { getDb } from "./idb";
 
 /** A cross-reference stored alongside an annotation in IndexedDB. */
 export interface OfflineCrossReference {
@@ -55,32 +55,6 @@ export interface SyncQueueItem {
   data?: Omit<OfflineAnnotation, "syncStatus">;
   /** When this operation was queued */
   queuedAt: string;
-}
-
-const DB_NAME = "oeb-ministry";
-const DB_VERSION = 4;
-
-let dbPromise: Promise<IDBPDatabase> | null = null;
-
-/** Opens (or creates) the IndexedDB database. Reuses the connection. */
-function getDb(): Promise<IDBPDatabase> {
-  if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion) {
-        if (oldVersion < 1) {
-          // Fresh install — create both stores
-          const store = db.createObjectStore("annotations", { keyPath: "id" });
-          store.createIndex("by-chapter", ["translation", "book", "chapter"]);
-          store.createIndex("by-sync-status", "syncStatus");
-          db.createObjectStore("sync-queue", { keyPath: "id" });
-        }
-        // v2: crossReferences field added. Defaults to [] via normalize.
-        // v3: deletedAt field added. Defaults to null via normalize.
-        // v4: isEncrypted + encryptionIv fields added. Defaults via normalize.
-      },
-    });
-  }
-  return dbPromise;
 }
 
 // ── Annotation CRUD (local) ──

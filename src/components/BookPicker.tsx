@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { BOOKS } from "../lib/constants";
 import type { BookInfo } from "../types/bible";
 import { cacheBookOffline, isBookCached } from "../lib/offline-books";
+import { isUserTranslation, getUserTranslationManifest } from "../lib/user-translations";
 
 interface BookPickerProps {
   translation: string;
@@ -25,8 +26,22 @@ interface BookPickerProps {
 
 export function BookPicker({ translation }: BookPickerProps) {
   const [filter, setFilter] = useState("");
+  // For user translations, book list comes from IndexedDB manifest
+  const [userBooks, setUserBooks] = useState<BookInfo[] | null>(null);
 
-  const filteredBooks = BOOKS.filter((book) =>
+  useEffect(() => {
+    if (!isUserTranslation(translation)) return;
+    getUserTranslationManifest(translation)
+      .then((manifest) => setUserBooks(manifest?.books ?? []))
+      .catch(() => setUserBooks([]));
+  }, [translation]);
+
+  // Use user books if this is a user translation, otherwise the built-in BOOKS list
+  const allBooks = isUserTranslation(translation)
+    ? (userBooks ?? [])
+    : BOOKS;
+
+  const filteredBooks = allBooks.filter((book) =>
     book.name.toLowerCase().includes(filter.toLowerCase()),
   );
 

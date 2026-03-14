@@ -47,6 +47,8 @@ import { OfflineDownloads } from "./OfflineDownloads";
 import { EncryptionProvider, useEncryption } from "./EncryptionProvider";
 import { EncryptionSetup } from "./EncryptionSetup";
 import { ProfileEditor } from "./ProfileEditor";
+import { TranslationUpload } from "./TranslationUpload";
+import { UserTranslationManager } from "./UserTranslationManager";
 import type { AuthState } from "../types/auth";
 
 interface SettingsPageProps {
@@ -66,6 +68,8 @@ const PROVIDER_LABELS: Record<string, string> = {
 export function SettingsPage({ auth, providers }: SettingsPageProps) {
   const [prefs, setPrefs] = useState<UserPreferences>(() => loadLocalPreferences());
   const [synced, setSynced] = useState(false);
+  // Tracks user translation list freshness — incremented when a new one is saved
+  const [userTranslationRefreshKey, setUserTranslationRefreshKey] = useState(0);
 
   // On mount: sync localStorage ↔ Supabase
   useEffect(() => {
@@ -410,6 +414,20 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
             ))}
           </select>
         </SettingRow>
+      </Section>
+
+      {/* ── Your Translations ── */}
+      <Section title="Your Translations">
+        <p className="text-sm text-muted mb-4">
+          Upload your own Bible translations to read alongside the built-in ones.
+          Files are stored in your browser — they never leave your device.
+        </p>
+        <UserTranslationManager refreshKey={userTranslationRefreshKey} />
+        <div className="mt-4 border-t border-edge pt-4">
+          <TranslationUpload
+            onSaved={() => setUserTranslationRefreshKey((k) => k + 1)}
+          />
+        </div>
       </Section>
 
       {/* ── Offline Reading ── */}

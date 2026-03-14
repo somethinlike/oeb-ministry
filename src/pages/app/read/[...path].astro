@@ -34,8 +34,10 @@ if (segments.length === 0) {
 
 if (segments.length >= 1) {
   translation = segments[0];
-  // Validate translation exists
-  const validTranslation = SUPPORTED_TRANSLATIONS.some(t => t.id === translation);
+  // User translations (prefixed "user-") are stored client-side in IndexedDB,
+  // so we can't validate them on the server. Let them through.
+  const isUserTranslation = translation.startsWith("user-");
+  const validTranslation = isUserTranslation || SUPPORTED_TRANSLATIONS.some(t => t.id === translation);
   if (!validTranslation) {
     return Astro.redirect(`/app/read`);
   }
@@ -44,7 +46,10 @@ if (segments.length >= 1) {
 
 if (segments.length >= 2) {
   book = segments[1];
-  if (!isValidBookId(book)) {
+  // For user translations, skip book ID validation — their book list
+  // lives in IndexedDB, not in our static BOOKS array
+  const isUserTranslation = translation.startsWith("user-");
+  if (!isUserTranslation && !isValidBookId(book)) {
     return Astro.redirect(`/app/read/${translation}`);
   }
   view = "chapter";
@@ -52,19 +57,31 @@ if (segments.length >= 2) {
 
 if (segments.length >= 3) {
   chapter = parseInt(segments[2], 10);
-  const bookInfo = BOOK_BY_ID.get(book as any);
-  if (!bookInfo || isNaN(chapter) || chapter < 1 || chapter > bookInfo.chapters) {
-    return Astro.redirect(`/app/read/${translation}/${book}`);
+  const isUserTranslation = translation.startsWith("user-");
+  if (isUserTranslation) {
+    // User translations: only validate that chapter is a positive number.
+    // Actual chapter existence is checked client-side.
+    if (isNaN(chapter) || chapter < 1) {
+      return Astro.redirect(`/app/read/${translation}/${book}`);
+    }
+  } else {
+    const bookInfo = BOOK_BY_ID.get(book as any);
+    if (!bookInfo || isNaN(chapter) || chapter < 1 || chapter > bookInfo.chapters) {
+      return Astro.redirect(`/app/read/${translation}/${book}`);
+    }
   }
   view = "read";
 }
+
+// For user translations, book name resolves client-side. Use the book ID as fallback.
+const bookDisplayName = BOOK_BY_ID.get(book as any)?.name ?? book;
 
 // Page titles that make sense to the user
 const titles: Record<string, string> = {
   translation: "Choose a Bible",
   book: "Choose a Book",
-  chapter: `${BOOK_BY_ID.get(book as any)?.name ?? book} — Choose a Chapter`,
-  read: `${BOOK_BY_ID.get(book as any)?.name ?? book} ${chapter}`,
+  chapter: `${bookDisplayName} — Choose a Chapter`,
+  read: `${bookDisplayName} ${chapter}`,
 };
 
 // Auth guard — redirect to sign-in if not authenticated (server-side)

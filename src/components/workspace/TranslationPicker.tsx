@@ -21,6 +21,8 @@ import { useWorkspace } from "./WorkspaceProvider";
 import { SUPPORTED_TRANSLATIONS } from "../../lib/constants";
 import { TranslationInfoIcon } from "./TranslationInfoIcon";
 import { TranslationFirstOpenPopup } from "./TranslationFirstOpenPopup";
+import { getUserTranslationManifests } from "../../lib/user-translations";
+import type { UserTranslationManifest } from "../../types/user-translation";
 
 interface TranslationPickerProps {
   /** When true, always show abbreviation only (used in compact popover contexts) */
@@ -37,9 +39,23 @@ export function TranslationPicker({ compact = false }: TranslationPickerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const currentTranslation = SUPPORTED_TRANSLATIONS.find(
-    (t) => t.id === translation,
-  );
+  // Load user-uploaded translations from IndexedDB
+  const [userTranslations, setUserTranslations] = useState<UserTranslationManifest[]>([]);
+
+  useEffect(() => {
+    getUserTranslationManifests()
+      .then(setUserTranslations)
+      .catch(() => setUserTranslations([]));
+  }, []);
+
+  // Find current translation in either built-in or user lists
+  const currentBuiltIn = SUPPORTED_TRANSLATIONS.find((t) => t.id === translation);
+  const currentUser = userTranslations.find((t) => t.translation === translation);
+  const currentTranslation = currentBuiltIn
+    ? currentBuiltIn
+    : currentUser
+      ? { id: currentUser.translation, abbreviation: currentUser.abbreviation, name: currentUser.name }
+      : undefined;
 
   // ── Open/close logic ──
 
@@ -175,6 +191,48 @@ export function TranslationPicker({ compact = false }: TranslationPickerProps) {
                 </li>
               );
             })}
+            {/* User-uploaded translations — below a divider */}
+            {userTranslations.length > 0 && (
+              <>
+                <li className="border-t border-edge my-1 px-3 pt-2 pb-1" aria-hidden="true">
+                  <span className="text-xs font-medium text-faint uppercase tracking-wide">
+                    Your translations
+                  </span>
+                </li>
+                {userTranslations.map((t) => {
+                  const isSelected = t.translation === translation;
+                  return (
+                    <li
+                      key={t.translation}
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => handleSelect(t.translation)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSelect(t.translation);
+                        }
+                      }}
+                      tabIndex={0}
+                      className={`flex items-center gap-2 px-3 py-2.5 text-sm cursor-pointer
+                        truncate
+                        ${isSelected
+                          ? "bg-accent-soft text-accent font-medium"
+                          : "text-body hover:bg-surface-alt"
+                        }
+                        focus:outline-none focus:bg-accent-soft`}
+                    >
+                      <span className="font-semibold shrink-0">
+                        {t.abbreviation}
+                      </span>
+                      <span className="text-muted truncate">
+                        — {t.name}
+                      </span>
+                    </li>
+                  );
+                })}
+              </>
+            )}
           </ul>
         )}
       </div>

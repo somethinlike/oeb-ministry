@@ -28,6 +28,7 @@ import {
   type VerseSelection,
 } from "../lib/verse-selection";
 import { BOOK_BY_ID, BIBLE_BASE_PATH } from "../lib/constants";
+import { isUserTranslation, getUserTranslationChapter } from "../lib/user-translations";
 import type { ReaderLayout, ReaderFont, AnnotationDotStyle } from "../lib/workspace-prefs";
 import { getFontFamily } from "../lib/reader-fonts";
 import {
@@ -108,28 +109,45 @@ export function ChapterReader({
 
   const bookInfo = BOOK_BY_ID.get(book as BookId);
 
-  // Fetch chapter data from static JSON files
+  // Fetch chapter data — from IndexedDB for user translations, static JSON for built-in
   useEffect(() => {
     setLoading(true);
     setError(null);
     // Clear internal selection on chapter change (standalone mode only)
     if (!isWorkspaceMode) setInternalSelection(null);
 
-    fetch(`${BIBLE_BASE_PATH}/${translation}/${book}/${chapter}.json`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Chapter not available");
-        return res.json();
-      })
-      .then((data: ChapterData) => {
-        setChapterData(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(
-          "This chapter isn't available yet. Try a different chapter or translation.",
-        );
-        setLoading(false);
-      });
+    if (isUserTranslation(translation)) {
+      // User-uploaded translation: load from IndexedDB
+      getUserTranslationChapter(translation, book, chapter)
+        .then((data) => {
+          if (!data) throw new Error("Chapter not available");
+          setChapterData(data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setError(
+            "This chapter isn't available yet. Try a different chapter or translation.",
+          );
+          setLoading(false);
+        });
+    } else {
+      // Built-in translation: fetch from static JSON
+      fetch(`${BIBLE_BASE_PATH}/${translation}/${book}/${chapter}.json`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Chapter not available");
+          return res.json();
+        })
+        .then((data: ChapterData) => {
+          setChapterData(data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setError(
+            "This chapter isn't available yet. Try a different chapter or translation.",
+          );
+          setLoading(false);
+        });
+    }
   }, [translation, book, chapter]);
 
   function handleVerseClick(verseNumber: number) {

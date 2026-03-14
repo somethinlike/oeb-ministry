@@ -10,12 +10,13 @@
 
 import { useState, useEffect } from "react";
 import { BOOK_BY_ID } from "../lib/constants";
-import type { BookId } from "../types/bible";
+import type { BookId, BookInfo } from "../types/bible";
 import {
   cacheBookOffline,
   isBookCached,
   isChapterCached,
 } from "../lib/offline-books";
+import { isUserTranslation, getUserTranslationManifest } from "../lib/user-translations";
 
 interface ChapterPickerProps {
   translation: string;
@@ -23,14 +24,33 @@ interface ChapterPickerProps {
 }
 
 export function ChapterPicker({ translation, book }: ChapterPickerProps) {
-  const bookInfo = BOOK_BY_ID.get(book as BookId);
+  const builtInBookInfo = BOOK_BY_ID.get(book as BookId);
+  // For user translations, book info comes from IndexedDB
+  const [userBookInfo, setUserBookInfo] = useState<BookInfo | null>(null);
   const [bookCached, setBookCached] = useState<boolean | null>(null);
   const [caching, setCaching] = useState(false);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
   const [chapterStates, setChapterStates] = useState<Map<number, boolean>>(new Map());
   const [error, setError] = useState<string | null>(null);
 
+  // Load book info from IndexedDB manifest for user translations
+  useEffect(() => {
+    if (!isUserTranslation(translation)) return;
+    getUserTranslationManifest(translation)
+      .then((manifest) => {
+        const found = manifest?.books.find((b) => b.id === book);
+        setUserBookInfo(found ?? null);
+      })
+      .catch(() => setUserBookInfo(null));
+  }, [translation, book]);
+
+  const bookInfo = isUserTranslation(translation) ? userBookInfo : builtInBookInfo;
+
   if (!bookInfo) {
+    // Still loading for user translations, or genuinely not found
+    if (isUserTranslation(translation) && userBookInfo === null) {
+      return <p className="text-muted">Loading book info...</p>;
+    }
     return <p className="text-muted">Book not found.</p>;
   }
 

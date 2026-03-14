@@ -16,6 +16,13 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { SettingsPage } from "./SettingsPage";
 import type { AuthState } from "../types/auth";
 
+// Mock user-translations to avoid IndexedDB calls
+vi.mock("../lib/user-translations", () => ({
+  getUserTranslationManifests: vi.fn().mockResolvedValue([]),
+  deleteUserTranslation: vi.fn().mockResolvedValue(undefined),
+  isUserTranslation: vi.fn().mockReturnValue(false),
+}));
+
 // Mock supabase client to avoid network calls
 vi.mock("../lib/supabase", () => ({
   supabase: {
@@ -58,7 +65,7 @@ describe("SettingsPage", () => {
     }));
   });
 
-  it("renders all five section headings", () => {
+  it("renders all section headings", () => {
     render(<SettingsPage auth={mockAuth} providers={["google"]} />);
     // Use getByRole("heading") to target section h3s, not category labels
     const headings = screen.getAllByRole("heading", { level: 3 });
@@ -67,6 +74,7 @@ describe("SettingsPage", () => {
     expect(headingTexts).toContain("Reading");
     expect(headingTexts).toContain("Word Choices");
     expect(headingTexts).toContain("Default Translation");
+    expect(headingTexts).toContain("Your Translations");
     expect(headingTexts).toContain("Your Data");
   });
 
