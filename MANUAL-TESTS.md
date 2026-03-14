@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-14 (Phase 3.6 — User Translations)
+> Last updated: 2026-03-14 (Phase 3.7 — Encrypted Bible Backup)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -649,7 +649,45 @@ AI screening runs automatically when annotations or devotionals are submitted fo
 
 ---
 
-## 21. Edge Cases
+## 21. Encrypted Bible Backup (Admin/Moderator Only)
+
+> **Prerequisite:** Must be signed in with an admin or moderator role AND have encryption (note locking) set up and unlocked.
+
+### Auto-Backup on Upload
+1. Go to Settings → Your Translations
+2. Upload a Bible file (.epub or .txt)
+3. After save completes, the backup should happen automatically in the background
+4. The translation should show a "Backed up" indicator with a cloud checkmark icon
+
+### Backup Status Indicators
+1. In Settings → Your Translations, each uploaded translation shows:
+   - Green cloud checkmark + "Backed up" if a server backup exists
+   - "Back up" button if no backup exists yet (and encryption is unlocked)
+2. Click "Back up" on a translation without a backup → should show "Backing up..." then switch to "Backed up"
+
+### Restore from Backup
+1. Clear browser data (or use a different browser/device)
+2. Sign in with the same account
+3. Go to Settings → Your Translations
+4. Should see "X backed-up translations can be restored to this device"
+5. Click "Restore" on a translation → should show "Restoring..." then "Restored"
+6. The translation should now appear in the manager list and be selectable in the reader
+
+### Encryption Required
+- If encryption is not set up: should see message "Set up note locking in Security settings..."
+- If encryption is set up but locked: should see message "Enter your passphrase..."
+
+### Role Gating
+- Regular users (no admin/moderator role) should NOT see backup indicators, "Back up" buttons, or restore UI
+- They should see the same "Your Translations" section as before (local-only)
+
+### Delete with Backup
+1. Delete a translation that has a server backup
+2. The server backup should also be deleted (confirm by clearing browser and checking — should not appear in restore list)
+
+---
+
+## 22. Edge Cases
 
 - **Empty state:** New user with no notes → My Notes shows "Start reading" prompt
 - **Long note content:** Write a very long note → should scroll, not break layout
