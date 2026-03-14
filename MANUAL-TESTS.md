@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-11 (Phase 3.5)
+> Last updated: 2026-03-14 (Phase 3.6 — User Translations)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -610,7 +610,46 @@ AI screening runs automatically when annotations or devotionals are submitted fo
 
 ---
 
-## 20. Edge Cases
+## 20. User-Uploaded Translations
+
+### Upload a Text Bible
+- Go to `/app/settings` → "Your Translations" section
+- Prepare a `.txt` file with Bible text in format: `Genesis 1:1 In the beginning...`
+- Drop the file on the drop zone (or click to browse)
+- Should show "Reading [filename]..." spinner
+- Preview should appear showing: book count, chapter count, verse count
+- Enter a name (e.g., "My Translation") and abbreviation (e.g., "MYT")
+- Click "Save translation" → should show success message
+
+### Upload an EPUB Bible
+- Same flow as above but with a `.epub` file containing Bible text
+- Parser should detect book/chapter/verse structure from XHTML headings and `<sup>` markers
+
+### Read an Uploaded Translation
+- After uploading, go to the reader workspace
+- Open the translation picker → should see "Your translations" section below a divider
+- Select your uploaded translation
+- BookPicker should show only the books found in the uploaded file
+- ChapterPicker should show chapters for the selected book
+- ChapterReader should display verse text from IndexedDB (not from server)
+
+### Delete an Uploaded Translation
+- Go to `/app/settings` → "Your Translations"
+- Click the trash icon next to an uploaded translation
+- Should show confirmation: "Delete? Yes / No"
+- Click "No" → should cancel
+- Click "Yes" → should remove from the list
+
+### Edge Cases
+- **Empty file:** Upload an empty .txt → should show error "No Bible books could be identified"
+- **Unknown book names:** File with unrecognizable book names → should show warnings in preview
+- **Duplicate upload:** Upload same translation twice → should overwrite (same ID)
+- **User translation in URL:** Navigate to `/app/read/user-myt/gen/1` → should load from IndexedDB
+- **Mixed translations:** Create annotation on user translation, switch to built-in → annotation shows on correct translation only
+
+---
+
+## 21. Edge Cases
 
 - **Empty state:** New user with no notes → My Notes shows "Start reading" prompt
 - **Long note content:** Write a very long note → should scroll, not break layout
