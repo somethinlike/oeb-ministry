@@ -99,7 +99,7 @@ export const BOOK_NAME_ALIASES: ReadonlyMap<string, BookId> = new Map<string, Bo
 
   // Psalms
   ["psalms", "psa"], ["psalm", "psa"], ["psa", "psa"], ["ps", "psa"],
-  ["ps.", "psa"], ["pss", "psa"],
+  ["ps.", "psa"], ["pss", "psa"], ["the psalms", "psa"],
 
   // Proverbs
   ["proverbs", "pro"], ["prov", "pro"], ["prov.", "pro"], ["pro", "pro"], ["pr", "pro"],

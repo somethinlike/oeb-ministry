@@ -19,6 +19,7 @@
 import type { ParseResult, ParsedBook, ParsedChapter } from "../types/user-translation";
 import type { BookId, Verse } from "../types/bible";
 import { resolveBookName } from "./book-name-aliases";
+import { isLogosFormat, parseLogosBible } from "./logos-parser";
 
 /**
  * Regex for Format 1: "Book Chapter:Verse text"
@@ -49,6 +50,11 @@ const VERSE_LINE_REGEX = /^(\d+)\s+(.+)$/;
 export async function parseTextBible(file: File): Promise<ParseResult> {
   const text = await file.text();
   const lines = text.split(/\r?\n/);
+
+  // Check for Logos format first (ALL CAPS book headers like "GENESIS")
+  if (isLogosFormat(lines)) {
+    return parseLogosBible(file);
+  }
 
   // Detect format by checking first few content lines
   const format = detectFormat(lines);
