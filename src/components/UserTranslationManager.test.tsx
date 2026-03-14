@@ -15,7 +15,19 @@ import type { UserTranslationManifest } from "../types/user-translation";
 // ── Module mocks ──
 vi.mock("../lib/user-translations", () => ({
   getUserTranslationManifests: vi.fn(),
+  getUserTranslationManifest: vi.fn().mockResolvedValue(undefined),
   deleteUserTranslation: vi.fn().mockResolvedValue(undefined),
+}));
+vi.mock("../lib/supabase", () => ({
+  supabase: {},
+}));
+vi.mock("../lib/translation-backup", () => ({
+  getBackupStatus: vi.fn().mockResolvedValue(new Map()),
+  backupTranslation: vi.fn().mockResolvedValue(undefined),
+  deleteBackup: vi.fn().mockResolvedValue(undefined),
+}));
+vi.mock("../lib/idb", () => ({
+  getDb: vi.fn(),
 }));
 
 // Import the mocked functions so we can control their return values per test

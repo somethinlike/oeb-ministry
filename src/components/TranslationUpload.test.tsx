@@ -22,6 +22,16 @@ vi.mock("../lib/text-parser", () => ({
 }));
 vi.mock("../lib/user-translations", () => ({
   saveUserTranslation: vi.fn().mockResolvedValue(undefined),
+  getUserTranslationManifest: vi.fn().mockResolvedValue(undefined),
+}));
+vi.mock("../lib/supabase", () => ({
+  supabase: {},
+}));
+vi.mock("../lib/translation-backup", () => ({
+  backupTranslation: vi.fn().mockResolvedValue(undefined),
+}));
+vi.mock("../lib/idb", () => ({
+  getDb: vi.fn(),
 }));
 
 describe("TranslationUpload", () => {

@@ -412,6 +412,113 @@ export interface Database {
           },
         ];
       };
+      translation_backups: {
+        Row: {
+          id: string;
+          user_id: string;
+          translation_id: string;
+          name: string;
+          abbreviation: string;
+          language: string;
+          license: string;
+          books: unknown; // jsonb — BookInfo[] serialized
+          original_filename: string;
+          file_type: string;
+          uploaded_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          translation_id: string;
+          name: string;
+          abbreviation: string;
+          language?: string;
+          license?: string;
+          books?: unknown;
+          original_filename: string;
+          file_type: string;
+          uploaded_at: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          translation_id?: string;
+          name?: string;
+          abbreviation?: string;
+          language?: string;
+          license?: string;
+          books?: unknown;
+          original_filename?: string;
+          file_type?: string;
+          uploaded_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "translation_backups_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      translation_backup_chapters: {
+        Row: {
+          id: string;
+          backup_id: string;
+          user_id: string;
+          book: string;
+          chapter: number;
+          book_name: string;
+          encrypted_verses: string;
+          encryption_iv: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          backup_id: string;
+          user_id: string;
+          book: string;
+          chapter: number;
+          book_name: string;
+          encrypted_verses: string;
+          encryption_iv: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          backup_id?: string;
+          user_id?: string;
+          book?: string;
+          chapter?: number;
+          book_name?: string;
+          encrypted_verses?: string;
+          encryption_iv?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "translation_backup_chapters_backup_id_fkey";
+            columns: ["backup_id"];
+            isOneToOne: false;
+            referencedRelation: "translation_backups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "translation_backup_chapters_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       user_preferences: {
         Row: {
           id: string;

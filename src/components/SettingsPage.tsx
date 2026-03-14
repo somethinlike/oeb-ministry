@@ -49,6 +49,8 @@ import { EncryptionSetup } from "./EncryptionSetup";
 import { ProfileEditor } from "./ProfileEditor";
 import { TranslationUpload } from "./TranslationUpload";
 import { UserTranslationManager } from "./UserTranslationManager";
+import { TranslationRestore } from "./TranslationRestore";
+import { checkIsModerator } from "../lib/annotations";
 import type { AuthState } from "../types/auth";
 
 interface SettingsPageProps {
@@ -70,8 +72,10 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
   const [synced, setSynced] = useState(false);
   // Tracks user translation list freshness — incremented when a new one is saved
   const [userTranslationRefreshKey, setUserTranslationRefreshKey] = useState(0);
+  // Whether the user has admin/moderator role (gates backup feature)
+  const [canBackup, setCanBackup] = useState(false);
 
-  // On mount: sync localStorage ↔ Supabase
+  // On mount: sync localStorage ↔ Supabase + check role
   useEffect(() => {
     if (!auth.userId) return;
     syncPreferences(supabase, auth.userId).then((merged) => {
@@ -80,6 +84,8 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
     }).catch(() => {
       setSynced(true);
     });
+    // Check if user has moderator/admin role for backup gating
+    checkIsModerator(supabase, auth.userId).then(setCanBackup).catch(() => {});
   }, [auth.userId]);
 
   /** Update a single preference: instant localStorage + async Supabase. */
@@ -416,19 +422,32 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
         </SettingRow>
       </Section>
 
-      {/* ── Your Translations ── */}
-      <Section title="Your Translations">
-        <p className="text-sm text-muted mb-4">
-          Upload your own Bible translations to read alongside the built-in ones.
-          Files are stored in your browser — they never leave your device.
-        </p>
-        <UserTranslationManager refreshKey={userTranslationRefreshKey} />
-        <div className="mt-4 border-t border-edge pt-4">
-          <TranslationUpload
-            onSaved={() => setUserTranslationRefreshKey((k) => k + 1)}
+      {/* ── Your Translations ──
+          Wrapped in EncryptionProvider when backup is available so the
+          upload/manager components can access the CryptoKey for encrypted backup. */}
+      {canBackup && auth.userId ? (
+        <EncryptionProvider userId={auth.userId} userEmail={auth.email}>
+          <TranslationsSection
+            userId={auth.userId}
+            canBackup={canBackup}
+            refreshKey={userTranslationRefreshKey}
+            onRefresh={() => setUserTranslationRefreshKey((k) => k + 1)}
           />
-        </div>
-      </Section>
+        </EncryptionProvider>
+      ) : (
+        <Section title="Your Translations">
+          <p className="text-sm text-muted mb-4">
+            Upload your own Bible translations to read alongside the built-in ones.
+            Files are stored in your browser — they never leave your device.
+          </p>
+          <UserTranslationManager refreshKey={userTranslationRefreshKey} />
+          <div className="mt-4 border-t border-edge pt-4">
+            <TranslationUpload
+              onSaved={() => setUserTranslationRefreshKey((k) => k + 1)}
+            />
+          </div>
+        </Section>
+      )}
 
       {/* ── Offline Reading ── */}
       <Section title="Offline Reading">
@@ -467,6 +486,54 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {children}
       </div>
     </section>
+  );
+}
+
+/**
+ * TranslationsSection — "Your Translations" with backup/restore support.
+ * Must be rendered inside an EncryptionProvider (for CryptoKey access).
+ * Only used when the user has admin/moderator role (backup-eligible).
+ */
+function TranslationsSection({
+  userId,
+  canBackup,
+  refreshKey,
+  onRefresh,
+}: {
+  userId: string;
+  canBackup: boolean;
+  refreshKey: number;
+  onRefresh: () => void;
+}) {
+  const { cryptoKey, isUnlocked, hasEncryption } = useEncryption();
+
+  return (
+    <Section title="Your Translations">
+      <p className="text-sm text-muted mb-4">
+        Upload your own Bible translations to read alongside the built-in ones.
+        {hasEncryption
+          ? " An encrypted backup is saved to your account automatically."
+          : " Files are stored in your browser — they never leave your device."}
+      </p>
+
+      {/* Restore from server backup (shows only when restorable translations exist) */}
+      <TranslationRestore userId={userId} onRestored={onRefresh} />
+
+      <UserTranslationManager
+        refreshKey={refreshKey}
+        userId={userId}
+        cryptoKey={cryptoKey}
+        canBackup={canBackup}
+      />
+      <div className="mt-4 border-t border-edge pt-4">
+        <TranslationUpload
+          onSaved={onRefresh}
+          userId={userId}
+          cryptoKey={cryptoKey}
+          canBackup={canBackup}
+        />
+      </div>
+    </Section>
   );
 }
 

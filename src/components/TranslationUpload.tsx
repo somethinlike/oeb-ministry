@@ -19,16 +19,26 @@ import type { ParseResult } from "../types/user-translation";
 import type { UserTranslationManifest } from "../types/user-translation";
 import { parseEpub } from "../lib/epub-parser";
 import { parseTextBible } from "../lib/text-parser";
-import { saveUserTranslation } from "../lib/user-translations";
+import { saveUserTranslation, getUserTranslationManifest } from "../lib/user-translations";
+import { backupTranslation } from "../lib/translation-backup";
+import { supabase } from "../lib/supabase";
+import { getDb } from "../lib/idb";
+import type { StoredUserChapter } from "../types/user-translation";
 
 interface TranslationUploadProps {
   /** Called after a translation is successfully saved */
   onSaved: () => void;
+  /** User ID (needed for server backup) */
+  userId?: string | null;
+  /** CryptoKey for encrypting the backup (null = backup disabled) */
+  cryptoKey?: CryptoKey | null;
+  /** Whether the user has the required role for backup */
+  canBackup?: boolean;
 }
 
 type UploadStep = "pick" | "parsing" | "preview" | "saving" | "done" | "error";
 
-export function TranslationUpload({ onSaved }: TranslationUploadProps) {
+export function TranslationUpload({ onSaved, userId, cryptoKey, canBackup }: TranslationUploadProps) {
   const [step, setStep] = useState<UploadStep>("pick");
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [fileName, setFileName] = useState("");
@@ -123,6 +133,23 @@ export function TranslationUpload({ onSaved }: TranslationUploadProps) {
       };
 
       await saveUserTranslation(manifest, parseResult);
+
+      // Auto-backup to Supabase if the user has the right role + encryption
+      if (userId && cryptoKey && canBackup) {
+        try {
+          // Read back the saved manifest (has computed book list) + all chapters
+          const savedManifest = await getUserTranslationManifest(translationId);
+          if (savedManifest) {
+            const db = await getDb();
+            const index = db.transaction("user-translation-chapters", "readonly").store.index("by-translation");
+            const allChapters: StoredUserChapter[] = await index.getAll(translationId);
+            await backupTranslation(supabase, userId, savedManifest, allChapters, cryptoKey);
+          }
+        } catch {
+          // Backup is fire-and-forget — local save already succeeded
+        }
+      }
+
       setStep("done");
       onSaved();
     } catch (err) {

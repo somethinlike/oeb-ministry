@@ -11,41 +11,91 @@
  */
 
 import { useState, useEffect } from "react";
-import type { UserTranslationManifest } from "../types/user-translation";
+import type { UserTranslationManifest, StoredUserChapter } from "../types/user-translation";
 import {
   getUserTranslationManifests,
+  getUserTranslationManifest,
   deleteUserTranslation,
 } from "../lib/user-translations";
+import { getBackupStatus, backupTranslation, deleteBackup, type TranslationBackup } from "../lib/translation-backup";
+import { supabase } from "../lib/supabase";
+import { getDb } from "../lib/idb";
 
 interface UserTranslationManagerProps {
   /** Trigger a refresh of the list (increment to refresh) */
   refreshKey: number;
+  /** User ID (needed for backup features) */
+  userId?: string | null;
+  /** CryptoKey for encrypting backups */
+  cryptoKey?: CryptoKey | null;
+  /** Whether the user has the required role for backup */
+  canBackup?: boolean;
 }
 
-export function UserTranslationManager({ refreshKey }: UserTranslationManagerProps) {
+export function UserTranslationManager({ refreshKey, userId, cryptoKey, canBackup }: UserTranslationManagerProps) {
   const [manifests, setManifests] = useState<UserTranslationManifest[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  // Backup status: map from translation ID to backup info
+  const [backupMap, setBackupMap] = useState<Map<string, TranslationBackup>>(new Map());
+  const [backingUpId, setBackingUpId] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
     getUserTranslationManifests()
-      .then(setManifests)
+      .then(async (m) => {
+        setManifests(m);
+        // Fetch backup status if user has backup capability
+        if (userId && canBackup && m.length > 0) {
+          const status = await getBackupStatus(supabase, userId, m.map((x) => x.translation));
+          setBackupMap(status);
+        }
+      })
       .catch(() => setManifests([]))
       .finally(() => setLoading(false));
-  }, [refreshKey]);
+  }, [refreshKey, userId, canBackup]);
 
   async function handleDelete(translationId: string) {
     setDeletingId(translationId);
     try {
+      // Delete server backup too, if it exists
+      const backup = backupMap.get(translationId);
+      if (backup && userId) {
+        await deleteBackup(supabase, userId, backup.id).catch(() => {});
+      }
       await deleteUserTranslation(translationId);
       setManifests((prev) => prev.filter((m) => m.translation !== translationId));
+      setBackupMap((prev) => {
+        const next = new Map(prev);
+        next.delete(translationId);
+        return next;
+      });
     } catch {
       // Silently fail — the translation will remain in the list
     } finally {
       setDeletingId(null);
       setConfirmDeleteId(null);
+    }
+  }
+
+  async function handleBackup(translationId: string) {
+    if (!userId || !cryptoKey) return;
+    setBackingUpId(translationId);
+    try {
+      const manifest = await getUserTranslationManifest(translationId);
+      if (!manifest) return;
+      const db = await getDb();
+      const index = db.transaction("user-translation-chapters", "readonly").store.index("by-translation");
+      const allChapters: StoredUserChapter[] = await index.getAll(translationId);
+      await backupTranslation(supabase, userId, manifest, allChapters, cryptoKey);
+      // Refresh backup status
+      const status = await getBackupStatus(supabase, userId, manifests.map((m) => m.translation));
+      setBackupMap(status);
+    } catch {
+      // Silently fail
+    } finally {
+      setBackingUpId(null);
     }
   }
 
@@ -71,6 +121,9 @@ export function UserTranslationManager({ refreshKey }: UserTranslationManagerPro
         const isConfirming = confirmDeleteId === m.translation;
         const isDeleting = deletingId === m.translation;
 
+        const isBackedUp = backupMap.has(m.translation);
+        const isBackingUp = backingUpId === m.translation;
+
         return (
           <li key={m.translation} className="flex items-center justify-between py-3 gap-4">
             <div className="min-w-0">
@@ -87,10 +140,36 @@ export function UserTranslationManager({ refreshKey }: UserTranslationManagerPro
                     Uploaded {new Date(m.uploadedAt).toLocaleDateString()}
                   </>
                 )}
+                {/* Backup status indicator (only for users with backup capability) */}
+                {canBackup && isBackedUp && (
+                  <>
+                    {" · "}
+                    <span className="inline-flex items-center gap-0.5 text-green-600">
+                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75" />
+                      </svg>
+                      Backed up
+                    </span>
+                  </>
+                )}
               </p>
             </div>
 
-            <div className="shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Back up button (shown for users with backup role + encryption, if not yet backed up) */}
+              {canBackup && cryptoKey && !isBackedUp && (
+                <button
+                  type="button"
+                  onClick={() => handleBackup(m.translation)}
+                  disabled={isBackingUp}
+                  className="rounded px-2 py-1 text-xs font-medium text-accent hover:bg-surface-alt focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                  aria-label={`Back up ${m.name}`}
+                  title="Save an encrypted copy to your account"
+                >
+                  {isBackingUp ? "Backing up..." : "Back up"}
+                </button>
+              )}
               {isConfirming ? (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-red-600">Delete?</span>
