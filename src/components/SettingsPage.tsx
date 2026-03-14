@@ -505,7 +505,24 @@ function TranslationsSection({
   refreshKey: number;
   onRefresh: () => void;
 }) {
-  const { cryptoKey, isUnlocked, hasEncryption } = useEncryption();
+  const { cryptoKey, isUnlocked, hasEncryption, unlock } = useEncryption();
+  const [passphrase, setPassphrase] = useState("");
+  const [unlockError, setUnlockError] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+
+  async function handleUnlock(e: React.FormEvent) {
+    e.preventDefault();
+    if (!passphrase.trim()) return;
+    setUnlocking(true);
+    setUnlockError(false);
+    const ok = await unlock(passphrase);
+    setUnlocking(false);
+    if (!ok) {
+      setUnlockError(true);
+    } else {
+      setPassphrase("");
+    }
+  }
 
   return (
     <Section title="Your Translations">
@@ -515,6 +532,37 @@ function TranslationsSection({
           ? " An encrypted backup is saved to your account automatically."
           : " Files are stored in your browser — they never leave your device."}
       </p>
+
+      {/* Inline unlock prompt when encryption is set up but locked */}
+      {hasEncryption && !isUnlocked && (
+        <form onSubmit={handleUnlock} className="mb-4 rounded-lg border border-edge bg-surface-alt p-4">
+          <p className="text-sm text-body mb-2">
+            Enter your passphrase to enable backup and restore.
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              type="password"
+              value={passphrase}
+              onChange={(e) => { setPassphrase(e.target.value); setUnlockError(false); }}
+              placeholder="Your passphrase"
+              autoComplete="current-password"
+              className="flex-1 rounded-lg border border-input-border px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <button
+              type="submit"
+              disabled={unlocking || !passphrase.trim()}
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+            >
+              {unlocking ? "Checking..." : "Unlock"}
+            </button>
+          </div>
+          {unlockError && (
+            <p className="mt-2 text-xs text-red-600">
+              That passphrase didn&rsquo;t work. Please try again.
+            </p>
+          )}
+        </form>
+      )}
 
       {/* Restore from server backup (shows only when restorable translations exist) */}
       <TranslationRestore userId={userId} onRestored={onRefresh} />
