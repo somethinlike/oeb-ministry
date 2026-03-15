@@ -13,6 +13,7 @@ import AppLayout from "../../../layouts/AppLayout.astro";
 import { BookPicker } from "../../../components/BookPicker";
 import { ChapterPicker } from "../../../components/ChapterPicker";
 import { Workspace } from "../../../components/workspace";
+import { UserTranslationGrid } from "../../../components/UserTranslationGrid";
 import { SUPPORTED_TRANSLATIONS, DEFAULT_TRANSLATION, BOOK_BY_ID } from "../../../lib/constants";
 import { isValidBookId } from "../../../lib/verse-ref";
 
@@ -116,6 +117,8 @@ if (!user) {
           </a>
         ))}
       </div>
+      {/* User-uploaded translations from IndexedDB (client-side only) */}
+      <UserTranslationGrid client:load />
     </div>
   )}
 

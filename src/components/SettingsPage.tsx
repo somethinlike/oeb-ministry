@@ -50,6 +50,8 @@ import { ProfileEditor } from "./ProfileEditor";
 import { TranslationUpload } from "./TranslationUpload";
 import { UserTranslationManager } from "./UserTranslationManager";
 import { TranslationRestore } from "./TranslationRestore";
+import { getUserTranslationManifests } from "../lib/user-translations";
+import type { UserTranslationManifest } from "../types/user-translation";
 import { checkIsModerator } from "../lib/annotations";
 import type { AuthState } from "../types/auth";
 
@@ -72,6 +74,8 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
   const [synced, setSynced] = useState(false);
   // Tracks user translation list freshness — incremented when a new one is saved
   const [userTranslationRefreshKey, setUserTranslationRefreshKey] = useState(0);
+  // User-uploaded translations from IndexedDB (for the default translation dropdown)
+  const [userTranslations, setUserTranslations] = useState<UserTranslationManifest[]>([]);
   // Whether the user has admin/moderator role (gates backup feature)
   const [canBackup, setCanBackup] = useState(false);
 
@@ -87,6 +91,13 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
     // Check if user has moderator/admin role for backup gating
     checkIsModerator(supabase, auth.userId).then(setCanBackup).catch(() => {});
   }, [auth.userId]);
+
+  // Load user translations from IndexedDB (re-runs when a new upload completes)
+  useEffect(() => {
+    getUserTranslationManifests()
+      .then(setUserTranslations)
+      .catch(() => setUserTranslations([]));
+  }, [userTranslationRefreshKey]);
 
   /** Update a single preference: instant localStorage + async Supabase. */
   function updatePref(patch: Partial<UserPreferences>) {
@@ -418,6 +429,15 @@ export function SettingsPage({ auth, providers }: SettingsPageProps) {
                 {t.abbreviation} — {t.name}
               </option>
             ))}
+            {userTranslations.length > 0 && (
+              <optgroup label="Your translations">
+                {userTranslations.map((t) => (
+                  <option key={t.translation} value={t.translation}>
+                    {t.abbreviation} — {t.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </SettingRow>
       </Section>
