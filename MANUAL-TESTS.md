@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-15 (Audio-Text Sync Phase 1)
+> Last updated: 2026-03-15 (Audio-Text Sync Phase 2 — YouTube)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -738,11 +738,22 @@ AI screening runs automatically when annotations or devotionals are submitted fo
 - Play audio → amber highlighting should still follow correctly (verse-level sync is universal)
 - Translation mismatch label appears in player bar: "Audio: KJV / Reading: OEB-US"
 
+### YouTube Integration
+- In the timing editor, select "YouTube video" as the audio source
+- Paste a YouTube URL (any format: youtube.com/watch, youtu.be, /embed)
+- Click "Load Video" → video player should appear in the marking phase
+- Mark verse timings using the same precise/quick workflow as MP3
+- Save → timing map stored with `audioSource: "youtube"` and video ID as sourceId
+- Player bar should show YouTube speed options (0.25x–2x, different from MP3)
+- Verify: pasting an invalid URL shows error message "Could not find a YouTube video ID"
+- Verify: video with embedding disabled shows error state gracefully
+
 ### Playback Speed Sync
 - Play audio at 1x → verify highlight stays in sync
 - Change speed to 1.5x → highlight should still track correctly
 - Change to 0.5x → verify no drift
 - Speed changes take effect immediately (no re-sync needed)
+- YouTube mode: speed limited to 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2
 
 ### Preferences Persistence
 - Set audio volume to ~50%, speed to 1.5x
