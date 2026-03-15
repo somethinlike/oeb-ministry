@@ -45,10 +45,30 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
   }, [translation, book]);
 
   const bookInfo = isUserTranslation(translation) ? userBookInfo : builtInBookInfo;
+  const chapterCount = bookInfo?.chapters ?? 0;
+
+  // Check cache state on mount (runs only when bookInfo is available)
+  useEffect(() => {
+    if (!chapterCount || typeof caches === "undefined") return;
+
+    isBookCached(translation, book, chapterCount).then(setBookCached);
+
+    const chapters = Array.from({ length: chapterCount }, (_, i) => i + 1);
+    Promise.all(
+      chapters.map(async (ch) => {
+        const cached = await isChapterCached(translation, book, ch);
+        return [ch, cached] as [number, boolean];
+      }),
+    ).then((results) => {
+      setChapterStates(new Map(results));
+    });
+  }, [translation, book, chapterCount]);
+
+  // ── Early returns AFTER all hooks ──
 
   if (!bookInfo) {
     // Still loading for user translations, or genuinely not found
-    if (isUserTranslation(translation) && userBookInfo === null) {
+    if (isUserTranslation(translation)) {
       return <p className="text-muted">Loading book info...</p>;
     }
     return <p className="text-muted">Book not found.</p>;
@@ -69,23 +89,6 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
     // Book is fully cached only if every chapter is present
     setBookCached(results.every(([, c]) => c));
   }
-
-  // Check cache state on mount
-  useEffect(() => {
-    if (typeof caches === "undefined") return;
-
-    isBookCached(translation, book, bookInfo.chapters).then(setBookCached);
-
-    // Check individual chapters
-    Promise.all(
-      chapters.map(async (ch) => {
-        const cached = await isChapterCached(translation, book, ch);
-        return [ch, cached] as [number, boolean];
-      }),
-    ).then((results) => {
-      setChapterStates(new Map(results));
-    });
-  }, [translation, book, bookInfo.chapters]);
 
   async function handleSaveBookOffline() {
     if (caching || bookCached) return;
