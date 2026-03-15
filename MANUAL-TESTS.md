@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-15 (Audio-Text Sync Phase 3 — Cloud + Sharing)
+> Last updated: 2026-03-15 (Audio-Text Sync — Full Integration)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -689,8 +689,19 @@ AI screening runs automatically when annotations or devotionals are submitted fo
 
 ## 22. Audio-Text Sync (Follow-Along Reader)
 
+### Workspace Integration
+- Open the workspace (any chapter)
+- Toolbar should show an "Audio" button with a speaker icon
+- Click "Audio" → timing editor modal should open full-screen
+- When no timing maps exist: button shows no accent dot
+- After saving a timing map: button shows accent dot indicator
+- Player bar appears at bottom of reader pane when audio is active
+- Reader text has extra bottom padding so player bar doesn't cover content
+- Amber verse highlighting follows audio playback in real-time
+- Close button on player bar dismisses audio and removes highlighting
+
 ### Timing Editor — Precise Mode
-- Open the timing editor for a chapter
+- Open the timing editor for a chapter (click "Audio" in toolbar)
 - Enter the speaker's translation (e.g., "KJV")
 - Select "Precise" sync mode
 - Upload an MP3 file of the chapter being read aloud
