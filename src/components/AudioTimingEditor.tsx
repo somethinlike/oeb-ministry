@@ -19,12 +19,16 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAudioPlayback } from "../hooks/useAudioPlayback";
+import { useYouTubePlayer, extractYouTubeVideoId } from "../hooks/useYouTubePlayer";
+import { useYouTubeContainerId, YouTubePlayer } from "./YouTubePlayer";
 import { saveTimingMap, saveAudioBlob } from "../lib/audio-sync";
 import type { AudioTimingMap, VerseTiming } from "../types/audio-sync";
 import type { Verse, BookId } from "../types/bible";
+import type { AudioPlaybackControls } from "../hooks/useAudioPlayback";
 
 type EditorMode = "precise" | "quick";
 type EditorPhase = "upload" | "marking" | "review";
+type AudioSourceType = "mp3" | "youtube";
 
 interface AudioTimingEditorProps {
   /** The verses in the current chapter (from ChapterReader's data) */
@@ -124,8 +128,16 @@ export function AudioTimingEditor({
   const [audioTranslation, setAudioTranslation] = useState(
     existingMap?.audioTranslation ?? "",
   );
+  const [sourceType, setSourceType] = useState<AudioSourceType>(
+    existingMap?.audioSource ?? "mp3",
+  );
   const [blobId, setBlobId] = useState(existingMap?.sourceId ?? "");
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(
+    existingMap?.audioSource === "youtube" ? existingMap.sourceId : null,
+  );
+  const [youtubeUrlInput, setYoutubeUrlInput] = useState("");
+  const [youtubeError, setYoutubeError] = useState<string | null>(null);
 
   // Marks: verse number → startTime (seconds)
   const [marks, setMarks] = useState<Map<number, number>>(() => {
@@ -141,7 +153,19 @@ export function AudioTimingEditor({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const playback = useAudioPlayback(audioSrc);
+  // YouTube player needs a unique container ID
+  const ytContainerId = useYouTubeContainerId();
+
+  // Two playback hooks — only one is active based on sourceType
+  const mp3Playback = useAudioPlayback(sourceType === "mp3" ? audioSrc : null);
+  const ytPlayback = useYouTubePlayer(
+    sourceType === "youtube" ? youtubeVideoId : null,
+    ytContainerId,
+  );
+
+  // Use the active playback controls based on source type
+  const playback: AudioPlaybackControls =
+    sourceType === "youtube" ? ytPlayback : mp3Playback;
 
   // Clean up blob URL on unmount
   useEffect(() => {
@@ -207,6 +231,18 @@ export function AudioTimingEditor({
     setPhase("marking");
   }
 
+  /** Handle YouTube URL submission */
+  function handleYouTubeUrl() {
+    const videoId = extractYouTubeVideoId(youtubeUrlInput);
+    if (!videoId) {
+      setYoutubeError("Could not find a YouTube video ID in that URL.");
+      return;
+    }
+    setYoutubeError(null);
+    setYoutubeVideoId(videoId);
+    setPhase("marking");
+  }
+
   /** Mark the current verse's start time (precise mode) */
   function handleMark() {
     if (nextVerseIndex >= verses.length) return;
@@ -263,8 +299,8 @@ export function AudioTimingEditor({
 
       const timingMap: AudioTimingMap = {
         id: existingMap?.id ?? crypto.randomUUID(),
-        audioSource: "mp3",
-        sourceId: blobId,
+        audioSource: sourceType,
+        sourceId: sourceType === "youtube" ? (youtubeVideoId ?? "") : blobId,
         audioTranslation,
         book,
         chapter,
@@ -336,6 +372,35 @@ export function AudioTimingEditor({
             />
           </label>
 
+          {/* Audio source type selector */}
+          <fieldset className="mt-4">
+            <legend className="text-sm font-medium text-heading">Audio source</legend>
+            <div className="mt-2 flex gap-4">
+              <label className="flex items-center gap-2 text-sm text-heading">
+                <input
+                  type="radio"
+                  name="source-type"
+                  value="mp3"
+                  checked={sourceType === "mp3"}
+                  onChange={() => setSourceType("mp3")}
+                  className="accent-accent"
+                />
+                Upload MP3
+              </label>
+              <label className="flex items-center gap-2 text-sm text-heading">
+                <input
+                  type="radio"
+                  name="source-type"
+                  value="youtube"
+                  checked={sourceType === "youtube"}
+                  onChange={() => setSourceType("youtube")}
+                  className="accent-accent"
+                />
+                YouTube video
+              </label>
+            </div>
+          </fieldset>
+
           {/* Mode selector */}
           <fieldset className="mt-4">
             <legend className="text-sm font-medium text-heading">Sync mode</legend>
@@ -365,34 +430,74 @@ export function AudioTimingEditor({
             </div>
           </fieldset>
 
-          {/* File upload */}
-          <div className="mt-4">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="audio/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleFileUpload(file);
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={!audioTranslation.trim()}
-              className="w-full rounded-lg border-2 border-dashed border-edge px-6 py-8
-                         text-center text-muted hover:border-accent hover:text-accent
-                         disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-edge
-                         disabled:hover:text-muted
-                         focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
-            >
-              <svg className="mx-auto h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3v11.25" />
-              </svg>
-              Upload MP3
-            </button>
-          </div>
+          {/* MP3 file upload */}
+          {sourceType === "mp3" && (
+            <div className="mt-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!audioTranslation.trim()}
+                className="w-full rounded-lg border-2 border-dashed border-edge px-6 py-8
+                           text-center text-muted hover:border-accent hover:text-accent
+                           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-edge
+                           disabled:hover:text-muted
+                           focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+              >
+                <svg className="mx-auto h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3v11.25" />
+                </svg>
+                Upload MP3
+              </button>
+            </div>
+          )}
+
+          {/* YouTube URL input */}
+          {sourceType === "youtube" && (
+            <div className="mt-4">
+              <label className="block">
+                <span className="text-sm font-medium text-heading">YouTube URL</span>
+                <input
+                  type="text"
+                  value={youtubeUrlInput}
+                  onChange={(e) => {
+                    setYoutubeUrlInput(e.target.value);
+                    setYoutubeError(null);
+                  }}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  className="mt-1 w-full rounded-lg border border-input-border bg-panel px-3 py-2
+                             text-heading placeholder:text-faint
+                             focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </label>
+              {youtubeError && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{youtubeError}</p>
+              )}
+              <button
+                type="button"
+                onClick={handleYouTubeUrl}
+                disabled={!audioTranslation.trim() || !youtubeUrlInput.trim()}
+                className="mt-3 w-full rounded-lg bg-accent px-4 py-2 text-sm font-bold
+                           text-on-accent hover:bg-accent-hover
+                           disabled:opacity-40 disabled:cursor-not-allowed
+                           focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                Load Video
+              </button>
+              <p className="mt-2 text-xs text-faint">
+                Accepts youtube.com/watch, youtu.be, and youtube.com/embed URLs.
+              </p>
+            </div>
+          )}
 
           <button
             type="button"
@@ -434,6 +539,13 @@ export function AudioTimingEditor({
             Skip to Review
           </button>
         </div>
+
+        {/* YouTube video embed (visible during marking for reference) */}
+        {sourceType === "youtube" && youtubeVideoId && (
+          <div className="px-6 pt-4">
+            <YouTubePlayer containerId={ytContainerId} mode="expanded" className="max-w-md mx-auto" />
+          </div>
+        )}
 
         {/* Current verse display */}
         <div className="flex-1 flex flex-col items-center justify-center px-6">

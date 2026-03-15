@@ -33,8 +33,10 @@ export interface AudioSyncState {
   selectTimingMap: (id: string) => void;
   /** Whether timing maps are still loading from IndexedDB */
   loading: boolean;
-  /** The blob URL for the current audio (null for YouTube or if not loaded) */
+  /** The blob URL for MP3 audio (null for YouTube or if not loaded) */
   audioSrc: string | null;
+  /** The YouTube video ID (null for MP3 sources) */
+  youtubeVideoId: string | null;
   /** Close/dismiss the audio player */
   close: () => void;
   /** Whether the audio sync is active (a timing map is selected) */
@@ -54,9 +56,10 @@ export function useAudioSync(book: string, chapter: number): AudioSyncState {
   const [availableTimingMaps, setAvailableTimingMaps] = useState<AudioTimingMap[]>([]);
   const [activeTimingMap, setActiveTimingMap] = useState<AudioTimingMap | null>(null);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // The playback hook manages the actual audio element
+  // The playback hook manages the actual audio element (MP3 only)
   const playback = useAudioPlayback(audioSrc);
 
   // Load timing maps when book/chapter changes
@@ -92,7 +95,7 @@ export function useAudioSync(book: string, chapter: number): AudioSyncState {
     };
   }, [book, chapter]);
 
-  // Load audio blob URL when the active timing map changes
+  // Load audio source when the active timing map changes
   useEffect(() => {
     let cancelled = false;
 
@@ -101,6 +104,7 @@ export function useAudioSync(book: string, chapter: number): AudioSyncState {
       URL.revokeObjectURL(audioSrc);
       setAudioSrc(null);
     }
+    setYoutubeVideoId(null);
 
     if (!activeTimingMap) return;
 
@@ -108,8 +112,10 @@ export function useAudioSync(book: string, chapter: number): AudioSyncState {
       getAudioBlobUrl(activeTimingMap.sourceId).then((url) => {
         if (!cancelled) setAudioSrc(url);
       });
+    } else if (activeTimingMap.audioSource === "youtube") {
+      // YouTube sources use the video ID directly — no blob to load
+      if (!cancelled) setYoutubeVideoId(activeTimingMap.sourceId);
     }
-    // YouTube sources handled differently (Phase 2) — no blob URL needed
 
     return () => {
       cancelled = true;
@@ -133,6 +139,7 @@ export function useAudioSync(book: string, chapter: number): AudioSyncState {
   function close() {
     playback.pause();
     setActiveTimingMap(null);
+    setYoutubeVideoId(null);
     if (audioSrc) {
       URL.revokeObjectURL(audioSrc);
       setAudioSrc(null);
@@ -147,6 +154,7 @@ export function useAudioSync(book: string, chapter: number): AudioSyncState {
     selectTimingMap,
     loading,
     audioSrc,
+    youtubeVideoId,
     close,
     isActive: activeTimingMap !== null,
   };

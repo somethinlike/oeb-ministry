@@ -16,6 +16,12 @@
 
 import type { AudioPlaybackControls } from "../hooks/useAudioPlayback";
 
+/** Default MP3 speed options — browser-native, no external libraries needed */
+const MP3_SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
+
+/** YouTube-specific speed options (limited by the YouTube API) */
+const YOUTUBE_SPEED_OPTIONS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] as const;
+
 interface AudioPlayerBarProps {
   playback: AudioPlaybackControls;
   /** The translation the audio was recorded in (e.g., "KJV") */
@@ -24,10 +30,11 @@ interface AudioPlayerBarProps {
   readerTranslation?: string;
   /** Called when the user clicks the close/dismiss button */
   onClose: () => void;
+  /** Audio source type — changes available speed options */
+  audioSource?: "mp3" | "youtube";
+  /** Slot for a compact YouTube video embed next to the controls */
+  videoSlot?: React.ReactNode;
 }
-
-/** Available playback speeds — browser-native, no external libraries needed */
-const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 
 /** Format seconds into MM:SS display */
 function formatTime(seconds: number): string {
@@ -42,6 +49,8 @@ export function AudioPlayerBar({
   audioTranslation,
   readerTranslation,
   onClose,
+  audioSource = "mp3",
+  videoSlot,
 }: AudioPlayerBarProps) {
   const {
     isPlaying,
@@ -80,6 +89,9 @@ export function AudioPlayerBar({
       )}
 
       <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-2">
+        {/* Compact video embed slot (YouTube mode) */}
+        {videoSlot}
+
         {/* Play/Pause button */}
         <button
           type="button"
@@ -142,7 +154,7 @@ export function AudioPlayerBar({
                        text-heading focus:outline-none focus:ring-2 focus:ring-ring"
             aria-label="Playback speed"
           >
-            {SPEED_OPTIONS.map((speed) => (
+            {(audioSource === "youtube" ? YOUTUBE_SPEED_OPTIONS : MP3_SPEED_OPTIONS).map((speed) => (
               <option key={speed} value={speed}>
                 {speed}x
               </option>
