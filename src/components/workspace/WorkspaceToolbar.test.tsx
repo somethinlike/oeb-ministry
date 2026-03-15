@@ -36,6 +36,15 @@ vi.mock("./FontPicker", () => ({
   FontPicker: () => <div data-testid="font-picker" />,
 }));
 
+// Mock AudioProvider to avoid needing the full audio context tree
+vi.mock("../AudioProvider", () => ({
+  useAudioContext: () => ({
+    openEditor: vi.fn(),
+    availableTimingMaps: [],
+    isActive: false,
+  }),
+}));
+
 const defaultProps = {
   swapped: false,
   onToggleSwap: vi.fn(),

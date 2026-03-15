@@ -9,7 +9,9 @@
 
 import { useMemo } from "react";
 import { ChapterReader } from "../ChapterReader";
+import { AudioPlayerBar } from "../AudioPlayerBar";
 import { useWorkspace } from "./WorkspaceProvider";
+import { useAudioContext } from "../AudioProvider";
 import type { ReaderLayout, ReaderFont, AnnotationDotStyle } from "../../lib/workspace-prefs";
 import type { TranslationToggles } from "../../lib/translation-toggles";
 import type { ReaderSettingsProps } from "./ReaderSettingsPopover";
@@ -40,6 +42,8 @@ export function ReaderPane({ readerLayout = "centered", translationToggles, read
     navigateChapter,
   } = useWorkspace();
 
+  const { activeVerse, playback, activeTimingMap, isActive, close } = useAudioContext();
+
   // Build a Set of verse numbers that have annotations.
   // An annotation covers verseStart through verseEnd, so we
   // expand each range into individual verse numbers.
@@ -54,7 +58,7 @@ export function ReaderPane({ readerLayout = "centered", translationToggles, read
   }, [annotations]);
 
   return (
-    <div className="h-full overflow-y-auto overscroll-contain p-4 lg:p-6">
+    <div className={`h-full overflow-y-auto overscroll-contain p-4 lg:p-6 ${isActive ? "pb-20" : ""}`}>
       <ChapterReader
         translation={translation}
         book={book}
@@ -69,7 +73,17 @@ export function ReaderPane({ readerLayout = "centered", translationToggles, read
         annotationDots={annotationDots}
         cleanView={cleanView}
         settingsProps={settingsProps}
+        activeAudioVerse={activeVerse}
       />
+      {isActive && (
+        <AudioPlayerBar
+          playback={playback}
+          audioTranslation={activeTimingMap?.audioTranslation}
+          readerTranslation={translation}
+          audioSource={activeTimingMap?.audioSource}
+          onClose={close}
+        />
+      )}
     </div>
   );
 }

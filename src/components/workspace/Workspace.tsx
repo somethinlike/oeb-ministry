@@ -12,9 +12,11 @@
  * Split ratio, side preference, and dock state persist to localStorage.
  */
 
-import { useState, useRef, useCallback, type ReactNode } from "react";
+import { useState, useEffect, useRef, useCallback, type ReactNode } from "react";
 import { WorkspaceProvider, useWorkspace } from "./WorkspaceProvider";
 import { EncryptionProvider } from "../EncryptionProvider";
+import { AudioProvider, useAudioContext } from "../AudioProvider";
+import { AudioTimingEditor } from "../AudioTimingEditor";
 import { KeyboardManager, KeybindHintToast } from "../KeyboardManager";
 import type { KeybindingPreset } from "../../lib/commands";
 import { WorkspaceToolbar } from "./WorkspaceToolbar";
@@ -192,6 +194,7 @@ export function Workspace({
 
   return (
     <EncryptionProvider userId={userId} userEmail={userEmail}>
+    <AudioProvider book={book} chapter={chapter}>
     <WorkspaceProvider
       translation={translation}
       book={book}
@@ -280,8 +283,12 @@ export function Workspace({
           </FloatingPanel>
         </div>
       )}
+
+      {/* Audio timing editor — full-screen modal */}
+      <AudioEditorModal />
     </WorkspaceKeyboardWrapper>
     </WorkspaceProvider>
+    </AudioProvider>
     </EncryptionProvider>
   );
 }
@@ -447,5 +454,50 @@ function MobileBottomSheet() {
     <BottomSheet expanded={selection !== null}>
       <AnnotationSidebar />
     </BottomSheet>
+  );
+}
+
+/**
+ * AudioEditorModal — renders AudioTimingEditor when isEditorOpen is true.
+ *
+ * Loads verse data independently (same pattern as ChapterReader) so the
+ * timing editor has the verse text to display during marking.
+ * Lives inside both AudioProvider and WorkspaceProvider for access to both contexts.
+ */
+function AudioEditorModal() {
+  const { book, chapter, translation } = useWorkspace();
+  const { isEditorOpen, closeEditor, activeTimingMap } = useAudioContext();
+  const [verses, setVerses] = useState<Array<{ number: number; text: string }>>([]);
+
+  // Load verses when the editor opens
+  useEffect(() => {
+    if (!isEditorOpen) return;
+
+    // Use the same data source as ChapterReader
+    const isUser = translation.startsWith("user-");
+    if (isUser) {
+      import("../../lib/user-translations").then(({ getUserTranslationChapter }) => {
+        getUserTranslationChapter(translation, book, chapter).then((data) => {
+          if (data) setVerses(data.verses);
+        });
+      });
+    } else {
+      fetch(`/bibles/${translation}/${book}/${chapter}.json`)
+        .then((res) => res.json())
+        .then((data) => setVerses(data.verses ?? []))
+        .catch(() => setVerses([]));
+    }
+  }, [isEditorOpen, translation, book, chapter]);
+
+  if (!isEditorOpen || verses.length === 0) return null;
+
+  return (
+    <AudioTimingEditor
+      verses={verses}
+      book={book as any}
+      chapter={chapter}
+      onClose={closeEditor}
+      existingMap={activeTimingMap ?? undefined}
+    />
   );
 }

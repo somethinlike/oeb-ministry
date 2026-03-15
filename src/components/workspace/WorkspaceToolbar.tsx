@@ -12,6 +12,7 @@
 
 import { useState, useEffect } from "react";
 import { useWorkspace } from "./WorkspaceProvider";
+import { useAudioContext } from "../AudioProvider";
 import { TranslationPicker } from "./TranslationPicker";
 import { SUPPORTED_TRANSLATIONS, BOOK_BY_ID } from "../../lib/constants";
 import type { BookId } from "../../types/bible";
@@ -69,6 +70,7 @@ export function WorkspaceToolbar({
   onEnterCleanView,
 }: WorkspaceToolbarProps) {
   const { translation, book, chapter } = useWorkspace();
+  const { openEditor, availableTimingMaps, isActive } = useAudioContext();
 
   const translationInfo = SUPPORTED_TRANSLATIONS.find(
     (t) => t.id === translation,
@@ -213,6 +215,27 @@ export function WorkspaceToolbar({
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
           </svg>
           <span>Focus</span>
+        </button>
+
+        {/* Audio timing — add or play follow-along audio */}
+        <button
+          type="button"
+          onClick={openEditor}
+          className={`flex items-center gap-1.5 rounded-md border border-input-border
+                     bg-panel px-2.5 py-1.5 text-xs font-medium
+                     hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-ring
+                     ${isActive ? "text-accent" : "text-muted"}`}
+          aria-label={availableTimingMaps.length > 0 ? "Edit audio timing" : "Add audio timing for this chapter"}
+          title={availableTimingMaps.length > 0 ? "Edit audio timing" : "Add follow-along audio"}
+        >
+          {/* Headphone/speaker icon */}
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-3.15a.75.75 0 011.28.53v12.74a.75.75 0 01-1.28.53l-4.72-3.15H3.75a.75.75 0 01-.75-.75v-3a.75.75 0 01.75-.75h3z" />
+          </svg>
+          <span>Audio</span>
+          {availableTimingMaps.length > 0 && !isActive && (
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+          )}
         </button>
 
         {/* Undock / dock toggle — desktop only */}
