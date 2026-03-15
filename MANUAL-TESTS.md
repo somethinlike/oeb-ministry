@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-14 (Phase 3.7 — Encrypted Bible Backup)
+> Last updated: 2026-03-15 (Audio-Text Sync Phase 1)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -687,7 +687,69 @@ AI screening runs automatically when annotations or devotionals are submitted fo
 
 ---
 
-## 22. Edge Cases
+## 22. Audio-Text Sync (Follow-Along Reader)
+
+### Timing Editor — Precise Mode
+- Open the timing editor for a chapter
+- Enter the speaker's translation (e.g., "KJV")
+- Select "Precise" sync mode
+- Upload an MP3 file of the chapter being read aloud
+- Should enter marking mode showing the first verse
+- Play audio → tap "Mark" (or press Enter/M) when each verse begins
+- Verify: verse counter advances with each mark
+- Verify: keyboard shortcuts work (Space=play/pause, arrows=seek ±5s, Shift+arrows=±1s)
+- After marking all verses, should auto-advance to review mode
+
+### Timing Editor — Quick Sync Mode
+- Open the timing editor, select "Quick" sync mode
+- Upload MP3 → should show verse list
+- Play audio, tap verses when you hear them start
+- Marked verses show green with timestamp
+- Tap a marked verse again → should unmark (toggle)
+- Click "Done Marking" → review mode
+- Verify: unmarked verses have interpolated timestamps between marked anchors
+
+### Review Mode
+- In review mode, click a verse → audio should seek to that verse's timestamp
+- Use +0.1s / -0.1s buttons to fine-tune timing
+- Click "Save" → timing map saved to IndexedDB
+- Click "Start Over" → should reset marks and return to marking phase
+
+### Audio Player Bar
+- After saving a timing map, navigate to the same chapter
+- Audio player bar should appear at the bottom
+- Play/pause button toggles playback
+- Progress bar is seekable (drag to seek)
+- Speed selector changes playback rate (0.5x–2x)
+- Volume slider adjusts volume (hidden on small screens)
+- Close button dismisses the player
+- Time display shows current / total in MM:SS format
+
+### Verse Highlighting (Amber)
+- Play audio with a saved timing map
+- Active verse should highlight amber (`bg-amber-100` / dark mode `bg-amber-900/30`)
+- Amber highlight is distinct from blue selection highlight
+- Both can coexist: select a verse while it's being highlighted amber
+- Auto-scroll: active verse scrolls into view smoothly
+
+### Cross-Translation Sync
+- Create a timing map from a KJV audio recording
+- Switch the reader to a different translation (e.g., OEB)
+- Play audio → amber highlighting should still follow correctly (verse-level sync is universal)
+- Translation mismatch label appears in player bar: "Audio: KJV / Reading: OEB-US"
+
+### Playback Speed Sync
+- Play audio at 1x → verify highlight stays in sync
+- Change speed to 1.5x → highlight should still track correctly
+- Change to 0.5x → verify no drift
+- Speed changes take effect immediately (no re-sync needed)
+
+### Preferences Persistence
+- Set audio volume to ~50%, speed to 1.5x
+- Close and reopen the workspace
+- Audio preferences should persist (stored in localStorage workspace prefs)
+
+## 23. Edge Cases
 
 - **Empty state:** New user with no notes → My Notes shows "Start reading" prompt
 - **Long note content:** Write a very long note → should scroll, not break layout
