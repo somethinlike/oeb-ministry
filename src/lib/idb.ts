@@ -9,12 +9,14 @@
  * - "sync-queue" — pending sync operations (v1)
  * - "user-translation-manifests" — metadata for user-uploaded Bibles (v5)
  * - "user-translation-chapters" — chapter data for user-uploaded Bibles (v5)
+ * - "audio-timing-maps" — verse timing data for audio-text sync (v6)
+ * - "audio-blobs" — raw MP3 audio files as Blobs (v6)
  */
 
 import { openDB, type IDBPDatabase } from "idb";
 
 export const DB_NAME = "oeb-ministry";
-export const DB_VERSION = 5;
+export const DB_VERSION = 6;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
@@ -54,6 +56,20 @@ export function getDb(): Promise<IDBPDatabase> {
           // Index to quickly get all chapters for a given translation
           // (used when deleting a translation)
           chapterStore.createIndex("by-translation", "translation");
+        }
+
+        // v6: Audio-text sync stores
+        if (oldVersion < 6) {
+          // Timing maps — one per chapter per audio source (~1KB each)
+          const timingStore = db.createObjectStore("audio-timing-maps", {
+            keyPath: "id",
+          });
+          // Look up timing maps by book+chapter (for loading when reader navigates)
+          timingStore.createIndex("by-chapter", ["book", "chapter"]);
+
+          // Audio blobs — raw MP3 files (~5MB each), kept separate from
+          // timing maps so querying metadata never loads megabytes of audio
+          db.createObjectStore("audio-blobs", { keyPath: "id" });
         }
       },
     });

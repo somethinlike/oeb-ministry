@@ -20,7 +20,7 @@
  * - "Write a note" appears right where the user is looking
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ChapterData, BookId } from "../types/bible";
 import {
   updateSelection,
@@ -72,6 +72,8 @@ interface ChapterReaderProps {
   cleanView?: boolean;
   /** Settings callbacks for the cog popover in clean view */
   settingsProps?: ReaderSettingsProps;
+  /** Verse number currently being read aloud (audio-text sync). Amber highlight. */
+  activeAudioVerse?: number | null;
 }
 
 export function ChapterReader({
@@ -88,6 +90,7 @@ export function ChapterReader({
   annotationDots = "blue",
   cleanView = false,
   settingsProps,
+  activeAudioVerse,
 }: ChapterReaderProps) {
   const [chapterData, setChapterData] = useState<ChapterData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -102,6 +105,18 @@ export function ChapterReader({
 
   // Compute CSS font-family from the font key (undefined in standalone → browser default)
   const fontFamily = readerFont ? getFontFamily(readerFont) : undefined;
+
+  // Refs for auto-scrolling the active audio verse into view
+  const verseRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
+
+  // Auto-scroll to the active audio verse when it changes
+  useEffect(() => {
+    if (activeAudioVerse == null) return;
+    const el = verseRefs.current.get(activeAudioVerse);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [activeAudioVerse]);
 
   // In workspace mode, selection comes from props; standalone uses local state
   const isWorkspaceMode = onVerseSelect !== undefined;
@@ -342,6 +357,7 @@ export function ChapterReader({
         {chapterData.verses.map((verse) => {
           const selected = isVerseSelected(selection, verse.number);
           const hasAnnotation = annotatedVerses?.has(verse.number) ?? false;
+          const isAudioActive = activeAudioVerse === verse.number;
           const placeholder = isPlaceholderVerse(verse.text);
           // Apply word-swap toggles (LORD↔Yahweh, baptize↔immerse, etc.)
           const displayText = placeholder
@@ -350,6 +366,10 @@ export function ChapterReader({
           return (
             <span
               key={verse.number}
+              ref={(el) => {
+                if (el) verseRefs.current.set(verse.number, el);
+                else verseRefs.current.delete(verse.number);
+              }}
               role="button"
               tabIndex={0}
               onClick={() => handleVerseClick(verse.number)}
@@ -361,7 +381,9 @@ export function ChapterReader({
               }}
               className={`
                 inline cursor-pointer rounded px-0.5 transition-colors duration-100
-                ${selected ? "bg-accent-soft text-accent" : "hover:bg-surface-hover"}
+                ${selected ? "bg-accent-soft text-accent" : ""}
+                ${isAudioActive && !selected ? "bg-amber-100 dark:bg-amber-900/30" : ""}
+                ${!selected && !isAudioActive ? "hover:bg-surface-hover" : ""}
                 focus:outline-none focus:ring-2 focus:ring-ring
               `}
               aria-label={`Verse ${verse.number}: ${placeholder ? "verse not yet translated" : displayText}${hasAnnotation ? " (has note)" : ""}`}

@@ -92,8 +92,8 @@ describe("idb constants", () => {
     expect(DB_NAME).toBe("oeb-ministry");
   });
 
-  it("exports DB_VERSION as 5", () => {
-    expect(DB_VERSION).toBe(5);
+  it("exports DB_VERSION as 6", () => {
+    expect(DB_VERSION).toBe(6);
   });
 });
 
@@ -158,15 +158,17 @@ describe("upgrade callback (fresh install, oldVersion = 0)", () => {
     expect(store!.options.keyPath).toEqual(["translation", "book", "chapter"]);
   });
 
-  it("creates exactly four object stores for a fresh install", () => {
+  it("creates exactly six object stores for a fresh install", () => {
     runFreshUpgrade();
-    expect(fakeDb.stores.size).toBe(4);
+    expect(fakeDb.stores.size).toBe(6);
     expect(fakeDb.objectStoreNames).toEqual(
       expect.arrayContaining([
         "annotations",
         "sync-queue",
         "user-translation-manifests",
         "user-translation-chapters",
+        "audio-timing-maps",
+        "audio-blobs",
       ]),
     );
   });
@@ -196,7 +198,7 @@ describe("upgrade callback (fresh install, oldVersion = 0)", () => {
   });
 });
 
-describe("upgrade callback (incremental upgrade from v1 to v5)", () => {
+describe("upgrade callback (incremental upgrades)", () => {
   it("does not recreate v1 stores when upgrading from v1", () => {
     getDb();
     if (!capturedUpgrade) throw new Error("upgrade callback was not captured");
@@ -209,14 +211,33 @@ describe("upgrade callback (incremental upgrade from v1 to v5)", () => {
     // v5 stores SHOULD be created
     expect(fakeDb.stores.has("user-translation-manifests")).toBe(true);
     expect(fakeDb.stores.has("user-translation-chapters")).toBe(true);
+
+    // v6 stores SHOULD be created
+    expect(fakeDb.stores.has("audio-timing-maps")).toBe(true);
+    expect(fakeDb.stores.has("audio-blobs")).toBe(true);
   });
 
-  it("skips v5 stores when upgrading from v5 (no-op upgrade)", () => {
+  it("creates only v6 stores when upgrading from v5", () => {
     getDb();
     if (!capturedUpgrade) throw new Error("upgrade callback was not captured");
     capturedUpgrade(fakeDb, 5);
 
-    // No stores should be created — database is already at v5
+    // v1 and v5 stores should NOT be created
+    expect(fakeDb.stores.has("annotations")).toBe(false);
+    expect(fakeDb.stores.has("user-translation-manifests")).toBe(false);
+
+    // v6 stores SHOULD be created
+    expect(fakeDb.stores.has("audio-timing-maps")).toBe(true);
+    expect(fakeDb.stores.has("audio-blobs")).toBe(true);
+    expect(fakeDb.stores.size).toBe(2);
+  });
+
+  it("skips all stores when upgrading from v6 (no-op upgrade)", () => {
+    getDb();
+    if (!capturedUpgrade) throw new Error("upgrade callback was not captured");
+    capturedUpgrade(fakeDb, 6);
+
+    // No stores should be created — database is already at v6
     expect(fakeDb.stores.size).toBe(0);
   });
 });

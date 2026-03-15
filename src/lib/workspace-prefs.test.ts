@@ -26,6 +26,9 @@ describe("loadWorkspacePrefs", () => {
       readerFont: "system",
       annotationDots: "blue",
       cleanView: false,
+      audioVolume: 1,
+      audioSpeed: 1,
+      audioAutoScroll: true,
     });
   });
 
@@ -43,6 +46,9 @@ describe("loadWorkspacePrefs", () => {
       readerFont: "inter",
       annotationDots: "blue",
       cleanView: false,
+      audioVolume: 1,
+      audioSpeed: 1,
+      audioAutoScroll: true,
     });
   });
 
@@ -73,6 +79,9 @@ describe("loadWorkspacePrefs", () => {
       readerFont: "system",
       annotationDots: "blue",
       cleanView: false,
+      audioVolume: 1,
+      audioSpeed: 1,
+      audioAutoScroll: true,
     });
   });
 
@@ -210,6 +219,9 @@ describe("saveWorkspacePrefs", () => {
       readerFont: "inter",
       annotationDots: "blue",
       cleanView: false,
+      audioVolume: 1,
+      audioSpeed: 1,
+      audioAutoScroll: true,
     });
   });
 

@@ -44,6 +44,12 @@ interface WorkspacePrefs {
   annotationDots: AnnotationDotStyle;
   /** Whether clean view mode is active (hides toolbar, shows cog in nav). Default false */
   cleanView: boolean;
+  /** Audio player volume (0–1). Default 1 */
+  audioVolume: number;
+  /** Audio playback speed multiplier. Default 1 */
+  audioSpeed: number;
+  /** Whether the reader auto-scrolls to follow the active audio verse. Default true */
+  audioAutoScroll: boolean;
 }
 
 const DEFAULTS: WorkspacePrefs = {
@@ -54,6 +60,9 @@ const DEFAULTS: WorkspacePrefs = {
   readerFont: "system",
   annotationDots: "blue",
   cleanView: false,
+  audioVolume: 1,
+  audioSpeed: 1,
+  audioAutoScroll: true,
 };
 
 /** Clamp split ratio to safe bounds */
@@ -81,6 +90,15 @@ export function loadWorkspacePrefs(): WorkspacePrefs {
         ? (parsed.annotationDots as AnnotationDotStyle)
         : DEFAULTS.annotationDots,
       cleanView: typeof parsed.cleanView === "boolean" ? parsed.cleanView : DEFAULTS.cleanView,
+      audioVolume: typeof parsed.audioVolume === "number"
+        ? Math.min(1, Math.max(0, parsed.audioVolume))
+        : DEFAULTS.audioVolume,
+      audioSpeed: typeof parsed.audioSpeed === "number"
+        ? Math.min(4, Math.max(0.25, parsed.audioSpeed))
+        : DEFAULTS.audioSpeed,
+      audioAutoScroll: typeof parsed.audioAutoScroll === "boolean"
+        ? parsed.audioAutoScroll
+        : DEFAULTS.audioAutoScroll,
     };
   } catch {
     return { ...DEFAULTS };
@@ -98,6 +116,9 @@ export function saveWorkspacePrefs(prefs: Partial<WorkspacePrefs>): void {
       readerFont: prefs.readerFont ?? current.readerFont,
       annotationDots: prefs.annotationDots ?? current.annotationDots,
       cleanView: prefs.cleanView ?? current.cleanView,
+      audioVolume: prefs.audioVolume ?? current.audioVolume,
+      audioSpeed: prefs.audioSpeed ?? current.audioSpeed,
+      audioAutoScroll: prefs.audioAutoScroll ?? current.audioAutoScroll,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
   } catch {
