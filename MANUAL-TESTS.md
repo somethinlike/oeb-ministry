@@ -1,7 +1,7 @@
 # OEB Ministry — Testing Guide
 
 > How to manually test every feature in the app.
-> Last updated: 2026-03-15 (Audio-Text Sync Phase 2 — YouTube)
+> Last updated: 2026-03-15 (Audio-Text Sync Phase 3 — Cloud + Sharing)
 
 **Dev server:** `npm run dev` → http://localhost:4321
 
@@ -759,6 +759,19 @@ AI screening runs automatically when annotations or devotionals are submitted fo
 - Set audio volume to ~50%, speed to 1.5x
 - Close and reopen the workspace
 - Audio preferences should persist (stored in localStorage workspace prefs)
+
+### Cloud Sync (Requires Auth)
+- Sign in → create a timing map → verify it saves to Supabase (check Network tab)
+- Sign out → sign back in → timing map should reload from cloud
+- Upload an MP3 → verify file appears in bible-audio storage bucket
+- Delete a timing map → associated MP3 should also be deleted from storage
+
+### Community Sharing (YouTube Only)
+- Create a YouTube timing map → toggle "Share" → verify is_shared = true in DB
+- As a different user, navigate to the same chapter → shared map should appear
+- Fork a shared map → verify you get an independent editable copy
+- Attempt to share an MP3 timing map → should be rejected with error
+- "Audio available" indicator should appear on chapters with shared maps
 
 ## 23. Edge Cases
 
