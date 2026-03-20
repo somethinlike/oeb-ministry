@@ -3,17 +3,16 @@
  *
  * Flow:
  * 1. File picker + drag-and-drop (accepts .epub and .txt)
- * 2. If encryption is set up but locked → backup prompt (unlock or skip)
- * 3. Parse the file and show preview (book/chapter counts, warnings)
- * 4. User enters a name and abbreviation
- * 5. Save to IndexedDB (+ auto-backup if unlocked)
+ * 2. Parse the file and show preview (book/chapter counts, warnings)
+ * 3. User enters a name and abbreviation
+ * 4. Save to IndexedDB (+ auto-backup if encryption is unlocked)
  *
  * Grandmother Principle:
  * - Clear instructions, large drop zone
- * - Explicit backup prompt so users know a passphrase is needed
  * - Preview shows exactly what was found before saving
  * - Warnings are shown but don't block saving
  * - Progress feedback during parsing
+ * - Backup happens silently when encryption is unlocked (no interruption)
  */
 
 import { useState, useRef, useCallback } from "react";
@@ -36,16 +35,12 @@ interface TranslationUploadProps {
   cryptoKey?: CryptoKey | null;
   /** Whether the user has the required role for backup */
   canBackup?: boolean;
-  /** Whether encryption has been set up (user has a passphrase) */
-  hasEncryption?: boolean;
-  /** Attempt to unlock with a passphrase. Returns true on success. */
-  onUnlock?: (passphrase: string) => Promise<boolean>;
 }
 
-type UploadStep = "pick" | "backup-prompt" | "parsing" | "preview" | "saving" | "done" | "error";
+type UploadStep = "pick" | "parsing" | "preview" | "saving" | "done" | "error";
 
 export function TranslationUpload({
-  onSaved, userId, cryptoKey, canBackup, hasEncryption, onUnlock,
+  onSaved, userId, cryptoKey, canBackup,
 }: TranslationUploadProps) {
   const [step, setStep] = useState<UploadStep>("pick");
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
@@ -55,28 +50,13 @@ export function TranslationUpload({
   const [abbreviation, setAbbreviation] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [existingManifest, setExistingManifest] = useState<UserTranslationManifest | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Backup prompt state
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const [backupPassphrase, setBackupPassphrase] = useState("");
-  const [backupUnlockError, setBackupUnlockError] = useState(false);
-  const [backupUnlocking, setBackupUnlocking] = useState(false);
-  // Tracks whether user explicitly skipped backup for this upload
-  const [skippedBackup, setSkippedBackup] = useState(false);
-
-  /** Called when a file is selected or dropped. May detour through backup prompt. */
+  /** Called when a file is selected or dropped. Goes straight to parsing. */
   const onFileSelected = useCallback((file: File) => {
-    // If encryption is set up but not yet unlocked, prompt before parsing
-    if (hasEncryption && !cryptoKey && onUnlock) {
-      setPendingFile(file);
-      setFileName(file.name);
-      setStep("backup-prompt");
-      return;
-    }
-    // Otherwise go straight to parsing
     parseFile(file);
-  }, [hasEncryption, cryptoKey, onUnlock]);
+  }, []);
 
   /** Parse the selected file and move to preview. */
   const parseFile = useCallback(async (file: File) => {
@@ -109,8 +89,21 @@ export function TranslationUpload({
       setParseResult(result);
       // Default name from filename (strip extension)
       const baseName = file.name.replace(/\.(epub|txt)$/i, "");
-      setName(baseName);
-      setAbbreviation(baseName.slice(0, 6).toUpperCase());
+      const defaultAbbr = baseName.slice(0, 6).toUpperCase();
+
+      // Check if a translation with this abbreviation already exists
+      const defaultId = `user-${defaultAbbr.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+      const existing = await getUserTranslationManifest(defaultId);
+      if (existing) {
+        // Pre-fill from existing manifest for merge
+        setName(existing.name);
+        setAbbreviation(existing.abbreviation);
+        setExistingManifest(existing);
+      } else {
+        setName(baseName);
+        setAbbreviation(defaultAbbr);
+        setExistingManifest(null);
+      }
       setStep("preview");
     } catch (err) {
       setErrorMsg(
@@ -119,6 +112,17 @@ export function TranslationUpload({
       setStep("error");
     }
   }, []);
+
+  /** Re-check merge status when user changes abbreviation */
+  async function checkAbbreviationForMerge(abbr: string) {
+    const idBase = abbr.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!idBase) { setExistingManifest(null); return; }
+    const existing = await getUserTranslationManifest(`user-${idBase}`);
+    setExistingManifest(existing ?? null);
+    if (existing) {
+      setName(existing.name);
+    }
+  }
 
   function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -139,30 +143,6 @@ export function TranslationUpload({
 
   function handleDragLeave() {
     setDragging(false);
-  }
-
-  /** Handle passphrase unlock from the backup prompt. */
-  async function handleBackupUnlock(e: React.FormEvent) {
-    e.preventDefault();
-    if (!backupPassphrase.trim() || !onUnlock) return;
-    setBackupUnlocking(true);
-    setBackupUnlockError(false);
-    const ok = await onUnlock(backupPassphrase);
-    setBackupUnlocking(false);
-    if (ok) {
-      // Unlocked — proceed to parsing with the pending file
-      setBackupPassphrase("");
-      if (pendingFile) parseFile(pendingFile);
-    } else {
-      setBackupUnlockError(true);
-    }
-  }
-
-  /** User chose to skip backup — proceed with local-only save. */
-  function handleSkipBackup() {
-    setSkippedBackup(true);
-    setBackupPassphrase("");
-    if (pendingFile) parseFile(pendingFile);
   }
 
   async function handleSave() {
@@ -188,8 +168,8 @@ export function TranslationUpload({
 
       await saveUserTranslation(manifest, parseResult);
 
-      // Auto-backup to Supabase if unlocked and user didn't skip
-      const shouldBackup = userId && cryptoKey && canBackup && !skippedBackup;
+      // Auto-backup to Supabase if encryption is unlocked
+      const shouldBackup = userId && cryptoKey && canBackup;
       if (shouldBackup) {
         try {
           // Read back the saved manifest (has computed book list) + all chapters
@@ -222,10 +202,7 @@ export function TranslationUpload({
     setName("");
     setAbbreviation("");
     setErrorMsg("");
-    setPendingFile(null);
-    setBackupPassphrase("");
-    setBackupUnlockError(false);
-    setSkippedBackup(false);
+    setExistingManifest(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -289,89 +266,6 @@ export function TranslationUpload({
     );
   }
 
-  // ── Backup prompt ──
-  // Shown after file selection when encryption is set up but locked.
-  // The user can unlock (enabling backup) or skip (local-only save).
-  if (step === "backup-prompt") {
-    return (
-      <div className="space-y-4">
-        <div className="rounded-lg border border-edge bg-surface-alt p-5">
-          {/* Shield icon */}
-          <div className="flex items-start gap-3">
-            <svg
-              className="h-6 w-6 shrink-0 text-accent mt-0.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"
-              />
-            </svg>
-            <div>
-              <p className="text-sm font-medium text-heading">
-                Back up this translation?
-              </p>
-              <p className="text-sm text-muted mt-1">
-                Enter your passphrase to save an encrypted backup to your account.
-                Without it, this translation will only be stored on this device.
-              </p>
-            </div>
-          </div>
-
-          {/* Passphrase form */}
-          <form onSubmit={handleBackupUnlock} className="mt-4">
-            <div className="flex items-center gap-2">
-              <input
-                type="password"
-                value={backupPassphrase}
-                onChange={(e) => { setBackupPassphrase(e.target.value); setBackupUnlockError(false); }}
-                placeholder="Your passphrase"
-                autoComplete="current-password"
-                autoFocus
-                className="flex-1 rounded-lg border border-input-border px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-              <button
-                type="submit"
-                disabled={backupUnlocking || !backupPassphrase.trim()}
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-              >
-                {backupUnlocking ? "Checking..." : "Unlock"}
-              </button>
-            </div>
-            {backupUnlockError && (
-              <p className="mt-2 text-xs text-red-600">
-                That passphrase didn&rsquo;t work. Please try again.
-              </p>
-            )}
-          </form>
-        </div>
-
-        {/* Skip + Cancel buttons */}
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleSkipBackup}
-            className="text-sm text-muted hover:text-body underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-ring rounded"
-          >
-            Skip — just save to this device
-          </button>
-          <button
-            type="button"
-            onClick={reset}
-            className="rounded-lg border border-input-border px-4 py-2 text-sm font-medium text-muted hover:bg-surface-alt focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // ── Parsing state ──
   if (step === "parsing") {
     return (
@@ -412,15 +306,27 @@ export function TranslationUpload({
       (sum, b) => sum + b.chapters.reduce((cs, c) => cs + c.verses.length, 0), 0,
     );
 
+    const isMerge = existingManifest !== null;
+    const existingBookCount = existingManifest?.books.length ?? 0;
+
     return (
       <div className="space-y-4">
-        {/* Skipped-backup notice so user knows what happened */}
-        {skippedBackup && (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
-            <span>This translation won&rsquo;t be backed up. You can enter your passphrase later to enable backups.</span>
+        {/* Merge banner */}
+        {isMerge && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4" role="status">
+            <p className="text-sm text-blue-800 font-medium">
+              Adding to your existing {existingManifest.abbreviation} translation — {existingBookCount} existing book{existingBookCount === 1 ? "" : "s"}, {parseResult.books.length} new book{parseResult.books.length === 1 ? "" : "s"} will be merged
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setExistingManifest(null);
+                setAbbreviation(abbreviation + "-2");
+              }}
+              className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              Create a separate translation instead
+            </button>
           </div>
         )}
 
@@ -478,6 +384,7 @@ export function TranslationUpload({
               placeholder="e.g., New Revised Standard Version"
               className="w-full rounded-lg border border-input-border px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring"
               maxLength={100}
+              readOnly={isMerge}
             />
           </div>
           <div>
@@ -489,9 +396,11 @@ export function TranslationUpload({
               type="text"
               value={abbreviation}
               onChange={(e) => setAbbreviation(e.target.value)}
+              onBlur={(e) => checkAbbreviationForMerge(e.target.value)}
               placeholder="e.g., NRSV"
-              className="w-full rounded-lg border border-input-border px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring"
+              className={`w-full rounded-lg border border-input-border px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring ${isMerge ? "bg-surface-alt text-muted" : ""}`}
               maxLength={10}
+              readOnly={isMerge}
             />
           </div>
         </div>
@@ -504,7 +413,7 @@ export function TranslationUpload({
             disabled={!name.trim() || !abbreviation.trim()}
             className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save translation
+            {isMerge ? "Merge into translation" : "Save translation"}
           </button>
           <button
             type="button"
@@ -539,7 +448,7 @@ export function TranslationUpload({
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-sm font-medium">Translation saved! You can now select it in the reader.</span>
+          <span className="text-sm font-medium">{existingManifest ? "Books merged!" : "Translation saved!"} You can now select it in the reader.</span>
         </div>
         <button
           type="button"

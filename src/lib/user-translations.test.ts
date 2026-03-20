@@ -32,34 +32,66 @@ import { getDb } from "./idb";
 
 // ── Helpers: build mock DB and test fixtures ──
 
-/** Creates a fresh mock DB with all the methods user-translations.ts uses. */
+/**
+ * Creates a fresh mock DB with all the methods user-translations.ts uses.
+ *
+ * saveUserTranslation opens multiple transactions:
+ * 1. readwrite on chapters (put new chapters)
+ * 2. readonly on chapters (scan all chapters via by-translation index)
+ * 3. db.get for existing manifest check
+ * 4. db.put for manifest save
+ *
+ * The mock tracks written chapters in _txPuts and serves them back
+ * through the index.getAll() call in the read transaction.
+ */
 function createMockDb() {
-  // Storage for the transaction's put calls
+  // Storage for the transaction's put calls (simulates chapter store contents)
   const txPuts: unknown[] = [];
 
-  const mockStore = {
+  // Chapters already in the "database" before this save — set by tests for merge scenarios
+  let preExistingChapters: unknown[] = [];
+
+  const createWriteStore = () => ({
     put: vi.fn((value: unknown) => {
       txPuts.push(value);
       return Promise.resolve();
     }),
     index: vi.fn(),
-  };
+  });
 
-  const mockTx = {
-    store: mockStore,
-    done: Promise.resolve(),
-  };
+  const createReadStore = () => ({
+    put: vi.fn(),
+    index: vi.fn(() => ({
+      // Return pre-existing chapters merged with newly written ones
+      getAll: vi.fn(() => Promise.resolve([...preExistingChapters, ...txPuts])),
+      openCursor: vi.fn().mockResolvedValue(null),
+    })),
+  });
+
+  // Track transaction calls so tests can inspect
+  const writeStore = createWriteStore();
+  const readStore = createReadStore();
+  let txCallCount = 0;
 
   return {
     put: vi.fn().mockResolvedValue(undefined),
     get: vi.fn().mockResolvedValue(undefined),
     getAll: vi.fn().mockResolvedValue([]),
     delete: vi.fn().mockResolvedValue(undefined),
-    transaction: vi.fn(() => mockTx),
+    transaction: vi.fn((_storeName: string, mode?: string) => {
+      txCallCount++;
+      // First transaction is readwrite (save chapters), second is readonly (scan)
+      const store = mode === "readwrite" ? writeStore : readStore;
+      return { store, done: Promise.resolve() };
+    }),
     // Expose internals for assertions
-    _tx: mockTx,
     _txPuts: txPuts,
-    _txStore: mockStore,
+    _txWriteStore: writeStore,
+    _txReadStore: readStore,
+    _setPreExistingChapters: (chapters: unknown[]) => {
+      preExistingChapters = chapters;
+    },
+    get _txCallCount() { return txCallCount; },
   };
 }
 
@@ -188,7 +220,7 @@ describe("saveUserTranslation", () => {
             id: "tob",
             name: "Tobit", // fallback to originalName
             chapters: 1,
-            testament: "OT", // fallback testament
+            testament: "DC", // fallback testament for unknown books
           },
         ],
       }),
@@ -201,17 +233,23 @@ describe("saveUserTranslation", () => {
 
     await saveUserTranslation(manifest, parseResult);
 
-    // A transaction should be opened on user-translation-chapters
+    // Should open readwrite transaction for saving chapters
     expect(mockDb.transaction).toHaveBeenCalledWith(
       "user-translation-chapters",
       "readwrite",
     );
 
-    // Two chapters in John should produce two puts on the transaction store
-    expect(mockDb._txStore.put).toHaveBeenCalledTimes(2);
+    // Should also open readonly transaction for scanning all chapters
+    expect(mockDb.transaction).toHaveBeenCalledWith(
+      "user-translation-chapters",
+      "readonly",
+    );
+
+    // Two chapters in John should produce two puts on the write transaction store
+    expect(mockDb._txWriteStore.put).toHaveBeenCalledTimes(2);
 
     // First chapter
-    expect(mockDb._txStore.put).toHaveBeenCalledWith(
+    expect(mockDb._txWriteStore.put).toHaveBeenCalledWith(
       expect.objectContaining({
         translation: "user-nrsv",
         book: "jhn",
@@ -225,7 +263,7 @@ describe("saveUserTranslation", () => {
     );
 
     // Second chapter
-    expect(mockDb._txStore.put).toHaveBeenCalledWith(
+    expect(mockDb._txWriteStore.put).toHaveBeenCalledWith(
       expect.objectContaining({
         translation: "user-nrsv",
         book: "jhn",
@@ -274,7 +312,96 @@ describe("saveUserTranslation", () => {
     );
 
     // Two chapter records total (one per book)
-    expect(mockDb._txStore.put).toHaveBeenCalledTimes(2);
+    expect(mockDb._txWriteStore.put).toHaveBeenCalledTimes(2);
+  });
+
+  it("merges new books into existing translation without removing old ones", async () => {
+    const manifest = createTestManifest();
+
+    // Simulate Genesis already being in the database from a previous upload
+    mockDb._setPreExistingChapters([
+      { translation: "user-nrsv", book: "gen", chapter: 1, bookName: "Genesis", verses: [{ number: 1, text: "In the beginning." }] },
+      { translation: "user-nrsv", book: "gen", chapter: 2, bookName: "Genesis", verses: [{ number: 1, text: "Thus the heavens." }] },
+    ]);
+
+    // New upload contains only John
+    const parseResult = createTestParseResult(); // John ch 1-2
+    await saveUserTranslation(manifest, parseResult);
+
+    // Manifest should contain BOTH Genesis (from pre-existing) and John (from new upload)
+    expect(mockDb.put).toHaveBeenCalledWith(
+      "user-translation-manifests",
+      expect.objectContaining({
+        books: expect.arrayContaining([
+          expect.objectContaining({ id: "gen", name: "Genesis", chapters: 2 }),
+          expect.objectContaining({ id: "jhn", name: "John", chapters: 2 }),
+        ]),
+      }),
+    );
+  });
+
+  it("preserves existing manifest metadata on merge", async () => {
+    // Simulate an existing manifest already in the DB
+    const existingManifest = createTestManifest({
+      name: "My NRSV Bible",
+      abbreviation: "NRSV",
+      uploadedAt: "2026-01-01T00:00:00Z",
+      originalFilename: "nrsv-ot.txt",
+    });
+    mockDb.get.mockResolvedValue(existingManifest);
+
+    // New upload with different name/abbreviation — should be ignored on merge
+    const newManifest = createTestManifest({
+      name: "NRSV Second Upload",
+      abbreviation: "NRSV2",
+      uploadedAt: "2026-03-19T00:00:00Z",
+    });
+    const parseResult = createTestParseResult();
+    await saveUserTranslation(newManifest, parseResult);
+
+    // Manifest should preserve existing identity fields
+    expect(mockDb.put).toHaveBeenCalledWith(
+      "user-translation-manifests",
+      expect.objectContaining({
+        name: "My NRSV Bible",
+        abbreviation: "NRSV",
+        uploadedAt: "2026-01-01T00:00:00Z",
+        originalFilename: "nrsv-ot.txt",
+      }),
+    );
+  });
+
+  it("uses max chapter number for book entry in manifest", async () => {
+    const manifest = createTestManifest();
+
+    // Pre-existing: Genesis chapters 1, 3, 5 (non-contiguous)
+    mockDb._setPreExistingChapters([
+      { translation: "user-nrsv", book: "gen", chapter: 1, bookName: "Genesis", verses: [] },
+      { translation: "user-nrsv", book: "gen", chapter: 3, bookName: "Genesis", verses: [] },
+      { translation: "user-nrsv", book: "gen", chapter: 5, bookName: "Genesis", verses: [] },
+    ]);
+
+    // New upload: Genesis chapter 50
+    const parseResult: ParseResult = {
+      books: [{
+        bookId: "gen",
+        originalName: "Genesis",
+        chapters: [{ chapter: 50, verses: [{ number: 1, text: "Final chapter." }] }],
+      }],
+      warnings: [],
+    };
+
+    await saveUserTranslation(manifest, parseResult);
+
+    // Genesis should have chapters: 50 (the max chapter number found)
+    expect(mockDb.put).toHaveBeenCalledWith(
+      "user-translation-manifests",
+      expect.objectContaining({
+        books: expect.arrayContaining([
+          expect.objectContaining({ id: "gen", chapters: 50 }),
+        ]),
+      }),
+    );
   });
 });
 
@@ -393,7 +520,7 @@ describe("deleteUserTranslation", () => {
     const mockIndex = {
       openCursor: vi.fn().mockResolvedValue(cursor1),
     };
-    mockDb._txStore.index.mockReturnValue(mockIndex);
+    mockDb._txWriteStore.index.mockReturnValue(mockIndex);
 
     await deleteUserTranslation("user-nrsv");
 
@@ -404,7 +531,7 @@ describe("deleteUserTranslation", () => {
     );
 
     // Should look up the "by-translation" index
-    expect(mockDb._txStore.index).toHaveBeenCalledWith("by-translation");
+    expect(mockDb._txWriteStore.index).toHaveBeenCalledWith("by-translation");
 
     // Should open a cursor for the given translation ID
     expect(mockIndex.openCursor).toHaveBeenCalledWith("user-nrsv");
@@ -423,7 +550,7 @@ describe("deleteUserTranslation", () => {
     const mockIndex = {
       openCursor: vi.fn().mockResolvedValue(null),
     };
-    mockDb._txStore.index.mockReturnValue(mockIndex);
+    mockDb._txWriteStore.index.mockReturnValue(mockIndex);
 
     await deleteUserTranslation("user-empty");
 

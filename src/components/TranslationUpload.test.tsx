@@ -2,14 +2,14 @@
  * Tests for TranslationUpload — the upload wizard for user Bible translations.
  *
  * Covers the initial "pick" step: drop zone rendering, file input configuration,
- * and keyboard accessibility. Also covers the backup prompt flow when encryption
- * is set up but not yet unlocked.
+ * and keyboard accessibility. Also verifies that file selection goes straight
+ * to parsing without any intermediate prompts.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { TranslationUpload } from "./TranslationUpload";
+import type { ParseResult } from "../types/user-translation";
 
 // ── Module mocks ──
 // The component imports these at the top level, so we mock them
@@ -33,6 +33,9 @@ vi.mock("../lib/translation-backup", () => ({
 vi.mock("../lib/idb", () => ({
   getDb: vi.fn(),
 }));
+
+import { parseTextBible } from "../lib/text-parser";
+import { getUserTranslationManifest } from "../lib/user-translations";
 
 describe("TranslationUpload", () => {
   const mockOnSaved = vi.fn();
@@ -76,54 +79,11 @@ describe("TranslationUpload", () => {
     expect(dropZone).toHaveAttribute("tabindex", "0");
   });
 
-  describe("backup prompt", () => {
-    const mockOnUnlock = vi.fn();
-
-    it("shows backup prompt when encryption is set up but locked", async () => {
+  describe("file selection", () => {
+    it("goes straight to parsing when a file is selected (no backup prompt)", async () => {
       render(
         <TranslationUpload
           onSaved={mockOnSaved}
-          hasEncryption={true}
-          cryptoKey={null}
-          onUnlock={mockOnUnlock}
-          userId="user-123"
-          canBackup={true}
-        />,
-      );
-
-      // Simulate file selection via the hidden input
-      const fileInput = document.querySelector(
-        'input[type="file"]',
-      ) as HTMLInputElement;
-      const file = new File(["test content"], "bible.txt", { type: "text/plain" });
-      fireEvent.change(fileInput, { target: { files: [file] } });
-
-      // Should see the backup prompt, NOT the parsing state
-      expect(
-        await screen.findByText("Back up this translation?"),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/Enter your passphrase to save an encrypted backup/),
-      ).toBeInTheDocument();
-
-      // Should have skip and cancel buttons
-      expect(screen.getByText(/Skip/)).toBeInTheDocument();
-      expect(screen.getByText("Cancel")).toBeInTheDocument();
-
-      // Should have a passphrase input
-      expect(screen.getByPlaceholderText("Your passphrase")).toBeInTheDocument();
-    });
-
-    it("skips backup prompt when encryption is already unlocked", async () => {
-      // Use a real CryptoKey-like object (truthy value)
-      const fakeCryptoKey = {} as CryptoKey;
-
-      render(
-        <TranslationUpload
-          onSaved={mockOnSaved}
-          hasEncryption={true}
-          cryptoKey={fakeCryptoKey}
-          onUnlock={mockOnUnlock}
           userId="user-123"
           canBackup={true}
         />,
@@ -135,167 +95,83 @@ describe("TranslationUpload", () => {
       const file = new File(["test content"], "bible.txt", { type: "text/plain" });
       fireEvent.change(fileInput, { target: { files: [file] } });
 
-      // Should NOT show backup prompt — should go straight to parsing/error
+      // Should go straight to parsing — no backup prompt
       await waitFor(() => {
         expect(screen.queryByText("Back up this translation?")).not.toBeInTheDocument();
       });
+      // Drop zone should be gone (we moved past "pick" step)
+      expect(screen.queryByText("Drop a file here, or click to browse")).not.toBeInTheDocument();
     });
+  });
 
-    it("skips backup prompt when no encryption is set up", async () => {
-      render(
-        <TranslationUpload
-          onSaved={mockOnSaved}
-          hasEncryption={false}
-          userId="user-123"
-        />,
-      );
+  describe("merge detection", () => {
+    /** Helper: parse result with one book */
+    const mockParseResult: ParseResult = {
+      books: [{
+        bookId: "jhn" as any,
+        originalName: "John",
+        chapters: [{ chapter: 1, verses: [{ number: 1, text: "Test." }] }],
+      }],
+      warnings: [],
+    };
 
-      const fileInput = document.querySelector(
-        'input[type="file"]',
-      ) as HTMLInputElement;
-      const file = new File(["test content"], "bible.txt", { type: "text/plain" });
+    /** Helper: upload a .txt file and wait for preview */
+    async function uploadFileAndWaitForPreview() {
+      const file = new File(["test content"], "NRSVUE.txt", { type: "text/plain" });
+      vi.mocked(parseTextBible).mockResolvedValue(mockParseResult);
+
+      render(<TranslationUpload onSaved={mockOnSaved} />);
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(fileInput, { target: { files: [file] } });
 
-      // Should NOT show backup prompt
+      // Wait for preview step to render
       await waitFor(() => {
-        expect(screen.queryByText("Back up this translation?")).not.toBeInTheDocument();
+        expect(screen.getByText(/Found in NRSVUE.txt/)).toBeInTheDocument();
       });
-    });
+    }
 
-    it("proceeds to parsing after user clicks skip", async () => {
-      render(
-        <TranslationUpload
-          onSaved={mockOnSaved}
-          hasEncryption={true}
-          cryptoKey={null}
-          onUnlock={mockOnUnlock}
-          userId="user-123"
-          canBackup={true}
-        />,
-      );
-
-      // Select a file to trigger the backup prompt
-      const fileInput = document.querySelector(
-        'input[type="file"]',
-      ) as HTMLInputElement;
-      const file = new File(["test content"], "bible.txt", { type: "text/plain" });
-      fireEvent.change(fileInput, { target: { files: [file] } });
-
-      // Wait for backup prompt
-      await screen.findByText("Back up this translation?");
-
-      // Click skip
-      const skipButton = screen.getByText(/Skip/);
-      await userEvent.click(skipButton);
-
-      // Should leave the backup prompt (either parsing or error state)
-      await waitFor(() => {
-        expect(screen.queryByText("Back up this translation?")).not.toBeInTheDocument();
+    it("shows merge banner when abbreviation matches existing translation", async () => {
+      // Simulate an existing translation with the same abbreviation
+      vi.mocked(getUserTranslationManifest).mockResolvedValue({
+        translation: "user-nrsvue",
+        name: "NRSVUE",
+        abbreviation: "NRSVUE",
+        language: "en",
+        license: "Personal use",
+        books: [
+          { id: "gen", name: "Genesis", chapters: 50, testament: "OT" },
+          { id: "exo", name: "Exodus", chapters: 40, testament: "OT" },
+        ],
+        uploadedAt: "2026-03-01T00:00:00Z",
+        originalFilename: "nrsvue-ot.txt",
+        fileType: "text",
       });
+
+      await uploadFileAndWaitForPreview();
+
+      // Should show merge banner with book counts
+      expect(screen.getByText(/Adding to your existing NRSVUE translation/)).toBeInTheDocument();
+      expect(screen.getByText(/2 existing books/)).toBeInTheDocument();
     });
 
-    it("calls onUnlock when user submits passphrase", async () => {
-      mockOnUnlock.mockResolvedValue(true);
+    it("shows 'Merge into translation' button during merge", async () => {
+      vi.mocked(getUserTranslationManifest).mockResolvedValue({
+        translation: "user-nrsvue",
+        name: "NRSVUE",
+        abbreviation: "NRSVUE",
+        language: "en",
+        license: "Personal use",
+        books: [{ id: "gen", name: "Genesis", chapters: 50, testament: "OT" }],
+        uploadedAt: "2026-03-01T00:00:00Z",
+        originalFilename: "nrsvue-ot.txt",
+        fileType: "text",
+      });
 
-      render(
-        <TranslationUpload
-          onSaved={mockOnSaved}
-          hasEncryption={true}
-          cryptoKey={null}
-          onUnlock={mockOnUnlock}
-          userId="user-123"
-          canBackup={true}
-        />,
-      );
+      await uploadFileAndWaitForPreview();
 
-      // Select a file to trigger the backup prompt
-      const fileInput = document.querySelector(
-        'input[type="file"]',
-      ) as HTMLInputElement;
-      const file = new File(["test content"], "bible.txt", { type: "text/plain" });
-      fireEvent.change(fileInput, { target: { files: [file] } });
-
-      // Wait for backup prompt
-      await screen.findByText("Back up this translation?");
-
-      // Type passphrase and submit
-      const passphraseInput = screen.getByPlaceholderText("Your passphrase");
-      await userEvent.type(passphraseInput, "my-secret-phrase");
-
-      const unlockButton = screen.getByRole("button", { name: "Unlock" });
-      await userEvent.click(unlockButton);
-
-      // Should have called onUnlock with the passphrase
-      expect(mockOnUnlock).toHaveBeenCalledWith("my-secret-phrase");
-    });
-
-    it("shows error when passphrase is wrong", async () => {
-      mockOnUnlock.mockResolvedValue(false);
-
-      render(
-        <TranslationUpload
-          onSaved={mockOnSaved}
-          hasEncryption={true}
-          cryptoKey={null}
-          onUnlock={mockOnUnlock}
-          userId="user-123"
-          canBackup={true}
-        />,
-      );
-
-      // Select a file to trigger the backup prompt
-      const fileInput = document.querySelector(
-        'input[type="file"]',
-      ) as HTMLInputElement;
-      const file = new File(["test content"], "bible.txt", { type: "text/plain" });
-      fireEvent.change(fileInput, { target: { files: [file] } });
-
-      // Wait for backup prompt
-      await screen.findByText("Back up this translation?");
-
-      // Type wrong passphrase and submit
-      const passphraseInput = screen.getByPlaceholderText("Your passphrase");
-      await userEvent.type(passphraseInput, "wrong-phrase");
-
-      const unlockButton = screen.getByRole("button", { name: "Unlock" });
-      await userEvent.click(unlockButton);
-
-      // Should show error, stay on the backup prompt
-      expect(
-        await screen.findByText(/passphrase didn/),
-      ).toBeInTheDocument();
-      expect(screen.getByText("Back up this translation?")).toBeInTheDocument();
-    });
-
-    it("cancel returns to the file picker", async () => {
-      render(
-        <TranslationUpload
-          onSaved={mockOnSaved}
-          hasEncryption={true}
-          cryptoKey={null}
-          onUnlock={mockOnUnlock}
-          userId="user-123"
-          canBackup={true}
-        />,
-      );
-
-      // Select a file to trigger the backup prompt
-      const fileInput = document.querySelector(
-        'input[type="file"]',
-      ) as HTMLInputElement;
-      const file = new File(["test content"], "bible.txt", { type: "text/plain" });
-      fireEvent.change(fileInput, { target: { files: [file] } });
-
-      // Wait for backup prompt
-      await screen.findByText("Back up this translation?");
-
-      // Click cancel
-      await userEvent.click(screen.getByText("Cancel"));
-
-      // Should return to the drop zone
-      expect(
-        await screen.findByText("Drop a file here, or click to browse"),
-      ).toBeInTheDocument();
+      // Save button should say "Merge" instead of "Save"
+      expect(screen.getByRole("button", { name: "Merge into translation" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Save translation" })).not.toBeInTheDocument();
     });
   });
 });

@@ -17,7 +17,7 @@ import type {
   ParseResult,
   ParsedBook,
 } from "../types/user-translation";
-import type { BookInfo, ChapterData } from "../types/bible";
+import type { BookId, BookInfo, ChapterData } from "../types/bible";
 import { BOOK_BY_ID } from "./constants";
 
 /**
@@ -29,10 +29,15 @@ export function isUserTranslation(translationId: string): boolean {
 }
 
 /**
- * Save a fully parsed translation to IndexedDB.
+ * Save a fully parsed translation to IndexedDB (merge-aware).
  *
- * Writes the manifest first, then all chapter data. If a translation
- * with the same ID already exists, it's overwritten.
+ * Additive merge: new chapters are written via put() (overlapping chapters
+ * update, existing ones are untouched). The manifest's book list is then
+ * rebuilt from ALL stored chapters for this translation, so previous
+ * uploads are never lost.
+ *
+ * If an existing manifest is found, its identity fields (name, abbreviation,
+ * uploadedAt) are preserved so the translation keeps its original metadata.
  *
  * @param manifest - The translation metadata
  * @param parseResult - The parsed books and chapters
@@ -43,27 +48,8 @@ export async function saveUserTranslation(
 ): Promise<void> {
   const db = await getDb();
 
-  // Build the book list for the manifest from parsed data
-  const books: BookInfo[] = parseResult.books.map((pb: ParsedBook) => {
-    // Try to get chapter count and testament from built-in book data
-    const builtIn = BOOK_BY_ID.get(pb.bookId);
-    return {
-      id: pb.bookId,
-      name: builtIn?.name ?? pb.originalName,
-      chapters: pb.chapters.length,
-      testament: builtIn?.testament ?? "OT",
-    };
-  });
-
-  // Save manifest with the computed book list
-  const fullManifest: UserTranslationManifest = {
-    ...manifest,
-    books,
-  };
-  await db.put("user-translation-manifests", fullManifest);
-
-  // Save all chapter data in a single transaction
-  const tx = db.transaction("user-translation-chapters", "readwrite");
+  // 1. Save new chapters — put() is additive (updates overlapping, keeps others)
+  const writeTx = db.transaction("user-translation-chapters", "readwrite");
   for (const book of parseResult.books) {
     const builtIn = BOOK_BY_ID.get(book.bookId);
     for (const chapter of book.chapters) {
@@ -74,10 +60,51 @@ export async function saveUserTranslation(
         bookName: builtIn?.name ?? book.originalName,
         verses: chapter.verses,
       };
-      tx.store.put(record);
+      writeTx.store.put(record);
     }
   }
-  await tx.done;
+  await writeTx.done;
+
+  // 2. Scan ALL stored chapters for this translation to rebuild the book list
+  const readTx = db.transaction("user-translation-chapters", "readonly");
+  const index = readTx.store.index("by-translation");
+  const allChapters: StoredUserChapter[] = await index.getAll(manifest.translation);
+  await readTx.done;
+
+  // 3. Rebuild books array from the full set of chapters (old + new)
+  const bookMap = new Map<string, { name: string; maxChapter: number; testament: BookInfo["testament"] }>();
+  for (const ch of allChapters) {
+    const existing = bookMap.get(ch.book);
+    const builtIn = BOOK_BY_ID.get(ch.book as BookId);
+    if (!existing) {
+      bookMap.set(ch.book, {
+        name: builtIn?.name ?? ch.bookName,
+        maxChapter: ch.chapter,
+        testament: builtIn?.testament ?? "DC",
+      });
+    } else {
+      if (ch.chapter > existing.maxChapter) {
+        existing.maxChapter = ch.chapter;
+      }
+    }
+  }
+
+  const books: BookInfo[] = Array.from(bookMap.entries()).map(([id, info]) => ({
+    id: id as BookId,
+    name: info.name,
+    chapters: info.maxChapter,
+    testament: info.testament,
+  }));
+
+  // 4. Preserve existing manifest metadata on merge
+  const existingManifest = await db.get("user-translation-manifests", manifest.translation);
+  const fullManifest: UserTranslationManifest = {
+    ...(existingManifest ?? manifest),
+    books,
+  };
+
+  // 5. Save the merged manifest
+  await db.put("user-translation-manifests", fullManifest);
 }
 
 /**

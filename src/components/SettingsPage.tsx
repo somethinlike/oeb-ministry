@@ -599,8 +599,6 @@ function TranslationsSection({
           userId={userId}
           cryptoKey={cryptoKey}
           canBackup={canBackup}
-          hasEncryption={hasEncryption}
-          onUnlock={unlock}
         />
       </div>
     </Section>
