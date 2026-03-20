@@ -52,7 +52,7 @@ interface WorkspacePrefs {
   audioAutoScroll: boolean;
 }
 
-const DEFAULTS: WorkspacePrefs = {
+export const WORKSPACE_DEFAULTS: WorkspacePrefs = {
   splitRatio: 0.6,
   swapped: false,
   undocked: false,
@@ -73,35 +73,35 @@ function clampRatio(ratio: number): number {
 export function loadWorkspacePrefs(): WorkspacePrefs {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...DEFAULTS };
+    if (!raw) return { ...WORKSPACE_DEFAULTS };
     const parsed = JSON.parse(raw) as Partial<WorkspacePrefs>;
     return {
-      splitRatio: clampRatio(parsed.splitRatio ?? DEFAULTS.splitRatio),
-      swapped: typeof parsed.swapped === "boolean" ? parsed.swapped : DEFAULTS.swapped,
-      undocked: typeof parsed.undocked === "boolean" ? parsed.undocked : DEFAULTS.undocked,
+      splitRatio: clampRatio(parsed.splitRatio ?? WORKSPACE_DEFAULTS.splitRatio),
+      swapped: typeof parsed.swapped === "boolean" ? parsed.swapped : WORKSPACE_DEFAULTS.swapped,
+      undocked: typeof parsed.undocked === "boolean" ? parsed.undocked : WORKSPACE_DEFAULTS.undocked,
       readerLayout:
         parsed.readerLayout === "centered" || parsed.readerLayout === "columns"
           ? parsed.readerLayout
-          : DEFAULTS.readerLayout,
+          : WORKSPACE_DEFAULTS.readerLayout,
       readerFont: VALID_FONTS.has(parsed.readerFont ?? "")
         ? (parsed.readerFont as ReaderFont)
-        : DEFAULTS.readerFont,
+        : WORKSPACE_DEFAULTS.readerFont,
       annotationDots: VALID_DOT_STYLES.has(parsed.annotationDots ?? "")
         ? (parsed.annotationDots as AnnotationDotStyle)
-        : DEFAULTS.annotationDots,
-      cleanView: typeof parsed.cleanView === "boolean" ? parsed.cleanView : DEFAULTS.cleanView,
+        : WORKSPACE_DEFAULTS.annotationDots,
+      cleanView: typeof parsed.cleanView === "boolean" ? parsed.cleanView : WORKSPACE_DEFAULTS.cleanView,
       audioVolume: typeof parsed.audioVolume === "number"
         ? Math.min(1, Math.max(0, parsed.audioVolume))
-        : DEFAULTS.audioVolume,
+        : WORKSPACE_DEFAULTS.audioVolume,
       audioSpeed: typeof parsed.audioSpeed === "number"
         ? Math.min(4, Math.max(0.25, parsed.audioSpeed))
-        : DEFAULTS.audioSpeed,
+        : WORKSPACE_DEFAULTS.audioSpeed,
       audioAutoScroll: typeof parsed.audioAutoScroll === "boolean"
         ? parsed.audioAutoScroll
-        : DEFAULTS.audioAutoScroll,
+        : WORKSPACE_DEFAULTS.audioAutoScroll,
     };
   } catch {
-    return { ...DEFAULTS };
+    return { ...WORKSPACE_DEFAULTS };
   }
 }
 

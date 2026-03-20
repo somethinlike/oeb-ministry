@@ -13,6 +13,7 @@
 import { useState, useEffect } from "react";
 import { useWorkspace } from "./WorkspaceProvider";
 import { useAudioContext } from "../AudioProvider";
+import { useHydrated } from "../../hooks/useHydrated";
 import { TranslationPicker } from "./TranslationPicker";
 import { SUPPORTED_TRANSLATIONS, BOOK_BY_ID } from "../../lib/constants";
 import type { BookId } from "../../types/bible";
@@ -76,6 +77,8 @@ export function WorkspaceToolbar({
     (t) => t.id === translation,
   );
   const bookInfo = BOOK_BY_ID.get(book as BookId);
+
+  const hydrated = useHydrated();
 
   // Offline cache state for current book
   const [bookOffline, setBookOffline] = useState<boolean | null>(null);
@@ -156,7 +159,7 @@ export function WorkspaceToolbar({
       {/* Right-side actions */}
       <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
         {/* Offline cache indicator for current book */}
-        {typeof caches !== "undefined" && bookInfo && (
+        {hydrated && typeof caches !== "undefined" && bookInfo && (
           <div className="relative">
             <button
               type="button"

@@ -17,7 +17,7 @@
  * - Header has a re-dock button to snap it back into the split-pane
  */
 
-import { useState, useRef, useCallback, type ReactNode } from "react";
+import { useState, useRef, useCallback, useEffect, type ReactNode } from "react";
 
 interface FloatingPanelProps {
   /** Panel content (AnnotationSidebar) */
@@ -32,13 +32,16 @@ const DEFAULT_HEIGHT = 520;
 const MARGIN = 16;
 
 export function FloatingPanel({ children, onDock }: FloatingPanelProps) {
-  // Position state — starts in the top-right area of the viewport
-  const [pos, setPos] = useState(() => ({
-    x: typeof window !== "undefined"
-      ? window.innerWidth - DEFAULT_WIDTH - MARGIN
-      : MARGIN,
-    y: MARGIN + 60, // below the nav bar
-  }));
+  // Position state — starts with a neutral default (matches server render),
+  // then repositions to top-right of the viewport after mount
+  const [pos, setPos] = useState({ x: MARGIN, y: MARGIN + 60 });
+
+  useEffect(() => {
+    setPos({
+      x: window.innerWidth - DEFAULT_WIDTH - MARGIN,
+      y: MARGIN + 60,
+    });
+  }, []);
 
   // Track the offset between mouse and panel corner during drag
   const dragOffset = useRef({ x: 0, y: 0 });

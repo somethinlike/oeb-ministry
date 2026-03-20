@@ -17,6 +17,7 @@ import {
   isChapterCached,
 } from "../lib/offline-books";
 import { isUserTranslation, getUserTranslationManifest } from "../lib/user-translations";
+import { useHydrated } from "../hooks/useHydrated";
 
 interface ChapterPickerProps {
   translation: string;
@@ -24,6 +25,7 @@ interface ChapterPickerProps {
 }
 
 export function ChapterPicker({ translation, book }: ChapterPickerProps) {
+  const hydrated = useHydrated();
   const builtInBookInfo = BOOK_BY_ID.get(book as BookId);
   // For user translations, book info comes from IndexedDB
   const [userBookInfo, setUserBookInfo] = useState<BookInfo | null>(null);
@@ -122,7 +124,7 @@ export function ChapterPicker({ translation, book }: ChapterPickerProps) {
           {bookInfo.name}
         </h2>
         {/* Save book offline button */}
-        {typeof caches !== "undefined" && (
+        {hydrated && typeof caches !== "undefined" && (
           <button
             type="button"
             onClick={handleSaveBookOffline}

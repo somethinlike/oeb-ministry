@@ -28,6 +28,7 @@ import { BottomSheet } from "./BottomSheet";
 import {
   loadWorkspacePrefs,
   saveWorkspacePrefs,
+  WORKSPACE_DEFAULTS,
   type ReaderLayout,
   type ReaderFont,
   type AnnotationDotStyle,
@@ -35,8 +36,10 @@ import {
 import {
   loadTranslationToggles,
   saveTranslationToggles,
+  TOGGLE_DEFAULTS,
   type TranslationToggles,
 } from "../../lib/translation-toggles";
+import { useHydrated } from "../../hooks/useHydrated";
 import type { ReaderSettingsProps } from "./ReaderSettingsPopover";
 
 interface WorkspaceProps {
@@ -55,18 +58,33 @@ export function Workspace({
   userId,
   userEmail,
 }: WorkspaceProps) {
-  // Load persisted preferences (split ratio + swapped sides + undocked)
-  const [prefs] = useState(() => loadWorkspacePrefs());
-  const [splitRatio, setSplitRatio] = useState(prefs.splitRatio);
-  const [swapped, setSwapped] = useState(prefs.swapped);
-  const [undocked, setUndocked] = useState(prefs.undocked);
-  const [readerLayout, setReaderLayout] = useState<ReaderLayout>(prefs.readerLayout);
-  const [readerFont, setReaderFont] = useState<ReaderFont>(prefs.readerFont);
-  const [annotationDots, setAnnotationDots] = useState<AnnotationDotStyle>(prefs.annotationDots);
-  const [cleanView, setCleanView] = useState(prefs.cleanView);
+  const hydrated = useHydrated();
+
+  // Start with safe defaults (matches server render), then load user
+  // preferences from localStorage after hydration to avoid mismatch
+  const [splitRatio, setSplitRatio] = useState(WORKSPACE_DEFAULTS.splitRatio);
+  const [swapped, setSwapped] = useState(WORKSPACE_DEFAULTS.swapped);
+  const [undocked, setUndocked] = useState(WORKSPACE_DEFAULTS.undocked);
+  const [readerLayout, setReaderLayout] = useState<ReaderLayout>(WORKSPACE_DEFAULTS.readerLayout);
+  const [readerFont, setReaderFont] = useState<ReaderFont>(WORKSPACE_DEFAULTS.readerFont);
+  const [annotationDots, setAnnotationDots] = useState<AnnotationDotStyle>(WORKSPACE_DEFAULTS.annotationDots);
+  const [cleanView, setCleanView] = useState(WORKSPACE_DEFAULTS.cleanView);
   const [translationToggles, setTranslationToggles] = useState<TranslationToggles>(
-    () => loadTranslationToggles(),
+    { ...TOGGLE_DEFAULTS },
   );
+
+  // After hydration, load saved preferences from localStorage
+  useEffect(() => {
+    const prefs = loadWorkspacePrefs();
+    setSplitRatio(prefs.splitRatio);
+    setSwapped(prefs.swapped);
+    setUndocked(prefs.undocked);
+    setReaderLayout(prefs.readerLayout);
+    setReaderFont(prefs.readerFont);
+    setAnnotationDots(prefs.annotationDots);
+    setCleanView(prefs.cleanView);
+    setTranslationToggles(loadTranslationToggles());
+  }, []);
 
   // Ref to the split container — divider needs it to calculate ratio
   const containerRef = useRef<HTMLDivElement>(null);

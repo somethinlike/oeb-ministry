@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { BOOKS } from "../lib/constants";
 import type { BookInfo } from "../types/bible";
 import { cacheBookOffline, isBookCached } from "../lib/offline-books";
+import { useHydrated } from "../hooks/useHydrated";
 import { isUserTranslation, getUserTranslationManifest } from "../lib/user-translations";
 
 interface BookPickerProps {
@@ -146,6 +147,7 @@ function BookTile({
   book: BookInfo;
   translation: string;
 }) {
+  const hydrated = useHydrated();
   const [cached, setCached] = useState<boolean | null>(null);
   const [caching, setCaching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -211,7 +213,7 @@ function BookTile({
         </div>
       )}
       {/* Save offline button — top-right corner */}
-      {typeof caches !== "undefined" && (
+      {hydrated && typeof caches !== "undefined" && (
         <button
           type="button"
           onClick={handleSaveOffline}
