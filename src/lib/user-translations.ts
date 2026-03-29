@@ -18,7 +18,7 @@ import type {
   ParsedBook,
 } from "../types/user-translation";
 import type { BookId, BookInfo, ChapterData } from "../types/bible";
-import { BOOK_BY_ID } from "./constants";
+import { BOOK_BY_ID, BOOKS } from "./constants";
 
 /**
  * Check if a translation ID belongs to a user-uploaded translation.
@@ -45,8 +45,21 @@ export function isUserTranslation(translationId: string): boolean {
 export async function saveUserTranslation(
   manifest: UserTranslationManifest,
   parseResult: ParseResult,
+  mode: "merge" | "replace" = "merge",
 ): Promise<void> {
   const db = await getDb();
+
+  // 0. In replace mode, delete all existing chapters for this translation first
+  if (mode === "replace") {
+    const delTx = db.transaction("user-translation-chapters", "readwrite");
+    const delIndex = delTx.store.index("by-translation");
+    let cursor = await delIndex.openCursor(manifest.translation);
+    while (cursor) {
+      await cursor.delete();
+      cursor = await cursor.continue();
+    }
+    await delTx.done;
+  }
 
   // 1. Save new chapters — put() is additive (updates overlapping, keeps others)
   const writeTx = db.transaction("user-translation-chapters", "readwrite");
@@ -89,15 +102,21 @@ export async function saveUserTranslation(
     }
   }
 
-  const books: BookInfo[] = Array.from(bookMap.entries()).map(([id, info]) => ({
-    id: id as BookId,
-    name: info.name,
-    chapters: info.maxChapter,
-    testament: info.testament,
-  }));
+  // Sort by canonical Bible book order (unknown books sort to the end)
+  const canonicalOrder = new Map(BOOKS.map((b, i) => [b.id, i]));
+  const books: BookInfo[] = Array.from(bookMap.entries())
+    .map(([id, info]) => ({
+      id: id as BookId,
+      name: info.name,
+      chapters: info.maxChapter,
+      testament: info.testament,
+    }))
+    .sort((a, b) => (canonicalOrder.get(a.id) ?? 999) - (canonicalOrder.get(b.id) ?? 999));
 
-  // 4. Preserve existing manifest metadata on merge
-  const existingManifest = await db.get("user-translation-manifests", manifest.translation);
+  // 4. Preserve existing manifest metadata on merge, use new manifest on replace
+  const existingManifest = mode === "merge"
+    ? await db.get("user-translation-manifests", manifest.translation)
+    : undefined;
   const fullManifest: UserTranslationManifest = {
     ...(existingManifest ?? manifest),
     books,

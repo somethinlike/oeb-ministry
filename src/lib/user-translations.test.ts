@@ -20,13 +20,17 @@ vi.mock("./idb", () => ({
 
 // We also need to mock BOOK_BY_ID from constants so the module can
 // look up built-in book metadata without loading the full constants file.
-vi.mock("./constants", () => ({
-  BOOK_BY_ID: new Map([
-    ["jhn", { id: "jhn", name: "John", chapters: 21, testament: "NT" }],
-    ["gen", { id: "gen", name: "Genesis", chapters: 50, testament: "OT" }],
-    ["mat", { id: "mat", name: "Matthew", chapters: 28, testament: "NT" }],
-  ]),
-}));
+vi.mock("./constants", () => {
+  const books = [
+    { id: "gen", name: "Genesis", chapters: 50, testament: "OT" },
+    { id: "mat", name: "Matthew", chapters: 28, testament: "NT" },
+    { id: "jhn", name: "John", chapters: 21, testament: "NT" },
+  ];
+  return {
+    BOOKS: books,
+    BOOK_BY_ID: new Map(books.map((b) => [b.id, b])),
+  };
+});
 
 import { getDb } from "./idb";
 

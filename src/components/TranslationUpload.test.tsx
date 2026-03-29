@@ -130,7 +130,7 @@ describe("TranslationUpload", () => {
       });
     }
 
-    it("shows merge banner when abbreviation matches existing translation", async () => {
+    it("shows replace/merge choice when abbreviation matches existing translation", async () => {
       // Simulate an existing translation with the same abbreviation
       vi.mocked(getUserTranslationManifest).mockResolvedValue({
         translation: "user-nrsvue",
@@ -149,12 +149,14 @@ describe("TranslationUpload", () => {
 
       await uploadFileAndWaitForPreview();
 
-      // Should show merge banner with book counts
-      expect(screen.getByText(/Adding to your existing NRSVUE translation/)).toBeInTheDocument();
-      expect(screen.getByText(/2 existing books/)).toBeInTheDocument();
+      // Should show existing translation notice with book count
+      expect(screen.getByText(/You already have a NRSVUE translation with 2 books/)).toBeInTheDocument();
+      // Should show replace and merge radio options
+      expect(screen.getByLabelText(/Replace/)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Merge/)).toBeInTheDocument();
     });
 
-    it("shows 'Merge into translation' button during merge", async () => {
+    it("defaults to 'Replace translation' button when existing translation detected", async () => {
       vi.mocked(getUserTranslationManifest).mockResolvedValue({
         translation: "user-nrsvue",
         name: "NRSVUE",
@@ -169,8 +171,8 @@ describe("TranslationUpload", () => {
 
       await uploadFileAndWaitForPreview();
 
-      // Save button should say "Merge" instead of "Save"
-      expect(screen.getByRole("button", { name: "Merge into translation" })).toBeInTheDocument();
+      // Default mode is replace
+      expect(screen.getByRole("button", { name: "Replace translation" })).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Save translation" })).not.toBeInTheDocument();
     });
   });
