@@ -1,0 +1,751 @@
+{
+  "version": 2,
+  "generatedAt": "2026-04-08T16:10:09.304Z",
+  "files": {
+    "playwright.config.ts": {
+      "filePath": "playwright.config.ts",
+      "mtimeMs": 1774873085609.7302,
+      "size": 1229
+    },
+    "public/sw.js": {
+      "filePath": "public/sw.js",
+      "mtimeMs": 1774873087476.992,
+      "size": 5611
+    },
+    "scripts/convert-kjv1611.ts": {
+      "filePath": "scripts/convert-kjv1611.ts",
+      "mtimeMs": 1774873087477.992,
+      "size": 8346
+    },
+    "scripts/convert-oeb.ts": {
+      "filePath": "scripts/convert-oeb.ts",
+      "mtimeMs": 1774873087477.992,
+      "size": 15592
+    },
+    "scripts/convert-scrollmapper.ts": {
+      "filePath": "scripts/convert-scrollmapper.ts",
+      "mtimeMs": 1774873087479.301,
+      "size": 8740
+    },
+    "scripts/convert-web.ts": {
+      "filePath": "scripts/convert-web.ts",
+      "mtimeMs": 1774873087479.301,
+      "size": 15952
+    },
+    "scripts/download-bible.ts": {
+      "filePath": "scripts/download-bible.ts",
+      "mtimeMs": 1774873087479.301,
+      "size": 13359
+    },
+    "scripts/generate-icons.ts": {
+      "filePath": "scripts/generate-icons.ts",
+      "mtimeMs": 1774873087480.3015,
+      "size": 3978
+    },
+    "src/components/AnnotationPanel.tsx": {
+      "filePath": "src/components/AnnotationPanel.tsx",
+      "mtimeMs": 1774873087480.3015,
+      "size": 30091
+    },
+    "src/components/AnnotationPicker.tsx": {
+      "filePath": "src/components/AnnotationPicker.tsx",
+      "mtimeMs": 1774873087481.3003,
+      "size": 11561
+    },
+    "src/components/AnnotationSearch.tsx": {
+      "filePath": "src/components/AnnotationSearch.tsx",
+      "mtimeMs": 1774873087481.3003,
+      "size": 15814
+    },
+    "src/components/AppNav.tsx": {
+      "filePath": "src/components/AppNav.tsx",
+      "mtimeMs": 1774873087482.2998,
+      "size": 13534
+    },
+    "src/components/AudioPlayerBar.tsx": {
+      "filePath": "src/components/AudioPlayerBar.tsx",
+      "mtimeMs": 1774873087482.2998,
+      "size": 8339
+    },
+    "src/components/AudioProvider.tsx": {
+      "filePath": "src/components/AudioProvider.tsx",
+      "mtimeMs": 1774873087482.2998,
+      "size": 1884
+    },
+    "src/components/AudioTimingEditor.tsx": {
+      "filePath": "src/components/AudioTimingEditor.tsx",
+      "mtimeMs": 1774873087483.3,
+      "size": 34628
+    },
+    "src/components/AuthGuard.tsx": {
+      "filePath": "src/components/AuthGuard.tsx",
+      "mtimeMs": 1774873087483.3,
+      "size": 2476
+    },
+    "src/components/AuthProvider.tsx": {
+      "filePath": "src/components/AuthProvider.tsx",
+      "mtimeMs": 1774873087484.2998,
+      "size": 1791
+    },
+    "src/components/BookPicker.tsx": {
+      "filePath": "src/components/BookPicker.tsx",
+      "mtimeMs": 1774873087484.2998,
+      "size": 8787
+    },
+    "src/components/Cc0Intercession.tsx": {
+      "filePath": "src/components/Cc0Intercession.tsx",
+      "mtimeMs": 1774873087484.2998,
+      "size": 10451
+    },
+    "src/components/ChapterPicker.tsx": {
+      "filePath": "src/components/ChapterPicker.tsx",
+      "mtimeMs": 1774873087485.2998,
+      "size": 7878
+    },
+    "src/components/ChapterReader.tsx": {
+      "filePath": "src/components/ChapterReader.tsx",
+      "mtimeMs": 1774873087485.2998,
+      "size": 18462
+    },
+    "src/components/CommandPalette.tsx": {
+      "filePath": "src/components/CommandPalette.tsx",
+      "mtimeMs": 1774873087485.2998,
+      "size": 7041
+    },
+    "src/components/CommunityTabs.tsx": {
+      "filePath": "src/components/CommunityTabs.tsx",
+      "mtimeMs": 1774873087486.3,
+      "size": 1721
+    },
+    "src/components/ConnectionStatus.tsx": {
+      "filePath": "src/components/ConnectionStatus.tsx",
+      "mtimeMs": 1774873087486.3,
+      "size": 4439
+    },
+    "src/components/CrossReferencePicker.tsx": {
+      "filePath": "src/components/CrossReferencePicker.tsx",
+      "mtimeMs": 1774873087487.3,
+      "size": 14610
+    },
+    "src/components/DevotionalDetail.tsx": {
+      "filePath": "src/components/DevotionalDetail.tsx",
+      "mtimeMs": 1774873087487.3,
+      "size": 18668
+    },
+    "src/components/DevotionalForm.tsx": {
+      "filePath": "src/components/DevotionalForm.tsx",
+      "mtimeMs": 1774873087487.3,
+      "size": 8628
+    },
+    "src/components/DevotionalList.tsx": {
+      "filePath": "src/components/DevotionalList.tsx",
+      "mtimeMs": 1774873087488.3,
+      "size": 6090
+    },
+    "src/components/EncryptionProvider.tsx": {
+      "filePath": "src/components/EncryptionProvider.tsx",
+      "mtimeMs": 1774873087488.3,
+      "size": 7582
+    },
+    "src/components/EncryptionSetup.tsx": {
+      "filePath": "src/components/EncryptionSetup.tsx",
+      "mtimeMs": 1774873087488.3,
+      "size": 17217
+    },
+    "src/components/ErrorBoundary.tsx": {
+      "filePath": "src/components/ErrorBoundary.tsx",
+      "mtimeMs": 1774873087489.5994,
+      "size": 1770
+    },
+    "src/components/ExportButton.tsx": {
+      "filePath": "src/components/ExportButton.tsx",
+      "mtimeMs": 1774873087489.5994,
+      "size": 8530
+    },
+    "src/components/KeybindingEditor.tsx": {
+      "filePath": "src/components/KeybindingEditor.tsx",
+      "mtimeMs": 1774873087490.5984,
+      "size": 12477
+    },
+    "src/components/KeyboardManager.tsx": {
+      "filePath": "src/components/KeyboardManager.tsx",
+      "mtimeMs": 1774873087490.5984,
+      "size": 10226
+    },
+    "src/components/MarkdownEditor.tsx": {
+      "filePath": "src/components/MarkdownEditor.tsx",
+      "mtimeMs": 1774873087490.5984,
+      "size": 9412
+    },
+    "src/components/ModerationQueue.tsx": {
+      "filePath": "src/components/ModerationQueue.tsx",
+      "mtimeMs": 1774873087491.5984,
+      "size": 12957
+    },
+    "src/components/OfflineDownloads.tsx": {
+      "filePath": "src/components/OfflineDownloads.tsx",
+      "mtimeMs": 1774873087491.5984,
+      "size": 10073
+    },
+    "src/components/ProfileEditor.tsx": {
+      "filePath": "src/components/ProfileEditor.tsx",
+      "mtimeMs": 1774873087492.5984,
+      "size": 9068
+    },
+    "src/components/PublicFeed.tsx": {
+      "filePath": "src/components/PublicFeed.tsx",
+      "mtimeMs": 1774873087492.5984,
+      "size": 9759
+    },
+    "src/components/PublicProfilePage.tsx": {
+      "filePath": "src/components/PublicProfilePage.tsx",
+      "mtimeMs": 1774873087493.5984,
+      "size": 7819
+    },
+    "src/components/PublishedDevotionalDetail.tsx": {
+      "filePath": "src/components/PublishedDevotionalDetail.tsx",
+      "mtimeMs": 1774873087493.5984,
+      "size": 9154
+    },
+    "src/components/PublishedDevotionalsFeed.tsx": {
+      "filePath": "src/components/PublishedDevotionalsFeed.tsx",
+      "mtimeMs": 1774873087494.6006,
+      "size": 8519
+    },
+    "src/components/PublishedNotes.tsx": {
+      "filePath": "src/components/PublishedNotes.tsx",
+      "mtimeMs": 1774873087494.6006,
+      "size": 4254
+    },
+    "src/components/RecycleBin.tsx": {
+      "filePath": "src/components/RecycleBin.tsx",
+      "mtimeMs": 1774873087494.6006,
+      "size": 14585
+    },
+    "src/components/SettingsPage.tsx": {
+      "filePath": "src/components/SettingsPage.tsx",
+      "mtimeMs": 1774873087495.5986,
+      "size": 29228
+    },
+    "src/components/SignInForm.tsx": {
+      "filePath": "src/components/SignInForm.tsx",
+      "mtimeMs": 1774873087495.5986,
+      "size": 7072
+    },
+    "src/components/Skeleton.tsx": {
+      "filePath": "src/components/Skeleton.tsx",
+      "mtimeMs": 1774873087496.897,
+      "size": 1347
+    },
+    "src/components/TranslationRestore.tsx": {
+      "filePath": "src/components/TranslationRestore.tsx",
+      "mtimeMs": 1774873087496.897,
+      "size": 8267
+    },
+    "src/components/TranslationUpload.tsx": {
+      "filePath": "src/components/TranslationUpload.tsx",
+      "mtimeMs": 1774873087497.896,
+      "size": 23214
+    },
+    "src/components/UpdatePrompt.tsx": {
+      "filePath": "src/components/UpdatePrompt.tsx",
+      "mtimeMs": 1774873087497.896,
+      "size": 2183
+    },
+    "src/components/UserTranslationGrid.tsx": {
+      "filePath": "src/components/UserTranslationGrid.tsx",
+      "mtimeMs": 1774873087498.896,
+      "size": 2194
+    },
+    "src/components/UserTranslationManager.tsx": {
+      "filePath": "src/components/UserTranslationManager.tsx",
+      "mtimeMs": 1774873087499.896,
+      "size": 9082
+    },
+    "src/components/VerseCitePicker.tsx": {
+      "filePath": "src/components/VerseCitePicker.tsx",
+      "mtimeMs": 1774873087499.896,
+      "size": 16480
+    },
+    "src/components/workspace/__test-helpers.tsx": {
+      "filePath": "src/components/workspace/__test-helpers.tsx",
+      "mtimeMs": 1774873087510.1956,
+      "size": 1921
+    },
+    "src/components/workspace/AnnotationSidebar.tsx": {
+      "filePath": "src/components/workspace/AnnotationSidebar.tsx",
+      "mtimeMs": 1774873087501.8962,
+      "size": 2602
+    },
+    "src/components/workspace/BottomSheet.tsx": {
+      "filePath": "src/components/workspace/BottomSheet.tsx",
+      "mtimeMs": 1774873087501.8962,
+      "size": 7359
+    },
+    "src/components/workspace/ChapterAnnotationList.tsx": {
+      "filePath": "src/components/workspace/ChapterAnnotationList.tsx",
+      "mtimeMs": 1774873087502.8958,
+      "size": 5074
+    },
+    "src/components/workspace/FloatingPanel.tsx": {
+      "filePath": "src/components/workspace/FloatingPanel.tsx",
+      "mtimeMs": 1774873087503.8958,
+      "size": 4828
+    },
+    "src/components/workspace/FontPicker.tsx": {
+      "filePath": "src/components/workspace/FontPicker.tsx",
+      "mtimeMs": 1774873087503.8958,
+      "size": 1762
+    },
+    "src/components/workspace/index.ts": {
+      "filePath": "src/components/workspace/index.ts",
+      "mtimeMs": 1774873087511.1936,
+      "size": 226
+    },
+    "src/components/workspace/ReaderPane.tsx": {
+      "filePath": "src/components/workspace/ReaderPane.tsx",
+      "mtimeMs": 1774873087503.8958,
+      "size": 3090
+    },
+    "src/components/workspace/ReaderSettingsPopover.tsx": {
+      "filePath": "src/components/workspace/ReaderSettingsPopover.tsx",
+      "mtimeMs": 1774873087505.1943,
+      "size": 9736
+    },
+    "src/components/workspace/SplitPaneDivider.tsx": {
+      "filePath": "src/components/workspace/SplitPaneDivider.tsx",
+      "mtimeMs": 1774873087505.1943,
+      "size": 4240
+    },
+    "src/components/workspace/TranslationFirstOpenPopup.tsx": {
+      "filePath": "src/components/workspace/TranslationFirstOpenPopup.tsx",
+      "mtimeMs": 1774873087506.1936,
+      "size": 3808
+    },
+    "src/components/workspace/TranslationInfoIcon.tsx": {
+      "filePath": "src/components/workspace/TranslationInfoIcon.tsx",
+      "mtimeMs": 1774873087507.1943,
+      "size": 2503
+    },
+    "src/components/workspace/TranslationPicker.tsx": {
+      "filePath": "src/components/workspace/TranslationPicker.tsx",
+      "mtimeMs": 1774873087507.1943,
+      "size": 8953
+    },
+    "src/components/workspace/TranslationToggleMenu.tsx": {
+      "filePath": "src/components/workspace/TranslationToggleMenu.tsx",
+      "mtimeMs": 1774873087508.1936,
+      "size": 5915
+    },
+    "src/components/workspace/Workspace.tsx": {
+      "filePath": "src/components/workspace/Workspace.tsx",
+      "mtimeMs": 1774873087509.1936,
+      "size": 17185
+    },
+    "src/components/workspace/WorkspaceProvider.tsx": {
+      "filePath": "src/components/workspace/WorkspaceProvider.tsx",
+      "mtimeMs": 1774873087509.1936,
+      "size": 13816
+    },
+    "src/components/workspace/WorkspaceToolbar.tsx": {
+      "filePath": "src/components/workspace/WorkspaceToolbar.tsx",
+      "mtimeMs": 1774873087510.1956,
+      "size": 18024
+    },
+    "src/components/YouTubePlayer.tsx": {
+      "filePath": "src/components/YouTubePlayer.tsx",
+      "mtimeMs": 1774873087500.8958,
+      "size": 1722
+    },
+    "src/hooks/useAudioPlayback.ts": {
+      "filePath": "src/hooks/useAudioPlayback.ts",
+      "mtimeMs": 1774873087511.1936,
+      "size": 5430
+    },
+    "src/hooks/useAudioSync.ts": {
+      "filePath": "src/hooks/useAudioSync.ts",
+      "mtimeMs": 1774873087512.1938,
+      "size": 5166
+    },
+    "src/hooks/useHydrated.ts": {
+      "filePath": "src/hooks/useHydrated.ts",
+      "mtimeMs": 1774873087512.5034,
+      "size": 1350
+    },
+    "src/hooks/useYouTubePlayer.ts": {
+      "filePath": "src/hooks/useYouTubePlayer.ts",
+      "mtimeMs": 1774873087513.5044,
+      "size": 9240
+    },
+    "src/layouts/AppLayout.astro": {
+      "filePath": "src/layouts/AppLayout.astro",
+      "mtimeMs": 1774873087513.5044,
+      "size": 3125
+    },
+    "src/layouts/BaseLayout.astro": {
+      "filePath": "src/layouts/BaseLayout.astro",
+      "mtimeMs": 1774873087513.5044,
+      "size": 2502
+    },
+    "src/lib/ai-screening.ts": {
+      "filePath": "src/lib/ai-screening.ts",
+      "mtimeMs": 1774873087514.5037,
+      "size": 5909
+    },
+    "src/lib/annotations.ts": {
+      "filePath": "src/lib/annotations.ts",
+      "mtimeMs": 1774873087515.5037,
+      "size": 24118
+    },
+    "src/lib/audio-sync-cloud.ts": {
+      "filePath": "src/lib/audio-sync-cloud.ts",
+      "mtimeMs": 1774873087516.5034,
+      "size": 8727
+    },
+    "src/lib/audio-sync.ts": {
+      "filePath": "src/lib/audio-sync.ts",
+      "mtimeMs": 1774873087517.5037,
+      "size": 4565
+    },
+    "src/lib/bible-loader.ts": {
+      "filePath": "src/lib/bible-loader.ts",
+      "mtimeMs": 1774873087517.5037,
+      "size": 1952
+    },
+    "src/lib/book-name-aliases.ts": {
+      "filePath": "src/lib/book-name-aliases.ts",
+      "mtimeMs": 1774873087518.5037,
+      "size": 12021
+    },
+    "src/lib/commands.ts": {
+      "filePath": "src/lib/commands.ts",
+      "mtimeMs": 1774873087519.5037,
+      "size": 14988
+    },
+    "src/lib/constants.ts": {
+      "filePath": "src/lib/constants.ts",
+      "mtimeMs": 1774873087519.5037,
+      "size": 8412
+    },
+    "src/lib/crypto.ts": {
+      "filePath": "src/lib/crypto.ts",
+      "mtimeMs": 1774873087520.5044,
+      "size": 10590
+    },
+    "src/lib/denomination-presets.ts": {
+      "filePath": "src/lib/denomination-presets.ts",
+      "mtimeMs": 1774873087520.8218,
+      "size": 7697
+    },
+    "src/lib/devotional-bibles.ts": {
+      "filePath": "src/lib/devotional-bibles.ts",
+      "mtimeMs": 1774873087521.821,
+      "size": 22351
+    },
+    "src/lib/epub-parser.ts": {
+      "filePath": "src/lib/epub-parser.ts",
+      "mtimeMs": 1774873087522.8208,
+      "size": 10606
+    },
+    "src/lib/export-html.ts": {
+      "filePath": "src/lib/export-html.ts",
+      "mtimeMs": 1774873087522.8208,
+      "size": 8863
+    },
+    "src/lib/export.ts": {
+      "filePath": "src/lib/export.ts",
+      "mtimeMs": 1774873087523.8206,
+      "size": 6948
+    },
+    "src/lib/health.ts": {
+      "filePath": "src/lib/health.ts",
+      "mtimeMs": 1774873087524.8206,
+      "size": 399
+    },
+    "src/lib/idb.ts": {
+      "filePath": "src/lib/idb.ts",
+      "mtimeMs": 1774873087525.821,
+      "size": 3364
+    },
+    "src/lib/logos-parser.ts": {
+      "filePath": "src/lib/logos-parser.ts",
+      "mtimeMs": 1774873087526.8213,
+      "size": 14185
+    },
+    "src/lib/offline-books.ts": {
+      "filePath": "src/lib/offline-books.ts",
+      "mtimeMs": 1774873087526.8213,
+      "size": 3107
+    },
+    "src/lib/offline-store.ts": {
+      "filePath": "src/lib/offline-store.ts",
+      "mtimeMs": 1774873087527.8206,
+      "size": 4551
+    },
+    "src/lib/preference-sync.ts": {
+      "filePath": "src/lib/preference-sync.ts",
+      "mtimeMs": 1774873087527.8206,
+      "size": 13219
+    },
+    "src/lib/reader-fonts.ts": {
+      "filePath": "src/lib/reader-fonts.ts",
+      "mtimeMs": 1774873087528.8206,
+      "size": 2834
+    },
+    "src/lib/register-sw.ts": {
+      "filePath": "src/lib/register-sw.ts",
+      "mtimeMs": 1774873087529.8206,
+      "size": 1230
+    },
+    "src/lib/sanitize-schema.ts": {
+      "filePath": "src/lib/sanitize-schema.ts",
+      "mtimeMs": 1774873087530.13,
+      "size": 3913
+    },
+    "src/lib/supabase-server.ts": {
+      "filePath": "src/lib/supabase-server.ts",
+      "mtimeMs": 1774873087530.13,
+      "size": 3146
+    },
+    "src/lib/supabase.ts": {
+      "filePath": "src/lib/supabase.ts",
+      "mtimeMs": 1774873087531.129,
+      "size": 1511
+    },
+    "src/lib/sync-engine.ts": {
+      "filePath": "src/lib/sync-engine.ts",
+      "mtimeMs": 1774873087531.129,
+      "size": 5926
+    },
+    "src/lib/text-parser.ts": {
+      "filePath": "src/lib/text-parser.ts",
+      "mtimeMs": 1774873087532.1292,
+      "size": 6955
+    },
+    "src/lib/theme.ts": {
+      "filePath": "src/lib/theme.ts",
+      "mtimeMs": 1774873087532.1292,
+      "size": 4145
+    },
+    "src/lib/translation-backup.ts": {
+      "filePath": "src/lib/translation-backup.ts",
+      "mtimeMs": 1774873087533.1287,
+      "size": 9217
+    },
+    "src/lib/translation-info.ts": {
+      "filePath": "src/lib/translation-info.ts",
+      "mtimeMs": 1774873087533.1287,
+      "size": 10728
+    },
+    "src/lib/translation-toggles.ts": {
+      "filePath": "src/lib/translation-toggles.ts",
+      "mtimeMs": 1774873087534.129,
+      "size": 8332
+    },
+    "src/lib/user-profiles.ts": {
+      "filePath": "src/lib/user-profiles.ts",
+      "mtimeMs": 1774873087535.129,
+      "size": 8007
+    },
+    "src/lib/user-translations.ts": {
+      "filePath": "src/lib/user-translations.ts",
+      "mtimeMs": 1774873087536.13,
+      "size": 6552
+    },
+    "src/lib/verse-ref.ts": {
+      "filePath": "src/lib/verse-ref.ts",
+      "mtimeMs": 1774873087536.13,
+      "size": 3535
+    },
+    "src/lib/verse-selection.ts": {
+      "filePath": "src/lib/verse-selection.ts",
+      "mtimeMs": 1774873087537.129,
+      "size": 2192
+    },
+    "src/lib/verse-text.ts": {
+      "filePath": "src/lib/verse-text.ts",
+      "mtimeMs": 1774873087538.129,
+      "size": 1059
+    },
+    "src/lib/workspace-prefs.ts": {
+      "filePath": "src/lib/workspace-prefs.ts",
+      "mtimeMs": 1774873087539.129,
+      "size": 5127
+    },
+    "src/middleware.ts": {
+      "filePath": "src/middleware.ts",
+      "mtimeMs": 1774873087539.4526,
+      "size": 1393
+    },
+    "src/pages/404.astro": {
+      "filePath": "src/pages/404.astro",
+      "mtimeMs": 1774873087539.4526,
+      "size": 1308
+    },
+    "src/pages/app/annotate.astro": {
+      "filePath": "src/pages/app/annotate.astro",
+      "mtimeMs": 1774873087540.4807,
+      "size": 2079
+    },
+    "src/pages/app/community.astro": {
+      "filePath": "src/pages/app/community.astro",
+      "mtimeMs": 1774873087540.4807,
+      "size": 1012
+    },
+    "src/pages/app/community/devotionals/[id].astro": {
+      "filePath": "src/pages/app/community/devotionals/[id].astro",
+      "mtimeMs": 1774873087541.4807,
+      "size": 725
+    },
+    "src/pages/app/devotionals.astro": {
+      "filePath": "src/pages/app/devotionals.astro",
+      "mtimeMs": 1774873087541.4807,
+      "size": 839
+    },
+    "src/pages/app/devotionals/[id].astro": {
+      "filePath": "src/pages/app/devotionals/[id].astro",
+      "mtimeMs": 1774873087542.4797,
+      "size": 970
+    },
+    "src/pages/app/devotionals/edit/[id].astro": {
+      "filePath": "src/pages/app/devotionals/edit/[id].astro",
+      "mtimeMs": 1774873087542.4797,
+      "size": 984
+    },
+    "src/pages/app/devotionals/new.astro": {
+      "filePath": "src/pages/app/devotionals/new.astro",
+      "mtimeMs": 1774873087542.4797,
+      "size": 805
+    },
+    "src/pages/app/moderation.astro": {
+      "filePath": "src/pages/app/moderation.astro",
+      "mtimeMs": 1774873087543.4795,
+      "size": 900
+    },
+    "src/pages/app/published.astro": {
+      "filePath": "src/pages/app/published.astro",
+      "mtimeMs": 1774873087543.4795,
+      "size": 979
+    },
+    "src/pages/app/read/[...path].astro": {
+      "filePath": "src/pages/app/read/[...path].astro",
+      "mtimeMs": 1774873087544.4797,
+      "size": 6168
+    },
+    "src/pages/app/recycle-bin.astro": {
+      "filePath": "src/pages/app/recycle-bin.astro",
+      "mtimeMs": 1774873087544.4797,
+      "size": 1050
+    },
+    "src/pages/app/search.astro": {
+      "filePath": "src/pages/app/search.astro",
+      "mtimeMs": 1774873087544.4797,
+      "size": 1974
+    },
+    "src/pages/app/settings.astro": {
+      "filePath": "src/pages/app/settings.astro",
+      "mtimeMs": 1774873087545.4797,
+      "size": 1273
+    },
+    "src/pages/auth/callback.astro": {
+      "filePath": "src/pages/auth/callback.astro",
+      "mtimeMs": 1774873087545.4797,
+      "size": 2509
+    },
+    "src/pages/auth/identity-linked.astro": {
+      "filePath": "src/pages/auth/identity-linked.astro",
+      "mtimeMs": 1774873087545.4797,
+      "size": 3680
+    },
+    "src/pages/auth/signin.astro": {
+      "filePath": "src/pages/auth/signin.astro",
+      "mtimeMs": 1774873087546.4797,
+      "size": 1220
+    },
+    "src/pages/auth/signout.astro": {
+      "filePath": "src/pages/auth/signout.astro",
+      "mtimeMs": 1774873087546.4797,
+      "size": 329
+    },
+    "src/pages/index.astro": {
+      "filePath": "src/pages/index.astro",
+      "mtimeMs": 1774873087546.4797,
+      "size": 4629
+    },
+    "src/pages/open-source-theology.astro": {
+      "filePath": "src/pages/open-source-theology.astro",
+      "mtimeMs": 1774873087547.78,
+      "size": 31879
+    },
+    "src/pages/profile/[slug].astro": {
+      "filePath": "src/pages/profile/[slug].astro",
+      "mtimeMs": 1774873087547.78,
+      "size": 624
+    },
+    "src/pages/translations.astro": {
+      "filePath": "src/pages/translations.astro",
+      "mtimeMs": 1774873087548.7795,
+      "size": 10246
+    },
+    "src/test-setup.ts": {
+      "filePath": "src/test-setup.ts",
+      "mtimeMs": 1774873087548.7795,
+      "size": 588
+    },
+    "src/types/annotation.ts": {
+      "filePath": "src/types/annotation.ts",
+      "mtimeMs": 1774873087549.7793,
+      "size": 3249
+    },
+    "src/types/audio-sync.ts": {
+      "filePath": "src/types/audio-sync.ts",
+      "mtimeMs": 1774873087549.7793,
+      "size": 2265
+    },
+    "src/types/auth.ts": {
+      "filePath": "src/types/auth.ts",
+      "mtimeMs": 1774873087550.7795,
+      "size": 850
+    },
+    "src/types/bible.ts": {
+      "filePath": "src/types/bible.ts",
+      "mtimeMs": 1774873087550.7795,
+      "size": 3586
+    },
+    "src/types/database.ts": {
+      "filePath": "src/types/database.ts",
+      "mtimeMs": 1774873087550.7795,
+      "size": 16393
+    },
+    "src/types/devotional-bible.ts": {
+      "filePath": "src/types/devotional-bible.ts",
+      "mtimeMs": 1774873087551.7793,
+      "size": 2836
+    },
+    "src/types/moderation.ts": {
+      "filePath": "src/types/moderation.ts",
+      "mtimeMs": 1774873087551.7793,
+      "size": 819
+    },
+    "src/types/user-profile.ts": {
+      "filePath": "src/types/user-profile.ts",
+      "mtimeMs": 1774873087551.7793,
+      "size": 865
+    },
+    "src/types/user-translation.ts": {
+      "filePath": "src/types/user-translation.ts",
+      "mtimeMs": 1774873087552.7793,
+      "size": 2696
+    },
+    "src/types/workspace.ts": {
+      "filePath": "src/types/workspace.ts",
+      "mtimeMs": 1774873087552.7793,
+      "size": 2428
+    },
+    "vitest.config.ts": {
+      "filePath": "vitest.config.ts",
+      "mtimeMs": 1774873087563.6013,
+      "size": 682
+    }
+  }
+}

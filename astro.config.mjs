@@ -5,6 +5,11 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
+  // Canonical site URL — used by Astro for sitemap generation, RSS feeds,
+  // and any `Astro.site`-derived absolute URLs (OG tags, canonical <link>).
+  // The .mn domain is an alias and 301-redirects to .church at the Vercel edge.
+  site: "https://logospraxis.church",
+
   // SSR mode — pages are server-rendered by default, which lets us
   // check auth state before sending HTML to the browser.
   output: "server",
