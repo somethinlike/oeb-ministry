@@ -153,7 +153,9 @@ enabled = true
 # in emails.
 site_url = "https://logospraxis.church"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-# Wildcards (`/**`) cover all callback paths under the host. Localhost entries are for dev parity.
+# This Supabase project is shared across the logospraxis domain family — OEB-Ministry at
+# logospraxis.church/.mn and Ministry Suite at class.logospraxis.church/.mn — so the allowlist
+# covers all family hostnames. Wildcards (`/**`) cover all callback paths under the host.
 additional_redirect_urls = [
   "http://localhost:4321/**",
   "http://localhost:4322/**",
@@ -161,9 +163,10 @@ additional_redirect_urls = [
   "https://www.logospraxis.church/**",
   "https://logospraxis.mn/**",
   "https://www.logospraxis.mn/**",
-  "https://oeb-ministry.vercel.app/auth/callback",
-  "http://localhost:4322/auth/callback",
-  "http://127.0.0.1:4322/auth/callback",
+  "https://class.logospraxis.church/**",
+  "https://www.class.logospraxis.church/**",
+  "https://class.logospraxis.mn/**",
+  "https://www.class.logospraxis.mn/**",
   "https://ministry-suite.vercel.app/auth/callback",
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
