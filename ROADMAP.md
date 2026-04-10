@@ -28,7 +28,7 @@ The minimum to be useful: read the Bible, write notes, take them with you.
 - [x] Breadcrumb navigation
 - [x] OEB placeholder verse detection (work-in-progress `{ }` markers)
 - [x] Translation first-open popup (explains each Bible's background)
-- [x] Domain: `oeb.esdf.gg` with OAuth working across all providers
+- [x] Domain: `logospraxis.church` (canonical) with OAuth working across all providers; `logospraxis.mn` and `www.*` variants 308-redirect to canonical
 
 ---
 

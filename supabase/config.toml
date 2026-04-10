@@ -151,9 +151,21 @@ max_indexes = 5
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "https://oeb.esdf.gg"
+site_url = "https://logospraxis.church"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["http://localhost:4321/auth/callback", "http://127.0.0.1:4321/auth/callback", "https://oeb-ministry.vercel.app/auth/callback", "https://oeb.esdf.gg/auth/callback", "http://localhost:4322/auth/callback", "http://127.0.0.1:4322/auth/callback", "https://ministry-suite.vercel.app/auth/callback", "http://localhost:4321/**", "http://localhost:4322/**"]
+# Wildcards (`/**`) cover all callback paths under the host. Localhost entries are for dev parity.
+additional_redirect_urls = [
+  "http://localhost:4321/**",
+  "http://localhost:4322/**",
+  "https://logospraxis.church/**",
+  "https://www.logospraxis.church/**",
+  "https://logospraxis.mn/**",
+  "https://www.logospraxis.mn/**",
+  "https://oeb-ministry.vercel.app/auth/callback",
+  "http://localhost:4322/auth/callback",
+  "http://127.0.0.1:4322/auth/callback",
+  "https://ministry-suite.vercel.app/auth/callback",
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to the local API URL (http://127.0.0.1:<port>/auth/v1).
