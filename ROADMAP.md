@@ -243,6 +243,28 @@ Require per-verse metadata or complex logic — can't be simple find-and-replace
 - [ ] Eviction priority: cached Bible text first (re-downloadable), user content last (irreplaceable)
 - [ ] Revisit when heavier offline features (full Bible downloads, search indexes) land
 
+### Vault Architecture for Copyrighted Translations
+
+Replace the current custom translation upload/parse pipeline (`epub-parser.ts`, `text-parser.ts`, `logos-parser.ts`, `TranslationUpload.tsx`) with a vault-based system that avoids server-side parsing entirely.
+
+**Problem:** The current parsers attempt heuristic extraction of verse-level data from arbitrary Bible file formats. Every new format is a new edge case. The server never sees copyrighted text (it's IndexedDB-local), but the parsing itself is fragile and unsustainable.
+
+**Solution — the Vault:**
+- [ ] Encrypted local content store (WebCrypto AES-256-GCM, same key derivation as private annotations)
+- [ ] User stores their copyrighted epub/txt Bible in the vault (local device or personal cloud like Google Drive)
+- [ ] Vault content is NEVER uploaded to logospraxis.church — the legal firewall
+- [ ] User's own AI (BYOM — Bring Your Own Model) generates a verse-mapping scheme from the vault file
+- [ ] The verse mapping maps `Book:Chapter:Verse` to positions in the original file — no copyrighted text in the mapping itself
+- [ ] PWA reads vault file + verse mapping at runtime, renders verses on-the-fly
+- [ ] Verse mappings can be published CC0 to help others with the same Bible edition
+- [ ] Built-in public domain translations (OEB, KJV, DR, WEB) remain as pre-parsed static JSON — unaffected
+
+**Why this works for Bibles specifically:** `Book:Chapter:Verse` addressing is universal across translations. An annotation on `Genesis:1:1` works whether the user reads KJV or NRSVue. The vault adds copyrighted text support without complicating the annotation model.
+
+**Shared infrastructure with any-book-annotations project:** The vault, BYOM integration, and scheme format will be shared between OEB-Ministry (pre-addressed Bible text) and the future any-book-annotations project (auto-addressed arbitrary books). OEB-Ministry is the proof of concept for the vault architecture.
+
+**Deprecation path:** When the vault ships, the existing parsers (`epub-parser.ts`, `text-parser.ts`, `logos-parser.ts`) and the `TranslationUpload.tsx` wizard become dead code and can be removed.
+
 ### Additional Bible Translations
 
 - [ ] Brenton LXX (Septuagint English) — investigate source and copyright
